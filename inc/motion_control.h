@@ -42,13 +42,21 @@
 /****MOTOR IN: END****/
 /***********MOTOR LEFT: END***************/
 
+typedef enum
+{
+	stopStatus = 0,
+	goStraightStatus,
+	backMode,
+}AgvStatus, *AgvStatus_P;
+
 typedef struct
 {
 	u8 settedSpeed;
-	u8 rightMotorSpeed;
-	u8 leftMotorSpeed;		
-	u8 rightMotorSpeeding;	// 电机实际速度
-	u8 leftMotorSpeeding;	// 电机实际速度
+	u8 rightMotorSettedSpeed;
+	u8 leftMotorSettedSpeed;		
+	u8 rightMotorSpeed;	// 电机实际速度
+	u8 leftMotorSpeed;	// 电机实际速度
+	AgvStatus agvStatus;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct

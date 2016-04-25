@@ -1,5 +1,7 @@
 #include "motion_control.h"
 #include "cfg_gpio.h"
+#include "timer_opts.h"
+#include "pwm_opts.h"
 
 ControlerParaStruct ctrlParas;
 ControlerParaStruct_P ctrlParasPtr = &ctrlParas;
@@ -8,38 +10,38 @@ MotionOperaterStruct_P motionOptsPtr = &motionOpts;
 
 
 /**********Motor Basic Control Unit: Begin****************/
-void Motor_Right_CR(ControlerParaStruct_P ctrlPtr)		// 正转
+void Motor_Right_CR(u8 speed)		// 正转
 {
 	MOTOR_RIGHT_BK = 1;
 	MOTOR_RIGHT_EN = 0;
 	
-	pwm3_optsPtr->Duty_Cycle_OC1_Set(pwM3ParaPtr, ctrlPtr->settedSpeed);
+	pwm3_optsPtr->Duty_Cycle_OC1_Set(pwM3ParaPtr, speed);
 }
 
-void Motor_Right_CCR(ControlerParaStruct_P ctrlPtr)	// 反转
+void Motor_Right_CCR(u8 speed)	// 反转
 {
 	MOTOR_RIGHT_BK = 1;
 	MOTOR_RIGHT_FR = 0;
 	MOTOR_RIGHT_EN = 0;
 
-	pwm3_optsPtr->Duty_Cycle_OC1_Set(pwM3ParaPtr, ctrlPtr->settedSpeed);
+	pwm3_optsPtr->Duty_Cycle_OC1_Set(pwM3ParaPtr, speed);
 }
 
-void Motor_Left_CR(ControlerParaStruct_P ctrlPtr)		// 正转
+void Motor_Left_CR(u8 speed)		// 正转
 {
 	MOTOR_LEFT_BK = 1;
 	MOTOR_LEFT_EN = 0;
 
-	pwm3_optsPtr->Duty_Cycle_OC2_Set(pwM3ParaPtr, ctrlPtr->settedSpeed);
+	pwm3_optsPtr->Duty_Cycle_OC2_Set(pwM3ParaPtr, speed);
 }
 
-void Motor_Left_CCR(ControlerParaStruct_P ctrlPtr)		// 反转
+void Motor_Left_CCR(u8 speed)		// 反转
 {
 	MOTOR_LEFT_BK = 1;
 	MOTOR_LEFT_FR = 0;
 	MOTOR_LEFT_EN = 0;
 
-	pwm3_optsPtr->Duty_Cycle_OC2_Set(pwM3ParaPtr, ctrlPtr->settedSpeed);
+	pwm3_optsPtr->Duty_Cycle_OC2_Set(pwM3ParaPtr, speed);
 }
 
 /**********Motor Basic Control Unit: End****************/
@@ -53,14 +55,27 @@ void AGV_Brake(void)
 	MOTOR_LEFT_BK = 0;
 }
 
-void AGV_Go_Straight_Start(void)
+void AGV_Stop(void)
+{	
+	Motor_Right_CR(0);
+	Motor_Left_CCR(0);
+}
+
+void AGV_Go_Straight_Start(u8 speed)
 {
+	ctrlParasPtr->rightMotorSettedSpeed = speed;
+	ctrlParasPtr->leftMotorSettedSpeed = speed;
 	
+	Motor_Right_CR(speed);
+	Motor_Left_CCR(speed);
+	
+	ctrlParasPtr->agvStatus = goStraightStatus;
 }
 
 void AGV_Go_Straight_Stop(void)
 {
-	
+	Motor_Right_CR(0);
+	Motor_Left_CCR(0);
 }
 
 void AGV_Go_Straight_Distance(void)
@@ -68,14 +83,16 @@ void AGV_Go_Straight_Distance(void)
 	
 }
 
-void AGV_Back_Start(void)
+void AGV_Back_Start(u8 speed)
 {
-	
+	Motor_Right_CCR(0);
+	Motor_Left_CR(0);
 }
 
 void AGV_Back_Stop(void)
 {
-	
+	Motor_Right_CCR(0);
+	Motor_Left_CR(0);
 }
 
 void AGV_Back_Distance(void)
@@ -83,9 +100,12 @@ void AGV_Back_Distance(void)
 	
 }
 
-void AGV_Turn_Left_Start(void)
+void AGV_Turn_Left_Start(u8 speed)
 {
-	
+	ctrlParasPtr->rightMotorSettedSpeed += speed;
+
+	Motor_Right_CR(ctrlParasPtr->rightMotorSettedSpeed);
+	Motor_Left_CCR(ctrlParasPtr->leftMotorSettedSpeed);
 }
 
 void AGV_Turn_Left_Stop(void)
@@ -166,6 +186,14 @@ void Motion_Ctrl_Init(void)
 	MOTOR_LEFT_EN = 1;
 	MOTOR_LEFT_FR = 1;
 	MOTOR_LEFT_BK = 0;
+
+	ctrlParasPtr->agvStatus = stopStatus;
+	ctrlParasPtr->settedSpeed = 0;
+	ctrlParasPtr->rightMotorSpeed = 0;
+	ctrlParasPtr->rightMotorSettedSpeed = 0;
+	ctrlParasPtr->leftMotorSpeed = 0;
+	ctrlParasPtr->leftMotorSettedSpeed = 0;
+	
 }
 
 
