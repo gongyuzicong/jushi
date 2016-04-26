@@ -191,7 +191,7 @@ void CB_USART_Config(void)
 	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
 	USART_ClockInit(USART1, &USART_ClockInitStructure);
 
-	USART_InitStructure.USART_BaudRate = 38400;
+	USART_InitStructure.USART_BaudRate = 115200;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;

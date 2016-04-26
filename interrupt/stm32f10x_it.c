@@ -24,6 +24,7 @@
 //#include "cfg_can.h"
 #include "cfg_gpio.h"
 #include "key_opts.h"
+#include "pwm_opts.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -488,26 +489,88 @@ void TIM1_CC_IRQHandler(void)
 *******************************************************************************/
 void TIM2_IRQHandler(void)
 {
-	// 500ms
+
+	vu16  capture = 0; 			/* 当前捕获计数值局部变量 */
+	printf("SR = %x\r\n", TIM2->SR);
+	/* 
+	*	TIM2 时钟 = 72 MHz, 分频数 = 7299 + 1, TIM2 counter clock = 10KHz
+	*	CC1 更新率 = TIM2 counter clock / CCRx_Val
+	*/
+	
+	if(TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_4, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4)));		
+		//PA_PIN_NOT(4);
+		/* 读出当前计数值 */
+		capture = TIM_GetCapture1(TIM2);
+		//printf("capture1 = %d\r\n", capture);
+		/* 根据当前计数值更新输出捕获寄存器 */
+		TIM_SetCompare1(TIM2, capture + 40000);
+
+		TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
+	}
+	else if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_5, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_5)));
+		//PA_PIN_NOT(5);
+		capture = TIM_GetCapture2(TIM2);
+		//printf("capture2 = %d\r\n", capture);
+		TIM_SetCompare2(TIM2, capture + 20000);
+
+		TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
+	}
+	else if(TIM_GetITStatus(TIM2, TIM_IT_CC3) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_6, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_6)));
+		//PA_PIN_NOT(6);
+		capture = TIM_GetCapture3(TIM2);
+		//printf("capture3 = %d\r\n", capture);
+		TIM_SetCompare3(TIM2, capture + 10000);
+
+		TIM_ClearITPendingBit(TIM2, TIM_IT_CC3);
+	}
+	else if(TIM_GetITStatus(TIM2, TIM_IT_CC4) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_7, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_7)));
+		//PA_PIN_NOT(7);
+		capture = TIM_GetCapture4(TIM2);
+		//printf("capture4 = %d\r\n", capture);
+		TIM_SetCompare4(TIM2, capture + 5000);
+
+		TIM_ClearITPendingBit(TIM2, TIM_IT_CC4);
+	}
+	else if(TIM2->SR & 0x0001)
+	{
+		//capture = TIM_GetCapture4(TIM3);
+		//printf("capture5 = %d\r\n", capture);
+		//printf("SR = %x\r\n", TIM3->SR);
+		TIM2->SR &= ~(1 << 0);	// 清除中断标志位
+	}
+
+
+}
+
+/*******************************************************************************
+* Function Name  : TIM3_IRQHandler
+* Description    : This function handles TIM3 global interrupt request.
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void TIM3_IRQHandler(void)
+{
+	
 	static vu8 cheatScreenAliveFlag = 29;
 	
-	if(TIM2->SR & 0x0001)	// 溢出中断
+	if(TIM3->SR & 0x0001)	// 溢出中断
 	{
 		static u8 flag = 1;
 		if(1 == flag)
 		{
-			//GPIOA_X_ON(6);
-			//GPIOA_X_ON(4);
-			//GPIOA_X_ON(5);
-			//GPIOA_X_ON(0);
 			flag = 0;
 		}
 		else
 		{
-			//GPIOA_X_OFF(6);
-			//GPIOA_X_OFF(4);
-			//GPIOA_X_OFF(5);
-			//GPIOA_X_OFF(0);
 			flag = 1;
 		}
 		
@@ -524,76 +587,8 @@ void TIM2_IRQHandler(void)
 		
 	}
 	
-	TIM2->SR &= ~(1 << 0);	// 清除中断标志位
-
-
-}
-
-/*******************************************************************************
-* Function Name  : TIM3_IRQHandler
-* Description    : This function handles TIM3 global interrupt request.
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void TIM3_IRQHandler(void)
-{
-	vu16  capture = 0; 			/* 当前捕获计数值局部变量 */
-	printf("SR = %x\r\n", TIM3->SR);
-	/* 
-	*	TIM2 时钟 = 72 MHz, 分频数 = 7299 + 1, TIM2 counter clock = 10KHz
-	*	CC1 更新率 = TIM2 counter clock / CCRx_Val
-	*/
+	TIM3->SR &= ~(1 << 0);	// 清除中断标志位
 	
-	if(TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_4, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4)));		
-		PA_PIN_NOT(4);
-		/* 读出当前计数值 */
-		capture = TIM_GetCapture1(TIM3);
-		//printf("capture1 = %d\r\n", capture);
-		/* 根据当前计数值更新输出捕获寄存器 */
-		TIM_SetCompare1(TIM3, capture + 40000);
-
-		TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
-	}
-	else if(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_5, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_5)));
-		PA_PIN_NOT(5);
-		capture = TIM_GetCapture2(TIM3);
-		//printf("capture2 = %d\r\n", capture);
-		TIM_SetCompare2(TIM3, capture + 20000);
-
-		TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
-	}
-	else if(TIM_GetITStatus(TIM3, TIM_IT_CC3) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_6, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_6)));
-		PA_PIN_NOT(6);
-		capture = TIM_GetCapture3(TIM3);
-		//printf("capture3 = %d\r\n", capture);
-		TIM_SetCompare3(TIM3, capture + 10000);
-
-		TIM_ClearITPendingBit(TIM3, TIM_IT_CC3);
-	}
-	else if(TIM_GetITStatus(TIM3, TIM_IT_CC4) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_7, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_7)));
-		PA_PIN_NOT(7);
-		capture = TIM_GetCapture4(TIM3);
-		//printf("capture4 = %d\r\n", capture);
-		TIM_SetCompare4(TIM3, capture + 5000);
-
-		TIM_ClearITPendingBit(TIM3, TIM_IT_CC4);
-	}
-	else if(TIM3->SR & 0x0001)
-	{
-		//capture = TIM_GetCapture4(TIM3);
-		//printf("capture5 = %d\r\n", capture);
-		//printf("SR = %x\r\n", TIM3->SR);
-		TIM3->SR &= ~(1 << 0);	// 清除中断标志位
-	}
 }
 
 /*******************************************************************************
@@ -606,6 +601,8 @@ void TIM3_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
 	static u8 keyScanTime = 0;
+	static u8 breathLedFre = 0;
+	static u8 pwmW = 0, flag = 1;
 	// 1ms
 	if(TIM4->SR & 0x0001)	// 溢出中断
 	{
@@ -621,6 +618,38 @@ void TIM4_IRQHandler(void)
 			{
 				keyScanFlag = 1;
 			}
+			
+		}
+
+		if(breathLedFre < 15)
+		{
+			breathLedFre++;
+		}
+		else
+		{
+			breathLedFre = 0;
+
+			if(1 == flag)
+			{
+				pwmW++;
+				
+				if(pwmW >= 100)
+				{
+					flag = 0;
+				}
+				
+			}
+			else
+			{
+				pwmW--;
+
+				if(pwmW <= 0)
+				{
+					flag = 1;
+				}
+			}
+
+			pwmOptsPtr_1->Duty_Cycle_OC2_Set(pwmParaPtr_1, pwmW);
 			
 		}
 	}

@@ -105,10 +105,10 @@
 #define LED4_ON 	GPIOA_X_ON(7)
 #define LED4_OFF	GPIOA_X_OFF(7)
 
-#define LED1		PAout(4)
-#define LED2		PAout(5)
-#define LED3		PAout(6)
-#define LED4		PAout(7)
+//#define LED1		PAout(4)
+#define LED2		PAout(1)
+//#define LED3		PAout(6)
+//#define LED4		PAout(7)
 
 void CB_GPIO_Config(void);
 

@@ -15,10 +15,11 @@ void SystemInit(void)
 	keyConfig();
 	BufferOpts_Init();
 	Delay_Init(72);
-	Timer2_Init(10000, 7199);	// 1s
+	//Timer2_Init(10000, 7199);
+	Timer2_Init(65535, 35999);
+	TIM3_Init(10000, 7199);		// 1s
 	Timer4_Init(10, 7199);		// 1ms
-	//TIM3_Init(65535, 35999);
-	Motion_Ctrl_Init();
+	//Motion_Ctrl_Init();
 	Pwm_Init();
 	//NRF24L01_GPIO_INIT();
 	errorInfo.errorType = errorTypeBegin;
@@ -29,7 +30,7 @@ void SystemInit(void)
 
 int main(void)
 {
-	TIMx_PwmOpts_Struct TIM3_PWM;
+	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 1, cir2 = 0;
 	
 	CB_RCC_Config();	/*≈‰÷√œµÕ≥ ±÷”*/
@@ -48,7 +49,7 @@ int main(void)
 			//printf("%d\r\n", keyScan());
 			keyScanFlag = 0;
 		}
-
+		
 		
 	}
 

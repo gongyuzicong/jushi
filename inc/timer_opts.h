@@ -9,6 +9,7 @@
 
 #define TIMx_2_7_ENABLE(x)		(RCC->APB1ENR |= (1 << (x - 2)))
 
+
 void Timer2_Init(u16 arr, u16 psc);
 void Delay_Init(u8 sysclk);
 u8 Delay_us(u32 nus);

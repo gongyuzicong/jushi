@@ -3,9 +3,9 @@
 
 
 PwmOperaterStruct pwm3_opts;
-PwmOperaterStruct_P pwm3_optsPtr = &pwm3_opts;
+PwmOperaterStruct_P pwmOptsPtr_1 = &pwm3_opts;
 PwmParaStruct pwm3Para;
-PwmParaStruct_P pwM3ParaPtr = &pwm3Para;
+PwmParaStruct_P pwmParaPtr_1 = &pwm3Para;
 
 
 u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM 频率设置 范围 1k~10k
@@ -17,7 +17,7 @@ u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM 频率设置 范围 1k~10k
 		/* 定义 TIM_TimeBase 初始化结构体 TIM_TimeBaseStructure */
 		TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 		
-		TIMx_2_7_ENABLE(3); 
+		TIMx_2_7_ENABLE(2); 
 		/* 
 		*  	计数重载值为9999
 		*  	预分频值为(0 + 1 = 1)
@@ -257,32 +257,32 @@ void PwmOptsBinding(PwmOperaterStruct_P PwmOptsPtr)
 
 u8 Pwm_Init(void)
 {
-	pwM3ParaPtr->TimX = TIM3;
-	pwM3ParaPtr->Frequency = 2;
-	pwM3ParaPtr->Oc1DutyCycle = 0;
-	pwM3ParaPtr->Oc2DutyCycle = 0;
-	pwM3ParaPtr->Oc3DutyCycle = 0;
-	pwM3ParaPtr->Oc4DutyCycle = 0;
-	pwM3ParaPtr->PwmResolution = 100;
-	pwM3ParaPtr->ResolutionPreStep = 0;
-	pwM3ParaPtr->PwmFrequencyCounterNum = 0;
+	pwmParaPtr_1->TimX = TIM2;
+	pwmParaPtr_1->Frequency = 2;
+	pwmParaPtr_1->Oc1DutyCycle = 0;
+	pwmParaPtr_1->Oc2DutyCycle = 0;
+	pwmParaPtr_1->Oc3DutyCycle = 0;
+	pwmParaPtr_1->Oc4DutyCycle = 0;
+	pwmParaPtr_1->PwmResolution = 100;
+	pwmParaPtr_1->ResolutionPreStep = 0;
+	pwmParaPtr_1->PwmFrequencyCounterNum = 0;
 	
-	PwmOptsBinding(pwm3_optsPtr);
+	PwmOptsBinding(pwmOptsPtr_1);
 	
-	if(pwm3_optsPtr->Pwm_Frequency_Set(pwM3ParaPtr))
+	if(pwmOptsPtr_1->Pwm_Frequency_Set(pwmParaPtr_1))
 	{
 		return 1;
 	}
 
-	Pwm_Duty_Cycle_Init(1, pwM3ParaPtr);
-	Pwm_Duty_Cycle_Init(2, pwM3ParaPtr);
-	//Pwm_Duty_Cycle_Init(3, pwM3ParaPtr);
-	//Pwm_Duty_Cycle_Init(4, pwM3ParaPtr);
+	Pwm_Duty_Cycle_Init(1, pwmParaPtr_1);
+	Pwm_Duty_Cycle_Init(2, pwmParaPtr_1);
+	//Pwm_Duty_Cycle_Init(3, pwmParaPtr_1);
+	//Pwm_Duty_Cycle_Init(4, pwmParaPtr_1);
 
-	TIM_ARRPreloadConfig(pwM3ParaPtr->TimX, ENABLE);
+	TIM_ARRPreloadConfig(pwmParaPtr_1->TimX, ENABLE);
 	
 	/* 启动 TIM 计数 */
-	TIM_Cmd(pwM3ParaPtr->TimX, ENABLE);	
+	TIM_Cmd(pwmParaPtr_1->TimX, ENABLE);	
 	
 	return 0;
 }

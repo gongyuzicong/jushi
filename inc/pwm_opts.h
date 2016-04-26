@@ -43,8 +43,8 @@ typedef struct
 
 u8 Pwm_Init(void);
 
-extern PwmOperaterStruct_P pwm3_optsPtr;
-extern PwmParaStruct_P pwM3ParaPtr; 
+extern PwmOperaterStruct_P pwmOptsPtr_1;
+extern PwmParaStruct_P pwmParaPtr_1; 
 
 
 #endif

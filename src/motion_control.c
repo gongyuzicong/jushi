@@ -15,7 +15,7 @@ void Motor_Right_CR(u8 speed)		// 正转
 	MOTOR_RIGHT_BK = 1;
 	MOTOR_RIGHT_EN = 0;
 	
-	pwm3_optsPtr->Duty_Cycle_OC1_Set(pwM3ParaPtr, speed);
+	pwmOptsPtr_1->Duty_Cycle_OC1_Set(pwmParaPtr_1, speed);
 }
 
 void Motor_Right_CCR(u8 speed)	// 反转
@@ -24,7 +24,7 @@ void Motor_Right_CCR(u8 speed)	// 反转
 	MOTOR_RIGHT_FR = 0;
 	MOTOR_RIGHT_EN = 0;
 
-	pwm3_optsPtr->Duty_Cycle_OC1_Set(pwM3ParaPtr, speed);
+	pwmOptsPtr_1->Duty_Cycle_OC1_Set(pwmParaPtr_1, speed);
 }
 
 void Motor_Left_CR(u8 speed)		// 正转
@@ -32,7 +32,7 @@ void Motor_Left_CR(u8 speed)		// 正转
 	MOTOR_LEFT_BK = 1;
 	MOTOR_LEFT_EN = 0;
 
-	pwm3_optsPtr->Duty_Cycle_OC2_Set(pwM3ParaPtr, speed);
+	pwmOptsPtr_1->Duty_Cycle_OC2_Set(pwmParaPtr_1, speed);
 }
 
 void Motor_Left_CCR(u8 speed)		// 反转
@@ -41,7 +41,7 @@ void Motor_Left_CCR(u8 speed)		// 反转
 	MOTOR_LEFT_FR = 0;
 	MOTOR_LEFT_EN = 0;
 
-	pwm3_optsPtr->Duty_Cycle_OC2_Set(pwM3ParaPtr, speed);
+	pwmOptsPtr_1->Duty_Cycle_OC2_Set(pwmParaPtr_1, speed);
 }
 
 /**********Motor Basic Control Unit: End****************/

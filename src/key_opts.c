@@ -25,59 +25,65 @@ int keyScan(void)
 void KeyScanState_Check_Opt(int *scaningKey)
 {
 	//if((0x0007 != (GPIOA->IDR & 0x0007)) || (0x2000 != (GPIOC->IDR & 0x2000)))	// 如果PA0 PA1 PA2有按键按下
-	if(0x0007 != (GPIOA->IDR & 0x0007))
+	if(0x0001 != (GPIOA->IDR & 0x0001))
 	{
-		//*scaningKey = (GPIOA->IDR & 0x0007) / 2;
+		keyScanStatus = KeyScanState_MakeSure;
+	}
+	else if(0x0000 == (GPIOD->IDR & 0x0004))
+	{
 		keyScanStatus = KeyScanState_MakeSure;
 	}
 }
 
 void KeyScanState_MakeSure_Opt(int *scaningKey)
 {
-	if(0x0007 != (GPIOA->IDR & 0x0007))	// 如果PA0 PA1 PA2有按键按下
+	if(0x0000 != (GPIOA->IDR & 0x0001))	// 如果PA0 PA1 PA2有按键按下
 	{
 		//printf("key1-3\r\n");
 		//printf("key_b = %d\r\n", *scaningKey);
-		*scaningKey = (~GPIOA->IDR & 0x0007) / 2;
+		//*scaningKey = (~GPIOA->IDR & 0x0007) / 2;
+		*scaningKey = KEY4;
 		//printf("key = %d\r\n", *scaningKey);
 		keyScanStatus = KeyScanState_Up;
 	}
-	/*
-	else if(0x2000 != (GPIOC->IDR & 0x2000))
+	else if(0x0000 == (GPIOD->IDR & 0x0004))
 	{
-		//printf("key4\r\n");
-		*scaningKey = KEY4;
+		*scaningKey = KEY3;
 		keyScanStatus = KeyScanState_Up;
 	}
-	*/
 }
 
 void KeyScanState_Up_Opt(int *scaningKey)
 {
 	//if((0x0007 == (GPIOA->IDR & 0x0007)) && (0x2000 == (GPIOC->IDR & 0x2000)))
-	if(0x0007 == (GPIOA->IDR & 0x0007))
+	if(0x0000 != (GPIOA->IDR & 0x0001))
 	{
 		//printf("up\r\n");
+		keyScanStatus = KeyScanState_Check;
+	}
+	else if(0x0004 == (GPIOD->IDR & 0x0004))
+	{
 		keyScanStatus = KeyScanState_Check;
 	}
 }
 
 void key1Opt(void)
 {
-	pwm3_optsPtr->Duty_Cycle_OC1_Add(pwM3ParaPtr, 10);
-	pwm3_optsPtr->Duty_Cycle_OC2_Add(pwM3ParaPtr, 10);
-	//printf("key1\r\n");
+	//pwmOptsPtr_1->Duty_Cycle_OC1_Add(pwmParaPtr_1, 10);
+	//pwmOptsPtr_1->Duty_Cycle_OC2_Add(pwmParaPtr_1, 10);
+	printf("key1\r\n");
 }
 
 void key2Opt(void)
 {
-	pwm3_optsPtr->Duty_Cycle_OC1_Sub(pwM3ParaPtr, 10);
-	pwm3_optsPtr->Duty_Cycle_OC2_Sub(pwM3ParaPtr, 10);
-	//printf("key2\r\n");
+	//pwmOptsPtr_1->Duty_Cycle_OC1_Sub(pwmParaPtr_1, 10);
+	//pwmOptsPtr_1->Duty_Cycle_OC2_Sub(pwmParaPtr_1, 10);
+	printf("key2\r\n");
 }
 
 void key3Opt(void)
 {
+	/*
 	static u8 enFlag = 0;
 	
 	printf("enFlag = %d\r\n", enFlag);
@@ -105,13 +111,14 @@ void key3Opt(void)
 		
 		enFlag = 0;
 	}
-	
-	
+	*/
+	//pwmOptsPtr_1->Duty_Cycle_OC2_Add(pwmParaPtr_1, 10);
+	//printf("key3\r\n");
 }
 
 void key4Opt(void)
 {
-
+	//pwmOptsPtr_1->Duty_Cycle_OC2_Sub(pwmParaPtr_1, 10);
 	//printf("key4\r\n");
 }
 
@@ -129,17 +136,15 @@ void keyGPIO_CFG(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
 	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
 }
 
 void keyConfig(void)
