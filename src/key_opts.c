@@ -113,7 +113,7 @@ void key3Opt(void)
 	}
 	*/
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Add(pwmParaPtr_1, 10);
-	//printf("key3\r\n");
+	printf("key3\r\n");
 }
 
 void key4Opt(void)
@@ -143,7 +143,7 @@ void keyGPIO_CFG(void)
 	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOD, &GPIO_InitStructure);
 }
 

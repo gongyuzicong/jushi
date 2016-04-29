@@ -9,6 +9,7 @@
 //#include "nrf24l01_opts.h"
 #include "pwm_opts.h"
 #include "motion_control.h"
+#include "exti_opts.h"
 
 void SystemInit(void)
 {	
@@ -21,6 +22,7 @@ void SystemInit(void)
 	Timer4_Init(10, 7199);		// 1ms
 	//Motion_Ctrl_Init();
 	Pwm_Init();
+	//ExtiInit();
 	//NRF24L01_GPIO_INIT();
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -45,7 +47,7 @@ int main(void)
 		
 		if(keyScanFlag)
 		{
-			keyEvent(keyScan());
+			//keyEvent(keyScan());
 			//printf("%d\r\n", keyScan());
 			keyScanFlag = 0;
 		}

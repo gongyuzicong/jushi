@@ -234,6 +234,9 @@ void EXTI0_IRQHandler(void)
 *******************************************************************************/
 void EXTI1_IRQHandler(void)
 {
+	printf("pc1exti\r\n");
+	//EXTI->PR = ((u32)0x00004);
+	EXTI_ClearITPendingBit(EXTI_Line1);
 }
 
 /*******************************************************************************
@@ -245,6 +248,9 @@ void EXTI1_IRQHandler(void)
 *******************************************************************************/
 void EXTI2_IRQHandler(void)
 {
+	printf("pd2exti\r\n");
+	EXTI->PR = ((u32)0x00004);
+	//EXTI_ClearITPendingBit(EXTI_Line2); 
 }
 
 /*******************************************************************************

@@ -6,21 +6,19 @@
 #include "data_type.h"
 #include "cfg_gpio.h"
 
+
+#define NRF_USE_SPI			// 如果定义了此宏,那么NRF会使用STM自带SPI,否则会使用IO口模拟的SPI通信
+
+
 #define OUT_PUT_MSB(byte) ((byte & 0x80) > 0x00) ? 1 : 0
 
-#define NRF24L01_CE_I		PAout(2)
-#define NRF24L01_CSN_I		PAout(4)
-#define NRF24L01_SCK_I		PAout(5)
-#define NRF24L01_MISO_I		PAin(6)
-#define NRF24L01_MOSI_I		PAout(7)
-#define NRF24L01_IRQ_I		PAin(1)
+typedef struct
+{
+	u8 a;
+}NrfOptStruct, *NrfOptStruct_P;
 
-#define NRF24L01_CE_II		PBout(2)
-#define NRF24L01_CSN_II		PBout(12)
-#define NRF24L01_SCK_II		PBout(13)
-#define NRF24L01_MISO_II	PBin(14)
-#define NRF24L01_MOSI_II	PBout(15)
-#define NRF24L01_IRQ_II		PBin(1)
+
+
 
 ////////// 相关命令的宏定义如下:
 
@@ -66,10 +64,47 @@
 #define TX_PLOAD_WIDTH  32  //20字节的用户数据宽度
 #define RX_PLOAD_WIDTH  32  //20字节的用户数据宽度
 
+#define MAX_TX  	0x10  //达到最大发送次数中断
+#define TX_OK   	0x20  //TX发送完成中断
+#define RX_OK   	0x40  //接收到数据中断
 
+
+#ifdef NRF_USE_SPI
+
+#define NRF24L01_CSN		PCout(0)
+#define NRF24L01_CE			PCout(1)
+#define NRF24L01_IRQ		PCout(2)
+
+void NFR24L01_Init(void);
+
+
+#else
+
+
+#define NRF24L01_CSN_I		PCout(0)
+#define NRF24L01_CE_I		PCout(1)
+#define NRF24L01_IRQ_I		PCin(2)
+
+#define NRF24L01_SCK_I		PAout(5)
+#define NRF24L01_MISO_I		PAin(6)
+#define NRF24L01_MOSI_I		PAout(7)
+
+
+#define NRF24L01_CE_II		PBout(2)
+#define NRF24L01_CSN_II		PBout(12)
+#define NRF24L01_SCK_II		PBout(13)
+#define NRF24L01_MISO_II	PBin(14)
+#define NRF24L01_MOSI_II	PBout(15)
+#define NRF24L01_IRQ_II		PBin(1)
 
 void NRF24L01_GPIO_INIT(void);
 void NRF24L01_TEST(void);
+
+
+#endif
+
+
+
 
 
 #endif
