@@ -6,6 +6,7 @@
 #include "buffer.h"
 #include "pwm_opts.h"
 #include "motion_control.h"
+#include "nrf24l01_opts.h"
 
 void (*keyStatusEventPtr[KEY_SATAUS_STEP])(int *);
 void (*keyEventOpts[KEY_NUM])(void);
@@ -114,12 +115,14 @@ void key3Opt(void)
 	*/
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Add(pwmParaPtr_1, 10);
 	printf("key3\r\n");
+	
 }
 
 void key4Opt(void)
 {
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Sub(pwmParaPtr_1, 10);
 	//printf("key4\r\n");
+	NRF24L01OptsPtr->TEST_Send();
 }
 
 void keyEvent(int key)

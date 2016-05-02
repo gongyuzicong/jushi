@@ -3,25 +3,30 @@
 #include "spi_opts.h"
 
 
+NrfOptStruct nrfOpts;
+NrfOptStruct_P NRF24L01OptsPtr = &nrfOpts;
+
 #ifdef NRF_USE_SPI
 
 u8 const TX_ADDRESS[TX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01};	//本地地址
 u8 const RX_ADDRESS[RX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01};	//接收地址
+u8 tx_buf[TX_PLOAD_WIDTH] = {0x02, 0x02, 0x03, 0x05, 0x09};
+u8 rx_buf[RX_PLOAD_WIDTH] = {0x00, 0x00, 0x00, 0x00, 0x00};
 
 //从NRF读取一个字节数据
 //reg 寄存器地址
-u8 SPI_Read(u8 reg)
+u8 SPI_Read(u8 regAddr)
 {
 	u8 reg_val;
 	
-	NRF24L01_CSN = 0;                //片选使能  
+	NRF24L01_CSN = 0;                		//片选使能  
 	
-    SPI1_ReadWriteByte(reg);
-	reg_val = SPI1_ReadWriteByte(0xff);    // 读取数据到reg_val
+	SPI1_ReadWriteByte(regAddr);
+	reg_val = SPI1_ReadWriteByte(0xff);    	// 读取数据到reg_val
 	
-	NRF24L01_CSN = 1;                // 取消片选
+	NRF24L01_CSN = 1;                		// 取消片选
 	
-	return(reg_val);        // 返回读取的数据
+	return(reg_val);        				// 返回读取的数据
 }
    
 
@@ -32,12 +37,12 @@ u8 SPI_RW_Reg(u8 reg, u8 value)
 {
 	u8 status;
 	
-	NRF24L01_CSN = 0;                   // CSN low, init SPI transaction
+	NRF24L01_CSN = 0;                   	// CSN low, init SPI transaction
 	status = SPI1_ReadWriteByte(reg);
     SPI1_ReadWriteByte(value);
-	NRF24L01_CSN = 1;                   // CSN high again
+	NRF24L01_CSN = 1;                   	// CSN high again
 		
-	return(status);            // return nRF24L01 status uchar
+	return(status);            				// return nRF24L01 status uchar
 }
 
 
@@ -51,7 +56,7 @@ u8 SPI_Read_Buf(u8 reg, u8 *pBuf, u8 uchars)
 	NRF24L01_CSN = 0;                    		// Set CSN low, init SPI tranaction
 
 	status = SPI1_ReadWriteByte(reg);
-	for(uchar_ctr=0;uchar_ctr<uchars;uchar_ctr++)		  //循环 uchars次
+	for(uchar_ctr = 0; uchar_ctr < uchars; uchar_ctr++)		  //循环 uchars次
 	{
     	pBuf[uchar_ctr] = SPI1_ReadWriteByte(0xff); 				  //分别将	 SPI_RW(0)读出的数据地址 放入数组中
 	}
@@ -72,7 +77,7 @@ u8 SPI_Write_Buf(u8 reg, u8 *pBuf, u8 uchars)
 
 	status = SPI1_ReadWriteByte(reg);
 	
-	for(uchar_ctr=0; uchar_ctr<uchars; uchar_ctr++) //	 根据数据个数循环	
+	for(uchar_ctr=0; uchar_ctr < uchars; uchar_ctr++) //	 根据数据个数循环	
 	{
 		SPI1_ReadWriteByte(*pBuf++);						//将数组的数据 依次写入
 	}
@@ -117,7 +122,7 @@ u8 nRF24L01_RxPacket(u8 *rx_buf)
     u8 sta;
 	SPI1_SetSpeed(SPI_BaudRatePrescaler_8); //spi速度为9Mhz（24L01的最大SPI时钟为10Mhz） 
 
-	sta = SPI_Read(STATUS);	    				// 读取状态寄存器来判断数据接收状况
+	sta = SPI_Read(READ_REG_CMD + STATUS);	    				// 读取状态寄存器来判断数据接收状况
 	SPI_RW_Reg(WRITE_REG_CMD + STATUS, sta);   //清中断 （接收到数据后RX_DR,TX_DS,MAX_PT都置高为1，通过写1来清楚中断标志）
 	if(sta & RX_OK)								// 判断是否接收到数据
 	{
@@ -168,28 +173,71 @@ u8 nRF24L01_TxPacket(u8 *tx_buf)
 
 //NRF24L01初始化
 //m 1 发送模式   0 接收模式
-void RX_TX_Mode(u8 m)	        //接收 or 发射 模式 初始化
+void TX_Mode(void)	        //接收 or 发射 模式 初始化
 {
+	u8 temp = 0;
+	
  	NRF24L01_CE = 0;    // chip enable
  	NRF24L01_CSN = 1;   // Spi disable 
  	
 	SPI_Write_Buf(WRITE_REG_CMD + TX_ADDR, (u8*)TX_ADDRESS, TX_ADR_WIDTH);    // 写本地地址	
 	SPI_Write_Buf(WRITE_REG_CMD + RX_ADDR_P0, (u8*)RX_ADDRESS, RX_ADR_WIDTH); // 写接收端地址
-	SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x01);      //  频道0自动	ACK应答允许	
-	SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x01);  //  允许接收地址只有频道0，如果需要多频道可以参考Page21  
+	//SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x01);      //  频道0自动	ACK应答允许	
+	//SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x01);  //  允许接收地址只有频道0，如果需要多频道可以参考Page21  
+	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x07);   		//设置发射速率为1MHZ，发射功率为最大值0dB
 	SPI_RW_Reg(WRITE_REG_CMD + RF_CH, 0);        //   设置信道工作为2.4GHZ，收发必须一致
 	SPI_RW_Reg(WRITE_REG_CMD + RX_PW_P0, RX_PLOAD_WIDTH); //设置接收数据长度，本次设置为32字节
-	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x07);   		//设置发射速率为1MHZ，发射功率为最大值0dB
+	
 
-	if(m == 1)
-	{
-		SPI_RW_Reg(WRITE_REG_CMD + CONFIG, 0x0e);   		 // IRQ收发完成中断响应，16位CRC，主发送
-	}
-	else if(m == 0)
-	{
-		SPI_RW_Reg(WRITE_REG_CMD + CONFIG, 0x0f);   		// IRQ收发完成中断响应，16位CRC	，主接收
-	}
+	SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x00);
+	temp = SPI_Read(READ_REG_CMD + EN_AA);
+	printf("NRF24L01_EN_AA = %x\r\n", temp);
+	temp = 0xff;
+	
+	SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x00);
+	temp = SPI_Read(READ_REG_CMD + EN_RXADDR);
+	printf("NRF24L01_EN_RXADDR = %x\r\n", temp);
+	temp = 0xff;
+	
+	SPI_RW_Reg(WRITE_REG_CMD + SETUP_RETR, 0x00);
+	temp = SPI_Read(READ_REG_CMD + SETUP_RETR);
+	printf("NRF24L01_SETUP_RETR = %x\r\n\r\n", temp);
+	temp = 0xff;
 
+	SPI_RW_Reg(WRITE_REG_CMD + CONFIG, 0x0e);   		 // IRQ收发完成中断响应，16位CRC，主发送
+
+	NRF24L01_CE = 1;
+}
+
+void RX_Mode(void)
+{
+	u8 temp = 0;
+	
+	NRF24L01_CE = 0;	// chip enable
+	NRF24L01_CSN = 1;	// Spi disable 
+	
+	SPI_Write_Buf(WRITE_REG_CMD + TX_ADDR, (u8*)TX_ADDRESS, TX_ADR_WIDTH);	  // 写本地地址 
+	SPI_Write_Buf(WRITE_REG_CMD + RX_ADDR_P0, (u8*)RX_ADDRESS, RX_ADR_WIDTH); // 写接收端地址
+	//SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x01);		//	频道0自动	ACK应答允许 
+	//SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x01);	//	允许接收地址只有频道0，如果需要多频道可以参考Page21  
+	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x07); 		//设置发射速率为1MHZ，发射功率为最大值0dB
+	SPI_RW_Reg(WRITE_REG_CMD + RF_CH, 0);		 //   设置信道工作为2.4GHZ，收发必须一致
+	SPI_RW_Reg(WRITE_REG_CMD + RX_PW_P0, RX_PLOAD_WIDTH); //设置接收数据长度，本次设置为32字节
+
+
+	SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x00);
+	temp = SPI_Read(READ_REG_CMD + EN_AA);
+	printf("NRF24L01_EN_AA = %x\r\n", temp);
+	temp = 0xff;
+	
+	SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x01);
+	temp = SPI_Read(READ_REG_CMD + EN_RXADDR);
+	printf("NRF24L01_EN_RXADDR = %x\r\n\r\n", temp);
+	temp = 0xff;
+	
+	
+	SPI_RW_Reg(WRITE_REG_CMD + CONFIG, 0x0f);			// IRQ收发完成中断响应，16位CRC，主接收
+	
 	NRF24L01_CE = 1;
 }
 
@@ -206,7 +254,7 @@ void NRF24L01_GPIO_Init(void)
  	GPIO_SetBits(GPIOC, GPIO_Pin_0 | GPIO_Pin_1);			  //上拉 取消SPI总线片选
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;	      //PC2 下拉输入  该IO判断 NRF是否有高电平信号
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;	      //PC2 下拉输入  该IO判断 NRF是否有低电平信号
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
@@ -224,7 +272,7 @@ void NRF24L01_SPI_Init(void)
 	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;		//数据捕获于第1个时钟沿
 
 	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;			//NSS信号由软件控制
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;		//定义波特率预分频的值:波特率预分频值为16
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;		//定义波特率预分频的值:波特率预分频值为16
 	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	//数据传输从MSB位开始
 	SPI_InitStructure.SPI_CRCPolynomial = 7;			//CRC值计算的多项式
 	SPI_Init(SPI1, &SPI_InitStructure);  				//根据SPI_InitStruct中指定的参数初始化外设SPIx寄存器
@@ -232,14 +280,86 @@ void NRF24L01_SPI_Init(void)
 	SPI_Cmd(SPI1, ENABLE); 								//使能SPI外设
 }
 
+
+
+void NRF24L01_TEST_Send(void)
+{
+	printf("STATUS = %x\r\n", SPI_Read(READ_REG_CMD + STATUS));
+	printf("FIFO_STATUS = %x\r\n", SPI_Read(READ_REG_CMD + FIFO_STATUS));
+	
+	//NRF24L01_TxPacket((u8 *)tx_buf);
+	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+	//SPI_Write_Buf(WR_TX_PLOAD, tx_buf, 1);
+	//NRF24L01_I_SPI_Write_Buf(WR_TX_PLOAD, tx_buf, 1);
+	Delay_ms(100);
+
+	printf("STATUS3 = %x\r\n", SPI_Read(READ_REG_CMD + STATUS));
+	printf("FIFO_STATUS3 = %x\r\n\r\n", SPI_Read(READ_REG_CMD + FIFO_STATUS));
+	
+}
+
+
+void NRF24L01_TEST_Recv(void)
+{
+	int i = 0, status = 0;
+	//printf("%d\r\n", SPI_Read(READ_REG_CMD + STATUS));
+	if(0x40 == SPI_Read(READ_REG_CMD + STATUS))
+	{	
+		printf("STATUS = %x\r\n", SPI_Read(READ_REG_CMD + STATUS));
+		printf("FIFO_STATUS = %x\r\n", SPI_Read(READ_REG_CMD + FIFO_STATUS));
+#if 0
+		//NRF24L01_TxPacket((u8 *)tx_buf);
+		SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+		//NRF24L01_I_SPI_Write_Buf(WR_TX_PLOAD, tx_buf, 1);
+		Delay_ms(100);
+#else
+		status = SPI_Read_Buf(RD_RX_PLOAD, rx_buf, RX_PLOAD_WIDTH);
+		printf("r_status = %x\r\n", status);
+		Delay_ms(100);
+#endif
+		printf("STATUS4 = %x\r\n", SPI_Read(READ_REG_CMD + STATUS));
+		printf("FIFO_STATUS4 = %x\r\n\r\n", SPI_Read(READ_REG_CMD + FIFO_STATUS));
+		for(i = 0; i < RX_PLOAD_WIDTH; i++)
+		{
+			printf("rx_buf[%d] = %d\r\n", i, rx_buf[i]);
+		}
+		printf("\r\n");
+	}
+}
+
+void NRF24L01_TEST(void)
+{
+#if 0
+	NRF24L01_TEST_Send();
+#else
+	NRF24L01_TEST_Recv();
+#endif
+	
+}
+
 void NFR24L01_Init(void)
 {
+	int i = 0;
+	
 	NRF24L01_GPIO_Init();
-	NRF24L01_SPI_Init();
+	//NRF24L01_SPI_Init();
 
-	NRF24L01_CE = 0;
-	NRF24L01_CSN = 1;
+	
+	//NRF24L01_CE = 0;
+	//NRF24L01_CSN = 1;
+
+	RX_Mode();
+	//Delay_us(100);
+
+	for(i = 0; i < TX_PLOAD_WIDTH; i++)
+	{
+		tx_buf[i] = i;
+	}
+	
+	NRF24L01OptsPtr->TEST_Send = NRF24L01_TEST_Send;
+	NRF24L01OptsPtr->TEST_Recv = NRF24L01_TEST_Recv;
 }
+
 
 #else
 

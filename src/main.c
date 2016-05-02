@@ -6,10 +6,11 @@
 #include "key_opts.h"
 #include "buffer.h"
 //#include "dht11_opts.h"
-//#include "nrf24l01_opts.h"
 #include "pwm_opts.h"
 #include "motion_control.h"
 #include "exti_opts.h"
+#include "nrf24l01_opts.h"
+#include "spi_opts.h"
 
 void SystemInit(void)
 {	
@@ -22,6 +23,8 @@ void SystemInit(void)
 	Timer4_Init(10, 7199);		// 1ms
 	//Motion_Ctrl_Init();
 	Pwm_Init();
+	SPI_Initial();
+	NFR24L01_Init();
 	//ExtiInit();
 	//NRF24L01_GPIO_INIT();
 	errorInfo.errorType = errorTypeBegin;
@@ -41,18 +44,18 @@ int main(void)
 	SystemInit();
 	
 	//NRF24L01_TEST();
-	
+	//NRF24L01_TEST();
 	while(1)
 	{
-		
+		//NRF24L01_TEST();
 		if(keyScanFlag)
 		{
-			//keyEvent(keyScan());
+			keyEvent(keyScan());
 			//printf("%d\r\n", keyScan());
 			keyScanFlag = 0;
 		}
 		
-		
+		NRF24L01OptsPtr->TEST_Recv();
 	}
 
 	

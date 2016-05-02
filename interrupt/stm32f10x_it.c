@@ -25,6 +25,7 @@
 #include "cfg_gpio.h"
 #include "key_opts.h"
 #include "pwm_opts.h"
+#include "stm32f10x_exti.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/

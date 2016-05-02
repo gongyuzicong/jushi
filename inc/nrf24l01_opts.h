@@ -14,7 +14,8 @@
 
 typedef struct
 {
-	u8 a;
+	void (*TEST_Send)(void);
+	void (*TEST_Recv)(void);
 }NrfOptStruct, *NrfOptStruct_P;
 
 
@@ -71,12 +72,12 @@ typedef struct
 
 #ifdef NRF_USE_SPI
 
-#define NRF24L01_CSN		PCout(0)
-#define NRF24L01_CE			PCout(1)
-#define NRF24L01_IRQ		PCout(2)
+#define NRF24L01_CSN		PCout(0)	// 低电平使能
+#define NRF24L01_CE			PCout(1)	
+#define NRF24L01_IRQ		PCout(2)	// 低电平使能
 
 void NFR24L01_Init(void);
-
+void NRF24L01_TEST(void);
 
 #else
 
@@ -104,7 +105,7 @@ void NRF24L01_TEST(void);
 #endif
 
 
-
+extern NrfOptStruct_P NRF24L01OptsPtr;
 
 
 #endif
