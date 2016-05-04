@@ -25,8 +25,8 @@ void SystemInit(void)
 	Pwm_Init();
 	SPI_Initial();
 	NFR24L01_Init();
-	//ExtiInit();
-	//NRF24L01_GPIO_INIT();
+	ExtiInit();
+	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
 }
@@ -43,11 +43,8 @@ int main(void)
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
 	
-	//NRF24L01_TEST();
-	//NRF24L01_TEST();
 	while(1)
 	{
-		//NRF24L01_TEST();
 		if(keyScanFlag)
 		{
 			keyEvent(keyScan());
@@ -55,7 +52,7 @@ int main(void)
 			keyScanFlag = 0;
 		}
 		
-		NRF24L01OptsPtr->TEST_Recv();
+		//NRF24L01OptsPtr->TEST_Recv();
 	}
 
 	

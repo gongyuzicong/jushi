@@ -80,15 +80,41 @@ void EXIT_Configuration(void)
   	EXTI_Init(&EXTI_InitStructure);
 }
 
+void NFR_EXTI_CFG(void)
+{
+	/* 定义EXIT初始化结构体 EXTI_InitStructure */
+	EXTI_InitTypeDef EXTI_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	//GPIO_InitTypeDef GPIO_InitStructure;
 
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource2);
+	
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line = EXTI_Line2;
+  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+}
 
 void ExtiInit(void)
 {
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	
-	EXTI_GPIO_Configuration();
-	NVIC_Configuration();
-	EXIT_Configuration();
+	
+	//NVIC_Configuration();
+	//EXIT_Configuration();
+	//EXTI_GPIO_Configuration();
+	NFR_EXTI_CFG();
 }
 
 

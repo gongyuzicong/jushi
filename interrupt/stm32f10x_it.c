@@ -26,6 +26,7 @@
 #include "key_opts.h"
 #include "pwm_opts.h"
 #include "stm32f10x_exti.h"
+#include "nrf24l01_opts.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -249,9 +250,14 @@ void EXTI1_IRQHandler(void)
 *******************************************************************************/
 void EXTI2_IRQHandler(void)
 {
-	printf("pd2exti\r\n");
-	EXTI->PR = ((u32)0x00004);
-	//EXTI_ClearITPendingBit(EXTI_Line2); 
+	if(EXTI_GetITStatus(EXTI_Line2) != RESET)
+	{
+		//printf("pd2exti\r\n");
+		NRF24L01OptsPtr->IT_Process();
+		//NRF24L01OptsPtr->TEST_Recv();
+		//EXTI->PR = ((u32)0x00004);
+		EXTI_ClearITPendingBit(EXTI_Line2);
+	}
 }
 
 /*******************************************************************************

@@ -16,6 +16,19 @@ typedef struct
 {
 	void (*TEST_Send)(void);
 	void (*TEST_Recv)(void);
+	u8 (*Read_Register)(u8 regAddr);
+	u8 (*Write_Register)(u8 regAddr, u8 value);
+	u8 (*Read_Buf)(u8 reg, u8 *pBuf, u8 uchars);
+	u8 (*Write_Buf)(u8 reg, u8 *pBuf, u8 uchars);
+	u8 (*Check)(void);
+	void (*TxMode)(void);
+	void (*RxMode)(void);
+	void (*TxMode_Fast)(void);
+	void (*RxMode_Fast)(void);
+	u8 (*Get_Status_Reg)(void);
+	u8 (*Clean_Status_Reg)(u8);
+	u8 (*Clean_All_Status_Reg)(void);
+	void (*IT_Process)(void);
 }NrfOptStruct, *NrfOptStruct_P;
 
 
@@ -69,6 +82,9 @@ typedef struct
 #define TX_OK   	0x20  //TX发送完成中断
 #define RX_OK   	0x40  //接收到数据中断
 
+#define RX_DR		0x40	// 接收中断
+#define TX_DS		0x20	// 数据发送中断,自动应答模式下,收到ACK会进入
+#define MAX_RT		0x10	// 最多次重发中断
 
 #ifdef NRF_USE_SPI
 
@@ -77,7 +93,6 @@ typedef struct
 #define NRF24L01_IRQ		PCout(2)	// 低电平使能
 
 void NFR24L01_Init(void);
-void NRF24L01_TEST(void);
 
 #else
 
