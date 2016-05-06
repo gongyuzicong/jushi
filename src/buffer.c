@@ -6,11 +6,17 @@ BufferControl canBufCtrl;
 BufferControl usartBufCtrl;
 BufferControl sendCanBufCtrl;
 BufferControl dht11DataBufCtrl;
+BufferControl nrfRecvDataBufCtrl;
+BufferControl nrfSendDataBufCtrl;
 
 CmdRecvFromFYT fytCmdBuf[MAX_FYT_CMD_BUF_NUM];
 CanRxMsg canDataBuf[MAX_CAN_DATA_BUF_NUM];
 DataInfo sendUsartBuf[MAX_USART_SEND_BUF_NUM]; 
 CanTxMsg sendToCanBuf[MAX_CAN_SEND_BUF_NUM];
+
+u8 nrfRecvBuf[MAX_NRF_RECV_BUF_NUM][32];
+u8 nrfSendBuf[MAX_NRF_SEND_BUF_NUM][32];
+
 Dht11_DataInfoStruct dht11DataBuf[MAX_DHT11_DATA_BUF_NUM];
 RqcpCtrlStruct rqcpCtrl;
 
@@ -48,7 +54,7 @@ u8 Buf_Append_Common(BufferControl_P bufCtrl, void (*dataOptsFunc)(void))
 	return 0;
 }
 
-void SendCanBuf_Delete_Common(BufferControl_P bufCtrl)
+void Buf_Delete_Common(BufferControl_P bufCtrl)
 {
 	if(bufCtrl->Total > 0)
 	{
@@ -346,7 +352,7 @@ void DHT11DataBuf_Append(Dht11_DataInfoStruct node)
 
 void DHT11DataBuf_Delete(void)
 {
-	SendCanBuf_Delete_Common(&dht11DataBufCtrl);
+	Buf_Delete_Common(&dht11DataBufCtrl);
 	//printf("TailVernier = %d\r\n", dht11DataBufCtrl.TailVernier);
 }
 
@@ -361,9 +367,39 @@ Dht11_DataInfoStruct_P Get_DHT11_Data(void)
 	return getData;
 }
 
+/**************************************************************/
 
 
-void BufferOpts_Init(void)
+/************************NRF24L01 buffer****************************/
+
+void NrfRecvDataOpts(void)
+{
+	nrfRecvBuf[nrfRecvDataBufCtrl.TailVernier] = *((Dht11_DataInfoStruct_P)tmpNode);
+}
+
+void NrfRecvDataBuf_Append(Dht11_DataInfoStruct node)
+{
+	tmpNode = &node;
+	
+	Buf_Append_Common(&nrfRecvDataBufCtrl, NrfRecvDataOpts);
+	//printf("HeadVernier = %d\r\n", dht11DataBufCtrl.HeadVernier);
+}
+
+void NrfRecvDataBuf_Delete(void)
+{
+	Buf_Delete_Common(&nrfRecvDataBufCtrl);
+	//printf("TailVernier = %d\r\n", dht11DataBufCtrl.TailVernier);
+}
+
+u8 *GetNrfEmpetyBuf(void)
+{
+	
+}
+
+/********************************************************************/
+
+
+void CAN_Buf_Init(void)
 {
 	fytCmdBufCtrl.HeadVernier = 0;
 	fytCmdBufCtrl.TailVernier = 0;
@@ -385,11 +421,38 @@ void BufferOpts_Init(void)
 	sendCanBufCtrl.Total = 0;
 	sendCanBufCtrl.MaxNum = MAX_CAN_SEND_BUF_NUM;
 
+	
+	
+}
+
+
+void DHT11_Buf_Init(void)
+{
 	dht11DataBufCtrl.HeadVernier = 0;
 	dht11DataBufCtrl.TailVernier = 0;
 	dht11DataBufCtrl.Total = 0;
 	dht11DataBufCtrl.MaxNum = MAX_DHT11_DATA_BUF_NUM;
+}
 
+void NRF24L01_Buf_Init(void)
+{
+	nrfRecvDataBufCtrl.HeadVernier = 0;
+	nrfRecvDataBufCtrl.TailVernier = 0;
+	nrfRecvDataBufCtrl.Total = 0;
+	nrfRecvDataBufCtrl.MaxNum = MAX_NRF_RECV_BUF_NUM;
+
+	nrfSendDataBufCtrl.HeadVernier = 0;
+	nrfSendDataBufCtrl.TailVernier = 0;
+	nrfSendDataBufCtrl.Total = 0;
+	nrfSendDataBufCtrl.MaxNum = MAX_NRF_SEND_BUF_NUM;
+}
+
+void BufferOpts_Init(void)
+{
+	CAN_Buf_Init();
+	DHT11_Buf_Init();
+	NRF24L01_Buf_Init();
+	
 	rqcpCtrl.RQCP0 = 1;
 	rqcpCtrl.RQCP1 = 1;
 	rqcpCtrl.RQCP2 = 1;

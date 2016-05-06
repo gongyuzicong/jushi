@@ -27,8 +27,6 @@ int keyScan(void);
 void keyEvent(int key);
 void keyConfig(void);
 
-void Key_1(void);
-void Key_3(void);
 
 
 

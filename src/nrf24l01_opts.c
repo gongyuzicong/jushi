@@ -1,7 +1,7 @@
 #include "nrf24l01_opts.h"
 #include "timer_opts.h"
 #include "spi_opts.h"
-
+#include "buffer.h"
 
 NrfOptStruct nrfOpts;
 NrfOptStruct_P NRF24L01OptsPtr = &nrfOpts;
@@ -119,14 +119,14 @@ u8 NRF24L01_Check(void)
 //m 1 发送模式   0 接收模式
 void TX_Mode(void)	        //接收 or 发射 模式 初始化
 {
-	u8 temp = 0;
+	//u8 temp = 0;
 	
  	NRF24L01_CE = 0;    // chip enable
  	
 	SPI_Write_Buf(WRITE_REG_CMD + TX_ADDR, (u8*)TX_ADDRESS, TX_ADR_WIDTH);    // 写本地地址	
 	SPI_Write_Buf(WRITE_REG_CMD + RX_ADDR_P0, (u8*)RX_ADDRESS, RX_ADR_WIDTH); // 写接收端地址
 	
-	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x07);   		//设置发射速率为2MHZ，发射功率为最大值0dB
+	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x0f);   		//设置发射速率为2MHZ，发射功率为最大值0dB
 	SPI_RW_Reg(WRITE_REG_CMD + RF_CH, 0);        //   设置信道工作为2.4GHZ，收发必须一致
 	SPI_RW_Reg(WRITE_REG_CMD + RX_PW_P0, RX_PLOAD_WIDTH); //设置接收数据长度，本次设置为32字节
 	
@@ -188,7 +188,7 @@ void RX_Mode(void)
 	SPI_Write_Buf(WRITE_REG_CMD + TX_ADDR, (u8*)TX_ADDRESS, TX_ADR_WIDTH);	  // 写本地地址 
 	SPI_Write_Buf(WRITE_REG_CMD + RX_ADDR_P0, (u8*)RX_ADDRESS, RX_ADR_WIDTH); // 写接收端地址
 	SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x01);			//	允许接收地址只有频道0，如果需要多频道可以参考Page21  
-	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x07); 			//设置发射速率为2MHZ，发射功率为最大值0dB
+	SPI_RW_Reg(WRITE_REG_CMD + RF_SETUP, 0x0f); 			//设置发射速率为2MHZ，发射功率为最大值0dB
 	SPI_RW_Reg(WRITE_REG_CMD + RF_CH, 0);		 			//   设置信道工作为2.4GHZ，收发必须一致
 	SPI_RW_Reg(WRITE_REG_CMD + RX_PW_P0, RX_PLOAD_WIDTH); //设置接收数据长度，本次设置为32字节
 	
@@ -310,6 +310,34 @@ u8 NRF24L01_Clean_All_Status_Reg(void)
 	return 0;
 }
 
+void NRF24L01_Read_Data_2Buf(void)
+{
+	
+	
+	SPI_Read_Buf(RD_RX_PLOAD, rx_buf, RX_PLOAD_WIDTH);	//读取数据
+
+}
+
+void NRF24L01_Read_Buf_Process(u8 *pBuf)
+{
+	switch(pBuf[3])
+	{
+		case 0x01:
+			break;
+
+		case 0x02:
+			break;
+
+		case 0x03:
+			break;
+
+		case 0x04:
+			break;
+
+		default:
+			break;
+	}
+}
 
 void NRF24L01_IT_Process(void)
 {
@@ -321,11 +349,15 @@ void NRF24L01_IT_Process(void)
 	if(status & RX_DR)			// 收到数据
 	{
 		printf("RX_DR\r\n");
+		//NRF24L01_Read_Data_2Buf();
 		SPI_Read_Buf(RD_RX_PLOAD, rx_buf, RX_PLOAD_WIDTH);	//读取数据
+		NRF24L01_Read_Buf_Process(rx_buf);
+		/*
 		for(i = 0; i < RX_PLOAD_WIDTH; i++)
 		{
 			printf("rx_buf[%d] = %d\r\n", i, rx_buf[i]);
 		}
+		*/
 		
 		NRF24L01_Clean_Status_Reg(status);					// 清除RX_DR中断标志			
 		SPI_RW_Reg(FLUSH_RX, NOP);    						// 清除RX FIFO寄存器 

@@ -4,11 +4,15 @@
 #include "common_include.h"
 #include "data_type.h"
 
-#define MAX_FYT_CMD_BUF_NUM 	10			// 从FYT接收数据帧缓存区大小: n帧
-#define MAX_CAN_DATA_BUF_NUM	10			// 从CAN接收数据帧缓存区大小: n帧
-#define MAX_USART_SEND_BUF_NUM	10			// 发送给FYT数据帧缓存区大小: n帧
-#define MAX_CAN_SEND_BUF_NUM	10			// 发送给CAN数据帧缓存区大小: n帧
-#define MAX_DHT11_DATA_BUF_NUM	10
+#define MAX_FYT_CMD_BUF_NUM 	2			// 从FYT接收数据帧缓存区大小: n帧
+#define MAX_CAN_DATA_BUF_NUM	2			// 从CAN接收数据帧缓存区大小: n帧
+#define MAX_USART_SEND_BUF_NUM	2			// 发送给FYT数据帧缓存区大小: n帧
+#define MAX_CAN_SEND_BUF_NUM	2			// 发送给CAN数据帧缓存区大小: n帧
+
+#define MAX_DHT11_DATA_BUF_NUM	5
+
+#define MAX_NRF_SEND_BUF_NUM	5		// 通过NRF24L01发送数据的缓存区大小
+#define MAX_NRF_RECV_BUF_NUM	5		// 通过NRF24L01接收数据的缓存区大小
 
 #define USE_TC
 #define SEND_IN_TC
@@ -19,6 +23,12 @@ typedef struct
 	u8 RQCP1;
 	u8 RQCP2;
 }RqcpCtrlStruct;
+
+
+typedef struct
+{
+	u8 a;
+}BufOperaterSturct, *BufOperaterStruct_P;
 
 extern BufferControl fytCmdBufCtrl;
 extern BufferControl canBufCtrl;
