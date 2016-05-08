@@ -52,7 +52,7 @@ int main(void)
 			keyScanFlag = 0;
 		}
 		
-		//NRF24L01OptsPtr->TEST_Recv();
+		NRF24L01OptsPtr->TEST_Recv();
 	}
 
 	
