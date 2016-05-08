@@ -22,7 +22,7 @@ void SystemInit(void)
 	TIM3_Init(10000, 7199);		// 1s
 	Timer4_Init(10, 7199);		// 1ms
 	Motion_Ctrl_Init();
-	Pwm_Init();
+	//Pwm_Init();
 	SPI_Initial();
 	NFR24L01_Init();
 	ExtiInit();
