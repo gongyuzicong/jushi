@@ -374,7 +374,7 @@ Dht11_DataInfoStruct_P Get_DHT11_Data(void)
 
 void NrfRecvDataOpts(void)
 {
-	nrfRecvBuf[nrfRecvDataBufCtrl.TailVernier] = *((Dht11_DataInfoStruct_P)tmpNode);
+	//nrfRecvBuf[nrfRecvDataBufCtrl.TailVernier] = *((Dht11_DataInfoStruct_P)tmpNode);
 }
 
 void NrfRecvDataBuf_Append(Dht11_DataInfoStruct node)
@@ -391,10 +391,10 @@ void NrfRecvDataBuf_Delete(void)
 	//printf("TailVernier = %d\r\n", dht11DataBufCtrl.TailVernier);
 }
 
-u8 *GetNrfEmpetyBuf(void)
-{
+//u8 *GetNrfEmpetyBuf(void)
+//{
 	
-}
+//}
 
 /********************************************************************/
 

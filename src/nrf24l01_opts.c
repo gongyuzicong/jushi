@@ -2,6 +2,7 @@
 #include "timer_opts.h"
 #include "spi_opts.h"
 #include "buffer.h"
+#include "motion_control.h"
 
 NrfOptStruct nrfOpts;
 NrfOptStruct_P NRF24L01OptsPtr = &nrfOpts;
@@ -320,23 +321,58 @@ void NRF24L01_Read_Data_2Buf(void)
 
 void NRF24L01_Read_Buf_Process(u8 *pBuf)
 {
+	#if 0
+	
 	switch(pBuf[3])
 	{
 		case 0x01:
+			printf("left\r\n");
+			motionOptsPtr->motor_left();
 			break;
 
 		case 0x02:
+			printf("up\r\n");
+			motionOptsPtr->motor_up();
 			break;
 
 		case 0x03:
+			printf("down\r\n");
+			motionOptsPtr->motor_down();
 			break;
 
 		case 0x04:
+			printf("right\r\n");
+			motionOptsPtr->motor_right();
 			break;
 
 		default:
 			break;
 	}
+
+	#else
+
+	if(0x01 == pBuf[3])
+	{
+		printf("left\r\n");
+		motionOptsPtr->motor_left();
+	}
+	else if(0x02 == pBuf[3])
+	{
+		printf("up\r\n");
+		motionOptsPtr->motor_up();
+	}
+	else if(0x03 == pBuf[3])
+	{
+		printf("down\r\n");
+		motionOptsPtr->motor_down();
+	}
+	else if(0x04 == pBuf[3])
+	{
+		printf("right\r\n");
+		motionOptsPtr->motor_right();
+	}
+
+	#endif
 }
 
 void NRF24L01_IT_Process(void)
@@ -348,7 +384,7 @@ void NRF24L01_IT_Process(void)
 	
 	if(status & RX_DR)			// 收到数据
 	{
-		printf("RX_DR\r\n");
+		//printf("RX_DR\r\n");
 		//NRF24L01_Read_Data_2Buf();
 		SPI_Read_Buf(RD_RX_PLOAD, rx_buf, RX_PLOAD_WIDTH);	//读取数据
 		NRF24L01_Read_Buf_Process(rx_buf);
@@ -358,6 +394,7 @@ void NRF24L01_IT_Process(void)
 			printf("rx_buf[%d] = %d\r\n", i, rx_buf[i]);
 		}
 		*/
+		printf("rx_buf[3] = %d\r\n\r\n", rx_buf[3]);
 		
 		NRF24L01_Clean_Status_Reg(status);					// 清除RX_DR中断标志			
 		SPI_RW_Reg(FLUSH_RX, NOP);    						// 清除RX FIFO寄存器 
@@ -457,6 +494,34 @@ void NRF24L01_TEST_Send(void)
 	
 }
 
+void nrf_up(void)
+{
+	Change_To_TX_Mode_Fast();
+	tx_buf[3] = 0x01;
+	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+}
+
+void nrf_down(void)
+{
+	Change_To_TX_Mode_Fast();
+	tx_buf[3] = 0x02;
+	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+}
+
+void nrf_left(void)
+{
+	Change_To_TX_Mode_Fast();
+	tx_buf[3] = 0x03;
+	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+}
+
+void nrf_right(void)
+{
+	Change_To_TX_Mode_Fast();
+	tx_buf[3] = 0x04;
+	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+}
+
 
 void NRF24L01_TEST_Recv(void)
 {
@@ -510,8 +575,12 @@ void NFR24L01_Init(void)
 
 	for(i = 0; i < TX_PLOAD_WIDTH; i++)
 	{
-		tx_buf[i] = i;
+		tx_buf[i] = 0;
 	}
+
+	tx_buf[0] = 0x01;
+	tx_buf[1] = 0x01;
+	tx_buf[2] = 0x02;
 	
 	NRF24L01OptsPtr->TEST_Send = NRF24L01_TEST_Send;
 	NRF24L01OptsPtr->TEST_Recv = NRF24L01_TEST_Recv;
@@ -528,7 +597,10 @@ void NFR24L01_Init(void)
 	NRF24L01OptsPtr->Clean_Status_Reg = NRF24L01_Clean_Status_Reg;
 	NRF24L01OptsPtr->Clean_All_Status_Reg = NRF24L01_Clean_All_Status_Reg;
 	NRF24L01OptsPtr->IT_Process = NRF24L01_IT_Process;
-	
+	NRF24L01OptsPtr->nrf_send_up = nrf_up;
+	NRF24L01OptsPtr->nrf_send_down = nrf_down;
+	NRF24L01OptsPtr->nrf_send_left = nrf_left;
+	NRF24L01OptsPtr->nrf_send_right = nrf_right;
 }
 
 

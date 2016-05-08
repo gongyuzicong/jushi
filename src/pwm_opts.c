@@ -276,8 +276,8 @@ u8 Pwm_Init(void)
 
 	Pwm_Duty_Cycle_Init(1, pwmParaPtr_1);
 	Pwm_Duty_Cycle_Init(2, pwmParaPtr_1);
-	//Pwm_Duty_Cycle_Init(3, pwmParaPtr_1);
-	//Pwm_Duty_Cycle_Init(4, pwmParaPtr_1);
+	Pwm_Duty_Cycle_Init(3, pwmParaPtr_1);
+	Pwm_Duty_Cycle_Init(4, pwmParaPtr_1);
 
 	TIM_ARRPreloadConfig(pwmParaPtr_1->TimX, ENABLE);
 	

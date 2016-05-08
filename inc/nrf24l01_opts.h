@@ -29,6 +29,10 @@ typedef struct
 	u8 (*Clean_Status_Reg)(u8);
 	u8 (*Clean_All_Status_Reg)(void);
 	void (*IT_Process)(void);
+	void (*nrf_send_up)(void);
+	void (*nrf_send_down)(void);
+	void (*nrf_send_left)(void);
+	void (*nrf_send_right)(void);
 }NrfOptStruct, *NrfOptStruct_P;
 
 
