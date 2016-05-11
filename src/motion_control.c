@@ -16,6 +16,7 @@ MotionOperaterStruct_P motionOptsPtr = &motionOpts;
 void Motor_Right_CR(u8 speed)		// 正转
 {
 	//MOTOR_RIGHT_BK = 1;
+	MOTOR_RIGHT_FR = 1;
 	MOTOR_RIGHT_EN = 0;
 
 	if((speed >= 0) && (speed <= 100))
@@ -43,6 +44,7 @@ void Motor_Right_CCR(u8 speed)	// 反转
 void Motor_Left_CR(u8 speed)		// 正转
 {
 	//MOTOR_LEFT_BK = 1;
+	MOTOR_LEFT_FR = 1;
 	MOTOR_LEFT_EN = 0;
 	
 	if((speed >= 0) && (speed <= 100))
