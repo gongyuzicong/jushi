@@ -3,8 +3,8 @@
 #include "timer_opts.h"
 #include "pwm_opts.h"
 
-#define MAX_SPEED_LIMIT 90
-#define MAX_STEP_SPEED_INC	10
+#define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
+#define MAX_STEP_SPEED_INC	1
 
 ControlerParaStruct ctrlParas;
 ControlerParaStruct_P ctrlParasPtr = &ctrlParas;
@@ -161,11 +161,14 @@ void motion_up(void)
 	if(stopStatus == ctrlParasPtr->agvStatus)
 	{
 		printf("up_goStraightStatus\r\n");
-		#if 1
+		
 		ctrlParasPtr->agvStatus = goStraightStatus;
-
-		ctrlParasPtr->settedSpeed += MAX_STEP_SPEED_INC;
-
+		
+		if(ctrlParasPtr->settedSpeed <= MAX_SPEED_LIMIT)
+		{
+			ctrlParasPtr->settedSpeed += MAX_STEP_SPEED_INC;
+		}
+		
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
@@ -174,7 +177,7 @@ void motion_up(void)
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
-		#endif
+		
 	}
 	else if(goStraightStatus == ctrlParasPtr->agvStatus)
 	{
@@ -292,10 +295,10 @@ void motion_down(void)
 void motion_left(void)
 {
 	printf("ctrlParasPtr->agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
-	if(stopStatus == ctrlParasPtr->agvStatus)
+	if((stopStatus == ctrlParasPtr->agvStatus) || (cirLeft == ctrlParasPtr->agvStatus))
 	{
 		printf("left_cirleft\r\n");
-		//ctrlParasPtr->agvStatus = cirLeft;
+		ctrlParasPtr->agvStatus = cirLeft;
 		if(ctrlParasPtr->settedSpeed <= MAX_SPEED_LIMIT)
 		{
 			ctrlParasPtr->settedSpeed += MAX_STEP_SPEED_INC;
@@ -307,8 +310,8 @@ void motion_left(void)
 		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
 		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
-		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
-		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
+		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
+		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
 	}
 	else if(goStraightStatus == ctrlParasPtr->agvStatus)
 	{
@@ -346,18 +349,36 @@ void motion_left(void)
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
 	}
-	else if(cirLeft == ctrlParasPtr->agvStatus)
+	else if(cirRight == ctrlParasPtr->agvStatus)
 	{
+		if(ctrlParasPtr->settedSpeed >= MAX_STEP_SPEED_INC)
+		{
+			ctrlParasPtr->settedSpeed -= MAX_STEP_SPEED_INC;
+		}
+
+		if(0 == ctrlParasPtr->settedSpeed)
+		{
+			ctrlParasPtr->agvStatus = stopStatus;
+		}
 		
+		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+		
+		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+
+		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
+		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
 	}
 }
 
 void motion_right(void)
 {
 	printf("ctrlParasPtr->agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
-	if(stopStatus == ctrlParasPtr->agvStatus)
+	if((stopStatus == ctrlParasPtr->agvStatus) || (cirRight == ctrlParasPtr->agvStatus))
 	{
 		printf("left_cirright\r\n");
+		ctrlParasPtr->agvStatus = cirRight;
 		if(ctrlParasPtr->settedSpeed <= MAX_SPEED_LIMIT)
 		{
 			ctrlParasPtr->settedSpeed += MAX_STEP_SPEED_INC;
@@ -408,7 +429,27 @@ void motion_right(void)
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
 	}
-	
+	else if(cirLeft == ctrlParasPtr->agvStatus)
+	{
+		if(ctrlParasPtr->settedSpeed >= MAX_STEP_SPEED_INC)
+		{
+			ctrlParasPtr->settedSpeed -= MAX_STEP_SPEED_INC;
+		}
+
+		if(0 == ctrlParasPtr->settedSpeed)
+		{
+			ctrlParasPtr->agvStatus = stopStatus;
+		}
+		
+		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+		
+		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+
+		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
+		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
+	}
 }
 
 void motion_stop(void)

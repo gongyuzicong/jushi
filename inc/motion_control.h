@@ -16,15 +16,6 @@
 #define MOTOR_RIGHT_FR	PCout(12)
 #define MOTOR_RIGHT_BK	PBout(5)
 
-#define MOTOR_RIGHT_EN_ON()		{GPIO_SetBits(GPIOC, GPIO_Pin_11)}
-#define MOTOR_RIGHT_FR_ON()		{GPIO_SetBits(GPIOC, GPIO_Pin_12)}
-#define MOTOR_RIGHT_BK_ON()		{GPIO_SetBits(GPIOB, GPIO_Pin_5)}
-
-#define MOTOR_RIGHT_EN_OFF()	{GPIO_ResetBits(GPIOC, GPIO_Pin_11)}
-#define MOTOR_RIGHT_FR_OFF()	{GPIO_ResetBits(GPIOC, GPIO_Pin_12)}
-#define MOTOR_RIGHT_BK_OFF()	{GPIO_ResetBits(GPIOB, GPIO_Pin_5)}
-
-
 //#define MOTOR_RIGHT_X1	PBout(6)
 //#define MOTOR_RIGHT_X2	PBout(7)
 //#define MOTOR_RIGHT_X3	PBout(8)
