@@ -18,6 +18,8 @@
 //#define MOTOR_RIGHT_X1	PBout(6)
 //#define MOTOR_RIGHT_X2	PBout(7)
 //#define MOTOR_RIGHT_X3	PBout(8)
+#define MOTOR_RIGHT_EN_IN	PCin(11)
+#define MOTOR_RIGHT_FR_IN	PCin(12)
 
 #define MOTOR_RIGHT_SV	PAout(2)
 /****MOTOR OUT: END****/
@@ -38,6 +40,8 @@
 //#define MOTOR_LEFT_X1	PAout(11)
 //#define MOTOR_LEFT_X2	PAout(12)
 //#define MOTOR_LEFT_X3	PAout(13)
+#define MOTOR_LEFT_EN_IN	PBin(10)
+#define MOTOR_LEFT_FR_IN	PBin(11)
 
 #define MOTOR_LEFT_SV	PAout(3)
 /****MOTOR OUT: END****/
@@ -75,6 +79,7 @@ typedef struct
 	void (*motor_down)(void);
 	void (*motor_left)(void);
 	void (*motor_right)(void);
+	void (*motor_stop)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
 

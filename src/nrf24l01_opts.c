@@ -6,13 +6,15 @@
 
 NrfOptStruct nrfOpts;
 NrfOptStruct_P NRF24L01OptsPtr = &nrfOpts;
+u8 need2SendInfo = 0;
+
+u8 const TX_ADDRESS[TX_ADR_WIDTH] = {0x12, 0x34, 0x56, 0x78, 0x9A};	//本地地址
+u8 const RX_ADDRESS[RX_ADR_WIDTH] = {0x12, 0x34, 0x56, 0x78, 0x9A};	//接收地址
+u8 tx_buf[TX_PLOAD_WIDTH] = {0x03, 0x07, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+u8 rx_buf[RX_PLOAD_WIDTH] = {0x00, 0x00, 0x00, 0x00, 0x00};
+
 
 #ifdef NRF_USE_SPI
-
-u8 const TX_ADDRESS[TX_ADR_WIDTH] = {0x34,0x43,0x10,0x10,0x01};	//本地地址
-u8 const RX_ADDRESS[RX_ADR_WIDTH] = {0x34,0x43,0x10,0x10,0x01};	//接收地址
-u8 tx_buf[TX_PLOAD_WIDTH] = {0x02, 0x02, 0x03, 0x05, 0x09};
-u8 rx_buf[RX_PLOAD_WIDTH] = {0x00, 0x00, 0x00, 0x00, 0x00};
 
 //从NRF读取一个字节数据
 //reg 寄存器地址
@@ -120,7 +122,7 @@ u8 NRF24L01_Check(void)
 //m 1 发送模式   0 接收模式
 void TX_Mode(void)	        //接收 or 发射 模式 初始化
 {
-	//u8 temp = 0;
+	u8 temp = 0;
 	
  	NRF24L01_CE = 0;    // chip enable
  	
@@ -134,19 +136,19 @@ void TX_Mode(void)	        //接收 or 发射 模式 初始化
 	#if 1
 
 	SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x01);      //  频道0自动	ACK应答允许	
-	//temp = SPI_Read(READ_REG_CMD + EN_AA);
-	//printf("NRF24L01_EN_AA = %x\r\n", temp);
-	//temp = 0xff;
+	temp = SPI_Read(READ_REG_CMD + EN_AA);
+	printf("NRF24L01_EN_AA = %x\r\n", temp);
+	temp = 0xff;
 	
 	SPI_RW_Reg(WRITE_REG_CMD + EN_RXADDR, 0x01);  //  允许接收地址只有频道0，如果需要多频道可以参考Page21  
-	//temp = SPI_Read(READ_REG_CMD + EN_RXADDR);
-	//printf("NRF24L01_EN_RXADDR = %x\r\n", temp);
-	//temp = 0xff;
+	temp = SPI_Read(READ_REG_CMD + EN_RXADDR);
+	printf("NRF24L01_EN_RXADDR = %x\r\n", temp);
+	temp = 0xff;
 	
 	SPI_RW_Reg(WRITE_REG_CMD + SETUP_RETR, 0x1a);	// 自动重发10次, 间隔500us
-	//temp = SPI_Read(READ_REG_CMD + SETUP_RETR);
-	//printf("NRF24L01_SETUP_RETR = %x\r\n\r\n", temp);
-	//temp = 0xff;
+	temp = SPI_Read(READ_REG_CMD + SETUP_RETR);
+	printf("NRF24L01_SETUP_RETR = %x\r\n\r\n", temp);
+	temp = 0xff;
 	
 	#else
 	
@@ -198,7 +200,7 @@ void RX_Mode(void)
 	
 	SPI_RW_Reg(WRITE_REG_CMD + EN_AA, 0x01);				//	频道0自动	ACK应答允许 
 	temp = SPI_Read(READ_REG_CMD + EN_AA);
-	//printf("NRF24L01_EN_AA = %x\r\n\r\n", temp);
+	printf("NRF24L01_EN_AA = %x\r\n\r\n", temp);
 	
 	#else
 	
@@ -319,6 +321,34 @@ void NRF24L01_Read_Data_2Buf(void)
 
 }
 
+
+void Send_Info_To_Contorler(void)
+{
+	Change_To_TX_Mode_Fast();
+	tx_buf[0] = 0x01;
+	tx_buf[1] = 0x03;
+	tx_buf[2] = 0x07;
+	
+	tx_buf[3] = ctrlParasPtr->agvStatus;				// AGV STATUS
+	printf("agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
+	tx_buf[4] = ctrlParasPtr->leftMotorSettedSpeed;		// LeftMotorSpeed
+	printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+	//tx_buf[4] = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0);		// LeftMotorEN
+	tx_buf[5] = MOTOR_LEFT_EN_IN;		// LeftMotorEN
+	printf("MOTOR_LEFT_EN_IN = %d\r\n", MOTOR_LEFT_EN_IN);
+	tx_buf[6] = MOTOR_LEFT_FR_IN;		// LeftMotorFR
+	printf("MOTOR_LEFT_FR_IN = %d\r\n", MOTOR_LEFT_FR_IN);
+	
+	tx_buf[7] = ctrlParasPtr->rightMotorSettedSpeed;		// RightMotorSpeed
+	printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+	tx_buf[8] = MOTOR_RIGHT_EN_IN;		// RightMotorEN
+	printf("MOTOR_RIGHT_EN_IN = %d\r\n", MOTOR_RIGHT_EN_IN);
+	tx_buf[9] = MOTOR_RIGHT_FR_IN;		// RightMotorFR
+	printf("MOTOR_RIGHT_FR_IN = %d\r\n", MOTOR_RIGHT_FR_IN);
+	
+	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+}
+
 void NRF24L01_Read_Buf_Process(u8 *pBuf)
 {
 	#if 0
@@ -353,27 +383,36 @@ void NRF24L01_Read_Buf_Process(u8 *pBuf)
 
 	if(0x01 == pBuf[3])
 	{
-		printf("left\r\n");
-		motionOptsPtr->motor_left();
-	}
-	else if(0x02 == pBuf[3])
-	{
 		printf("up\r\n");
 		motionOptsPtr->motor_up();
 	}
-	else if(0x03 == pBuf[3])
+	else if(0x02 == pBuf[3])
 	{
 		printf("down\r\n");
 		motionOptsPtr->motor_down();
+	}
+	else if(0x03 == pBuf[3])
+	{
+		printf("left\r\n");
+		motionOptsPtr->motor_left();
 	}
 	else if(0x04 == pBuf[3])
 	{
 		printf("right\r\n");
 		motionOptsPtr->motor_right();
 	}
+	else if(0x05 == pBuf[3])
+	{
+		printf("stop\r\n");
+		motionOptsPtr->motor_stop();
+	}
 
+	
 	#endif
 }
+
+
+
 
 void NRF24L01_IT_Process(void)
 {
@@ -384,7 +423,7 @@ void NRF24L01_IT_Process(void)
 	
 	if(status & RX_DR)			// 收到数据
 	{
-		//printf("RX_DR\r\n");
+		printf("RX_DR\r\n");
 		//NRF24L01_Read_Data_2Buf();
 		SPI_Read_Buf(RD_RX_PLOAD, rx_buf, RX_PLOAD_WIDTH);	//读取数据
 		NRF24L01_Read_Buf_Process(rx_buf);
@@ -398,6 +437,8 @@ void NRF24L01_IT_Process(void)
 		
 		NRF24L01_Clean_Status_Reg(status);					// 清除RX_DR中断标志			
 		SPI_RW_Reg(FLUSH_RX, NOP);    						// 清除RX FIFO寄存器 
+
+		need2SendInfo = 1;
 		//rf_rec_flag = RX_DR; 
 	}
 	else if(status & TX_DS)		// 发送完成ACK中断
@@ -422,6 +463,7 @@ void NRF24L01_IT_Process(void)
 		//rf_rec_flag = 0;   // 没收到任何数据
 	}
 
+	
 }
 
 
@@ -526,7 +568,7 @@ void nrf_right(void)
 void NRF24L01_TEST_Recv(void)
 {
 	int i = 0, status = 0;
-	//printf("%d\r\n", SPI_Read(READ_REG_CMD + STATUS));
+	printf("%d\r\n", SPI_Read(READ_REG_CMD + STATUS));
 	if(0x40 == SPI_Read(READ_REG_CMD + STATUS))
 	//if(1)
 	{	
@@ -570,14 +612,15 @@ void NFR24L01_Init(void)
 	{
 		printf("NRF24L01 Check Success!\r\n");
 	}
-
-	RX_Mode();
-
+	
+	TX_Mode();
+	//RX_Mode();
+	Change_To_RX_Mode_Fast();
 	for(i = 0; i < TX_PLOAD_WIDTH; i++)
 	{
 		tx_buf[i] = 0;
 	}
-
+	
 	tx_buf[0] = 0x01;
 	tx_buf[1] = 0x01;
 	tx_buf[2] = 0x02;
@@ -601,14 +644,11 @@ void NFR24L01_Init(void)
 	NRF24L01OptsPtr->nrf_send_down = nrf_down;
 	NRF24L01OptsPtr->nrf_send_left = nrf_left;
 	NRF24L01OptsPtr->nrf_send_right = nrf_right;
+	NRF24L01OptsPtr->Send_Info_To_Contorler = Send_Info_To_Contorler;
 }
 
 
 #else
-
-u8 const TX_ADDRESS[TX_ADR_WIDTH] = {0x34, 0x43, 0x10, 0x10, 0x01}; // Define a static TX address
-u8 rx_buf[RX_PLOAD_WIDTH];
-u8 tx_buf[TX_PLOAD_WIDTH] = {0x02, 0x02, 0x03, 0x05, 0x09};
 
 /*
 最基本的函数，完成GPIO 模拟SPI 的功能。将输出字节（ MOSI）从MSB

@@ -33,6 +33,7 @@ typedef struct
 	void (*nrf_send_down)(void);
 	void (*nrf_send_left)(void);
 	void (*nrf_send_right)(void);
+	void (*Send_Info_To_Contorler)(void);
 }NrfOptStruct, *NrfOptStruct_P;
 
 
@@ -79,8 +80,8 @@ typedef struct
 
 #define TX_ADR_WIDTH    5   //5字节的地址宽度
 #define RX_ADR_WIDTH    5   //5字节的地址宽度
-#define TX_PLOAD_WIDTH  32  //20字节的用户数据宽度
-#define RX_PLOAD_WIDTH  32  //20字节的用户数据宽度
+#define TX_PLOAD_WIDTH  12  //20字节的用户数据宽度
+#define RX_PLOAD_WIDTH  12  //20字节的用户数据宽度
 
 #define MAX_TX  	0x10  //达到最大发送次数中断
 #define TX_OK   	0x20  //TX发送完成中断
@@ -125,7 +126,7 @@ void NRF24L01_TEST(void);
 
 
 extern NrfOptStruct_P NRF24L01OptsPtr;
-
+extern u8 need2SendInfo;
 
 #endif
 

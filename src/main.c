@@ -51,7 +51,12 @@ int main(void)
 			//printf("%d\r\n", keyScan());
 			keyScanFlag = 0;
 		}
-		
+
+		if(need2SendInfo)
+		{
+			need2SendInfo = 0;
+			NRF24L01OptsPtr->Send_Info_To_Contorler();
+		}
 		//NRF24L01OptsPtr->TEST_Recv();
 	}
 

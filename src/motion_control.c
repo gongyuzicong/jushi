@@ -409,6 +409,24 @@ void motion_right(void)
 	
 }
 
+void motion_stop(void)
+{
+	printf("ctrlParasPtr->agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
+	
+	ctrlParasPtr->agvStatus = stopStatus;
+	ctrlParasPtr->settedSpeed = 0;
+	
+	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+	
+	ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+	ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+
+	MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
+	MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
+	
+	
+}
 
 
 /**********Motor Basic Control Mode: End****************/
@@ -496,6 +514,7 @@ void Motion_Ctrl_Init(void)
 	motionOptsPtr->motor_down = motion_down;
 	motionOptsPtr->motor_left = motion_left;
 	motionOptsPtr->motor_right = motion_right;
+	motionOptsPtr->motor_stop = motion_stop;
 }
 
 
