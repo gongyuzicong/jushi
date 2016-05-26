@@ -325,28 +325,68 @@ void NRF24L01_Read_Data_2Buf(void)
 void Send_Info_To_Contorler(void)
 {
 	Change_To_TX_Mode_Fast();
-	tx_buf[0] = 0x01;
-	tx_buf[1] = 0x03;
-	tx_buf[2] = 0x07;
 	
-	tx_buf[3] = ctrlParasPtr->agvStatus;				// AGV STATUS
-	printf("agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
-	tx_buf[4] = ctrlParasPtr->leftMotorSettedSpeed;		// LeftMotorSpeed
-	printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-	//tx_buf[4] = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0);		// LeftMotorEN
-	tx_buf[5] = MOTOR_LEFT_EN_IN;		// LeftMotorEN
-	printf("MOTOR_LEFT_EN_IN = %d\r\n", MOTOR_LEFT_EN_IN);
-	tx_buf[6] = MOTOR_LEFT_FR_IN;		// LeftMotorFR
-	printf("MOTOR_LEFT_FR_IN = %d\r\n", MOTOR_LEFT_FR_IN);
+	if(PWM_MODE == ctrlParasPtr->speedMode)
+	{
+		tx_buf[0] = 0x01;
+		tx_buf[1] = 0x03;
+		tx_buf[2] = 0x07;
+		
+		tx_buf[3] = ctrlParasPtr->agvStatus;				// AGV STATUS
+		//printf("agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
+		tx_buf[4] = ctrlParasPtr->leftMotorSettedSpeed;		// LeftMotorSpeed
+		//printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+		//tx_buf[4] = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0);		// LeftMotorEN
+		tx_buf[5] = MOTOR_LEFT_EN_IN;		// LeftMotorEN
+		//printf("MOTOR_LEFT_EN_IN = %d\r\n", MOTOR_LEFT_EN_IN);
+		tx_buf[6] = MOTOR_LEFT_FR_IN;		// LeftMotorFR
+		//printf("MOTOR_LEFT_FR_IN = %d\r\n", MOTOR_LEFT_FR_IN);
+		
+		tx_buf[7] = ctrlParasPtr->rightMotorSettedSpeed;		// RightMotorSpeed
+		//printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+		tx_buf[8] = MOTOR_RIGHT_EN_IN;		// RightMotorEN
+		//printf("MOTOR_RIGHT_EN_IN = %d\r\n", MOTOR_RIGHT_EN_IN);
+		tx_buf[9] = MOTOR_RIGHT_FR_IN;		// RightMotorFR
+		//printf("MOTOR_RIGHT_FR_IN = %d\r\n", MOTOR_RIGHT_FR_IN);
+		
+		SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+	}
+	else if(X1X2X3_I_MODE == ctrlParasPtr->speedMode)
+	{
+		u8 tempValue = 0xff;
+		
+		tx_buf[0] = 0x01;
+		tx_buf[1] = 0x03;
+		tx_buf[2] = 0x07;
+		
+		tx_buf[3] = ctrlParasPtr->agvStatus;				// AGV STATUS
+		//printf("agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
+		//tx_buf[4] = ctrlParasPtr->speedModeValue_Left;		// LeftMotorSpeed
+		tempValue = (MOTOR_LEFT_X3_In << 2) + (MOTOR_LEFT_X2_In << 1) + MOTOR_LEFT_X1_In;
+		printf("%x, %x, %x, tempValue = %x\r\n", MOTOR_LEFT_X3_In, MOTOR_LEFT_X2_In, MOTOR_LEFT_X1_In, tempValue);
+		tx_buf[4] = tempValue;
+		//printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->speedModeValue_Left);
+		//tx_buf[4] = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0);		// LeftMotorEN
+		tx_buf[5] = MOTOR_LEFT_EN_IN;		// LeftMotorEN
+		//printf("MOTOR_LEFT_EN_IN = %d\r\n", MOTOR_LEFT_EN_IN);
+		tx_buf[6] = MOTOR_LEFT_FR_IN;		// LeftMotorFR
+		//printf("MOTOR_LEFT_FR_IN = %d\r\n", MOTOR_LEFT_FR_IN);
+		
+		//tx_buf[7] = ctrlParasPtr->speedModeValue_Right;		// RightMotorSpeed
+		//printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->speedModeValue_Right);
+
+		tempValue = (MOTOR_RIGHT_X3_In << 2) + (MOTOR_RIGHT_X2_In << 1 ) + MOTOR_RIGHT_X1_In;
+		printf("%x, %x, %x, tempValue = %x\r\n", MOTOR_RIGHT_X3_In, MOTOR_RIGHT_X2_In, MOTOR_RIGHT_X1_In, tempValue);
+		tx_buf[7] = tempValue;
+		
+		tx_buf[8] = MOTOR_RIGHT_EN_IN;		// RightMotorEN
+		//printf("MOTOR_RIGHT_EN_IN = %d\r\n", MOTOR_RIGHT_EN_IN);
+		tx_buf[9] = MOTOR_RIGHT_FR_IN;		// RightMotorFR
+		//printf("MOTOR_RIGHT_FR_IN = %d\r\n", MOTOR_RIGHT_FR_IN);
+		
+		SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
+	}
 	
-	tx_buf[7] = ctrlParasPtr->rightMotorSettedSpeed;		// RightMotorSpeed
-	printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-	tx_buf[8] = MOTOR_RIGHT_EN_IN;		// RightMotorEN
-	printf("MOTOR_RIGHT_EN_IN = %d\r\n", MOTOR_RIGHT_EN_IN);
-	tx_buf[9] = MOTOR_RIGHT_FR_IN;		// RightMotorFR
-	printf("MOTOR_RIGHT_FR_IN = %d\r\n", MOTOR_RIGHT_FR_IN);
-	
-	SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);
 }
 
 void NRF24L01_Read_Buf_Process(u8 *pBuf)

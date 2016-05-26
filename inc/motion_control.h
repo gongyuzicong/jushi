@@ -4,17 +4,35 @@
 #include "data_type.h"
 #include "common_include.h"
 
-#define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CCR(X)
+#define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
 
-#define MOTOR_RIGHT_CR_DEF(X) 	Motor_Right_CR(X)
+#define MOTOR_RIGHT_CR_DEF(X) 	Motor_Right_CCR(X)
 #define MOTOR_LEFT_CR_DEF(X) 	Motor_Left_CR(X)
+
+
+#define MOTOR_RIGHT_X1			PCout(4)
+#define MOTOR_RIGHT_X2			PCout(5)
+#define MOTOR_RIGHT_X3			PCout(6)
+
+#define MOTOR_LEFT_X1			PBout(5)
+#define MOTOR_LEFT_X2			PBout(6)
+#define MOTOR_LEFT_X3			PBout(7)
+
+#define MOTOR_RIGHT_X1_In		PCin(4)
+#define MOTOR_RIGHT_X2_In		PCin(5)
+#define MOTOR_RIGHT_X3_In		PCin(6)
+
+#define MOTOR_LEFT_X1_In		PBin(5)
+#define MOTOR_LEFT_X2_In		PBin(6)
+#define MOTOR_LEFT_X3_In		PBin(7)
+
 
 /***********MOTOR RIGHT: START***************/
 /****MOTOR OUT: START****/
 #define MOTOR_RIGHT_EN	PCout(11)
 #define MOTOR_RIGHT_FR	PCout(12)
-#define MOTOR_RIGHT_BK	PBout(5)
+#define MOTOR_RIGHT_BK	PCout(13)
 
 //#define MOTOR_RIGHT_X1	PBout(6)
 //#define MOTOR_RIGHT_X2	PBout(7)
@@ -37,7 +55,7 @@
 /****MOTOR OUT: START****/
 #define MOTOR_LEFT_EN	PBout(10)
 #define MOTOR_LEFT_FR	PBout(11)
-#define MOTOR_LEFT_BK	PAout(10)
+#define MOTOR_LEFT_BK	PBout(12)
 //#define MOTOR_LEFT_X1	PAout(11)
 //#define MOTOR_LEFT_X2	PAout(12)
 //#define MOTOR_LEFT_X3	PAout(13)
@@ -62,6 +80,14 @@ typedef enum
 	cirRight,
 }AgvStatus, *AgvStatus_P;
 
+typedef enum
+{
+	PWM_MODE = 0,
+	X1X2X3_I_MODE,
+	X1X2X3_II_MODE,
+	INTER_MODE,
+}AgvSpeedMode;
+
 typedef struct
 {
 	u8 settedSpeed;
@@ -72,6 +98,9 @@ typedef struct
 	u8 rightInc;
 	u8 leftInc;
 	AgvStatus agvStatus;
+	AgvSpeedMode speedMode;
+	u8 speedModeValue_Right;
+	u8 speedModeValue_Left;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
