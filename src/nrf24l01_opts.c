@@ -511,15 +511,15 @@ void NRF24L01_GPIO_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;  // PC0 1 推挽 
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;  // PC0 1 推挽 
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
- 	GPIO_Init(GPIOC, &GPIO_InitStructure);
- 	GPIO_SetBits(GPIOC, GPIO_Pin_0 | GPIO_Pin_1);			  //上拉 取消SPI总线片选
+ 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+ 	GPIO_SetBits(GPIOA, GPIO_Pin_11 | GPIO_Pin_12);			  //上拉 取消SPI总线片选
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;	      //PC2 下拉输入  该IO判断 NRF是否有低电平信号
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
 void NRF24L01_SPI_Init(void)
@@ -650,6 +650,7 @@ void NFR24L01_Init(void)
 	}
 	else
 	{
+		PCout(5) = 0;
 		printf("NRF24L01 Check Success!\r\n");
 	}
 	

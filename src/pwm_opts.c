@@ -17,7 +17,7 @@ u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM 频率设置 范围 1k~10k
 		/* 定义 TIM_TimeBase 初始化结构体 TIM_TimeBaseStructure */
 		TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 		
-		TIMx_2_7_ENABLE(2); 
+		TIMx_2_7_ENABLE(3); 
 		/* 
 		*  	计数重载值为9999
 		*  	预分频值为(0 + 1 = 1)
@@ -258,7 +258,7 @@ void PwmOptsBinding(PwmOperaterStruct_P PwmOptsPtr)
 
 u8 Pwm_Init(void)
 {
-	pwmParaPtr_1->TimX = TIM2;
+	pwmParaPtr_1->TimX = TIM3;
 	pwmParaPtr_1->Frequency = 2;
 	pwmParaPtr_1->Oc1DutyCycle = 0;
 	pwmParaPtr_1->Oc2DutyCycle = 0;
@@ -275,8 +275,8 @@ u8 Pwm_Init(void)
 		return 1;
 	}
 
-	Pwm_Duty_Cycle_Init(1, pwmParaPtr_1);
-	Pwm_Duty_Cycle_Init(2, pwmParaPtr_1);
+	//Pwm_Duty_Cycle_Init(1, pwmParaPtr_1);
+	//Pwm_Duty_Cycle_Init(2, pwmParaPtr_1);
 	Pwm_Duty_Cycle_Init(3, pwmParaPtr_1);
 	Pwm_Duty_Cycle_Init(4, pwmParaPtr_1);
 

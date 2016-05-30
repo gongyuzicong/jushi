@@ -36,11 +36,11 @@ void CB_LED_GPIO_CFG(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
 	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOC, GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9);
 }
 
 void CB_USART_GPIO_CFG(void)
@@ -123,10 +123,10 @@ void PWM_GPIO_CFG(void)
 
 	/****TIM3 CH1 CH2 CH3 CH4 PWM输出 GPIO分别为 PA6 PA7 PB0 PB1*****/
 	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 }
 
@@ -158,10 +158,10 @@ void CB_GPIO_Config(void)
 {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
 	
-	//CB_LED_GPIO_CFG();
+	CB_LED_GPIO_CFG();
 	CB_USART_GPIO_CFG();
 	//CB_CAN_GPIO_CFG();
-	//CB_OUTPUT_CLK_GPIO_CFG();
+	CB_OUTPUT_CLK_GPIO_CFG();
 	//CB_I2C_GPIO_CFG();
 	//CB_SYNC_GPIO_CFG();
 	PWM_GPIO_CFG();

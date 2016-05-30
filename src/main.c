@@ -11,21 +11,22 @@
 #include "exti_opts.h"
 #include "nrf24l01_opts.h"
 #include "spi_opts.h"
+#include "magn_sensor.h"
 
 void SystemInit(void)
 {	
-	keyConfig();
+	//keyConfig();
 	BufferOpts_Init();
 	Delay_Init(72);
-	//Timer2_Init(10000, 7199);
-	Timer2_Init(65535, 35999);
-	TIM3_Init(10000, 7199);		// 1s
+	Timer2_Init(10000, 7199);	// 1s
+	TIM3_Init(65535, 35999);		
 	Timer4_Init(10, 7199);		// 1ms
 	Motion_Ctrl_Init();
 	Pwm_Init();
 	SPI_Initial();
-	NFR24L01_Init();
-	ExtiInit();
+	//NFR24L01_Init();
+	//ExtiInit();
+	Magn_Sensor_Init();
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -43,21 +44,31 @@ int main(void)
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
 	
+	//printf("start\r\n");
+	motionOptsPtr->agv_walk_test();
+	
 	while(1)
 	{
+		#if 1
 		if(keyScanFlag)
 		{
-			keyEvent(keyScan());
+			//keyEvent(keyScan());
 			//printf("%d\r\n", keyScan());
 			keyScanFlag = 0;
 		}
 
+		/*
 		if(need2SendInfo)
 		{
 			need2SendInfo = 0;
 			NRF24L01OptsPtr->Send_Info_To_Contorler();
 		}
 		//NRF24L01OptsPtr->TEST_Recv();
+		*/
+		#endif
+		
+		//MSDF_Opts_Ptr->MSD_Test();
+		motionOptsPtr->agv_walk();
 	}
 
 	

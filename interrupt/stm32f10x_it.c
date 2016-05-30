@@ -27,6 +27,7 @@
 #include "pwm_opts.h"
 #include "stm32f10x_exti.h"
 #include "nrf24l01_opts.h"
+#include "motion_control.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -253,7 +254,7 @@ void EXTI2_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line2) != RESET)
 	{
 		//printf("pd2exti\r\n");
-		NRF24L01OptsPtr->IT_Process();
+		//NRF24L01OptsPtr->IT_Process();
 		//NRF24L01OptsPtr->TEST_Recv();
 		//EXTI->PR = ((u32)0x00004);
 		EXTI_ClearITPendingBit(EXTI_Line2);
@@ -280,6 +281,14 @@ void EXTI3_IRQHandler(void)
 *******************************************************************************/
 void EXTI4_IRQHandler(void)
 {
+	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
+	{
+		//printf("pd2exti\r\n");
+		NRF24L01OptsPtr->IT_Process();
+		//NRF24L01OptsPtr->TEST_Recv();
+		//EXTI->PR = ((u32)0x00004);
+		EXTI_ClearITPendingBit(EXTI_Line4);
+	}
 }
 
 /*******************************************************************************
@@ -502,64 +511,23 @@ void TIM1_CC_IRQHandler(void)
 *******************************************************************************/
 void TIM2_IRQHandler(void)
 {
-
-	vu16  capture = 0; 			/* 当前捕获计数值局部变量 */
-	printf("SR = %x\r\n", TIM2->SR);
-	/* 
-	*	TIM2 时钟 = 72 MHz, 分频数 = 7299 + 1, TIM2 counter clock = 10KHz
-	*	CC1 更新率 = TIM2 counter clock / CCRx_Val
-	*/
+	static u16 walkingTime = 0;
 	
-	if(TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET)
+	if(TIM2->SR & 0x0001)	// 溢出中断
 	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_4, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4)));		
-		//PA_PIN_NOT(4);
-		/* 读出当前计数值 */
-		capture = TIM_GetCapture1(TIM2);
-		//printf("capture1 = %d\r\n", capture);
-		/* 根据当前计数值更新输出捕获寄存器 */
-		TIM_SetCompare1(TIM2, capture + 40000);
-
-		TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
+		if(walkingTime < 8)
+		{
+			walkingTime++;
+		}
+		else
+		{
+			walkingTime = 0;
+			//motionOptsPtr->agv_walk_stop();
+		}
+		
 	}
-	else if(TIM_GetITStatus(TIM2, TIM_IT_CC2) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_5, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_5)));
-		//PA_PIN_NOT(5);
-		capture = TIM_GetCapture2(TIM2);
-		//printf("capture2 = %d\r\n", capture);
-		TIM_SetCompare2(TIM2, capture + 20000);
-
-		TIM_ClearITPendingBit(TIM2, TIM_IT_CC2);
-	}
-	else if(TIM_GetITStatus(TIM2, TIM_IT_CC3) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_6, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_6)));
-		//PA_PIN_NOT(6);
-		capture = TIM_GetCapture3(TIM2);
-		//printf("capture3 = %d\r\n", capture);
-		TIM_SetCompare3(TIM2, capture + 10000);
-
-		TIM_ClearITPendingBit(TIM2, TIM_IT_CC3);
-	}
-	else if(TIM_GetITStatus(TIM2, TIM_IT_CC4) != RESET)
-	{
-		//GPIO_WriteBit(GPIOA, GPIO_Pin_7, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_7)));
-		//PA_PIN_NOT(7);
-		capture = TIM_GetCapture4(TIM2);
-		//printf("capture4 = %d\r\n", capture);
-		TIM_SetCompare4(TIM2, capture + 5000);
-
-		TIM_ClearITPendingBit(TIM2, TIM_IT_CC4);
-	}
-	else if(TIM2->SR & 0x0001)
-	{
-		//capture = TIM_GetCapture4(TIM3);
-		//printf("capture5 = %d\r\n", capture);
-		//printf("SR = %x\r\n", TIM3->SR);
-		TIM2->SR &= ~(1 << 0);	// 清除中断标志位
-	}
-
+	
+	TIM2->SR &= ~(1 << 0);	// 清除中断标志位
 
 }
 
@@ -573,34 +541,64 @@ void TIM2_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	
-	static vu8 cheatScreenAliveFlag = 29;
+	vu16  capture = 0;			/* 当前捕获计数值局部变量 */
+	printf("SR = %x\r\n", TIM3->SR);
+	/* 
+	*	TIM2 时钟 = 72 MHz, 分频数 = 7299 + 1, TIM2 counter clock = 10KHz
+	*	CC1 更新率 = TIM2 counter clock / CCRx_Val
+	*/
 	
-	if(TIM3->SR & 0x0001)	// 溢出中断
+	if(TIM_GetITStatus(TIM3, TIM_IT_CC1) != RESET)
 	{
-		static u8 flag = 1;
-		if(1 == flag)
-		{
-			flag = 0;
-		}
-		else
-		{
-			flag = 1;
-		}
-		
-		if(cheatScreenAliveFlag >= 30)
-		{
-			
-			cheatScreenAliveFlag = 0;
-		}
-		else
-		{
-			cheatScreenAliveFlag++;
-			//printf("cheatScreenAliveFlag = %d\r\n", cheatScreenAliveFlag);
-		}
-		
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_4, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4))); 	
+		//PA_PIN_NOT(4);
+		/* 读出当前计数值 */
+		capture = TIM_GetCapture1(TIM3);
+		//printf("capture1 = %d\r\n", capture);
+		/* 根据当前计数值更新输出捕获寄存器 */
+		TIM_SetCompare1(TIM3, capture + 40000);
+
+		TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
 	}
+	else if(TIM_GetITStatus(TIM3, TIM_IT_CC2) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_5, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_5)));
+		//PA_PIN_NOT(5);
+		capture = TIM_GetCapture2(TIM3);
+		//printf("capture2 = %d\r\n", capture);
+		TIM_SetCompare2(TIM3, capture + 20000);
+
+		TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
+	}
+	else if(TIM_GetITStatus(TIM3, TIM_IT_CC3) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_6, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_6)));
+		//PA_PIN_NOT(6);
+		capture = TIM_GetCapture3(TIM3);
+		//printf("capture3 = %d\r\n", capture);
+		TIM_SetCompare3(TIM3, capture + 10000);
+
+		TIM_ClearITPendingBit(TIM3, TIM_IT_CC3);
+	}
+	else if(TIM_GetITStatus(TIM3, TIM_IT_CC4) != RESET)
+	{
+		//GPIO_WriteBit(GPIOA, GPIO_Pin_7, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_7)));
+		//PA_PIN_NOT(7);
+		capture = TIM_GetCapture4(TIM3);
+		//printf("capture4 = %d\r\n", capture);
+		TIM_SetCompare4(TIM3, capture + 5000);
+
+		TIM_ClearITPendingBit(TIM3, TIM_IT_CC4);
+	}
+	else if(TIM3->SR & 0x0001)
+	{
+		//capture = TIM_GetCapture4(TIM3);
+		//printf("capture5 = %d\r\n", capture);
+		//printf("SR = %x\r\n", TIM3->SR);
+		TIM3->SR &= ~(1 << 0);	// 清除中断标志位
+	}
+
 	
-	TIM3->SR &= ~(1 << 0);	// 清除中断标志位
 	
 }
 
@@ -613,58 +611,22 @@ void TIM3_IRQHandler(void)
 *******************************************************************************/
 void TIM4_IRQHandler(void)
 {
-	static u8 keyScanTime = 0;
-	static u8 breathLedFre = 0;
-	static u8 pwmW = 0, flag = 1;
+	static u16 ScanTime = 0;
+	
 	// 1ms
 	if(TIM4->SR & 0x0001)	// 溢出中断
 	{
-		//SystemRunningTime++;
-		if(keyScanTime < 20)
+		if(ScanTime < 500)
 		{
-			keyScanTime++;
+			ScanTime++;
 		}
 		else
 		{
-			keyScanTime = 0;
-			if(~keyScanFlag)
-			{
-				keyScanFlag = 1;
-			}
-			
+			ScanTime = 0;
+			PCout(9) = ~(PCin(9));
+			//printf("change\r\n");
 		}
-
-		if(breathLedFre < 15)
-		{
-			breathLedFre++;
-		}
-		else
-		{
-			breathLedFre = 0;
-
-			if(1 == flag)
-			{
-				pwmW++;
-				
-				if(pwmW >= 100)
-				{
-					flag = 0;
-				}
-				
-			}
-			else
-			{
-				pwmW--;
-
-				if(pwmW <= 0)
-				{
-					flag = 1;
-				}
-			}
-
-			pwmOptsPtr_1->Duty_Cycle_OC2_Set(pwmParaPtr_1, pwmW);
-			
-		}
+		
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM4->SR &= ~(1 << 0);	// 清除中断标志位

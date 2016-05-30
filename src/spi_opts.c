@@ -52,7 +52,7 @@ void SPI1_GPIO_CFG(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);                 //初始化GPIOA
 
-	GPIO_SetBits(GPIOA, GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7);  //PA5/6/7上拉
+	GPIO_SetBits(GPIOA, GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7);  //PA5/6/7上拉
 	
 }
 

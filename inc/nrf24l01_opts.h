@@ -93,9 +93,9 @@ typedef struct
 
 #ifdef NRF_USE_SPI
 
-#define NRF24L01_CSN		PCout(0)	// 低电平使能
-#define NRF24L01_CE			PCout(1)	
-#define NRF24L01_IRQ		PCout(2)	// 低电平使能
+#define NRF24L01_CSN		PAout(11)	// 低电平使能
+#define NRF24L01_CE			PAout(12)	
+#define NRF24L01_IRQ		PAin(4)	// 低电平使能
 
 void NFR24L01_Init(void);
 
