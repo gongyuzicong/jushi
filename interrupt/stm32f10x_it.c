@@ -28,6 +28,7 @@
 #include "stm32f10x_exti.h"
 #include "nrf24l01_opts.h"
 #include "motion_control.h"
+#include "magn_sensor.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -515,15 +516,7 @@ void TIM2_IRQHandler(void)
 	
 	if(TIM2->SR & 0x0001)	// 溢出中断
 	{
-		if(walkingTime < 8)
-		{
-			walkingTime++;
-		}
-		else
-		{
-			walkingTime = 0;
-			//motionOptsPtr->agv_walk_stop();
-		}
+		PCout(9) = ~(PCin(9));
 		
 	}
 	
@@ -611,22 +604,21 @@ void TIM3_IRQHandler(void)
 *******************************************************************************/
 void TIM4_IRQHandler(void)
 {
-	static u16 ScanTime = 0;
 	
 	// 1ms
 	if(TIM4->SR & 0x0001)	// 溢出中断
 	{
-		if(ScanTime < 500)
-		{
-			ScanTime++;
-		}
-		else
-		{
-			ScanTime = 0;
-			PCout(9) = ~(PCin(9));
-			//printf("change\r\n");
-		}
+		SystemRunningTime++;
+
+		#ifdef FIX_SCAN
+			
+		MagnSensorScanTime++;
+
+		#else
+
 		
+		
+		#endif
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM4->SR &= ~(1 << 0);	// 清除中断标志位
@@ -753,6 +745,34 @@ void USART3_IRQHandler(void)
 *******************************************************************************/
 void EXTI15_10_IRQHandler(void)
 {
+	static u8 lMotorCount = 0x00, RMotorCount = 0x00;
+	static u32 lTimeRecode = 0x00, rTimeRecode = 0x00;
+	
+	if(EXTI_GetITStatus(EXTI_Line12) != RESET)
+	{
+		printf("exti12\r\n");
+		
+		if(lMotorCount < 10)
+		{
+			lMotorCount++;
+			
+		}
+		else
+		{
+			SystemRunningTime;
+			lMotorCount = 0;
+			
+		}
+		
+		//EXTI->PR = ((u32)0x01000);
+		EXTI_ClearITPendingBit(EXTI_Line12);
+	}
+	else if(EXTI_GetITStatus(EXTI_Line14) != RESET)
+	{
+		//printf("exti14\r\n");
+		//EXTI->PR = ((u32)0x04000);
+		EXTI_ClearITPendingBit(EXTI_Line14);
+	}
 }
 
 /*******************************************************************************

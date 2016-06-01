@@ -9,6 +9,7 @@
 
 #define X3X2X1_MAX_SPEED_LIMIT	0x07
 
+
 ControlerParaStruct ctrlParas;
 ControlerParaStruct_P ctrlParasPtr = &ctrlParas;
 MotionOperaterStruct motionOpts;
@@ -18,11 +19,11 @@ void (*agv_walking_func[5]) (void);
 #define MOTOR_RIGHT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed))
 #define MOTOR_LEFT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, speed))
 
-#define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
-#define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
+#define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
+#define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_STOP_PIN_SET()		{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
-#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 0; MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 0; MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 0;}
 #define MOTOR_LEFT_STOP_PIN_SET()		{MOTOR_LEFT_BK = 0; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 1;}
 
 #define CHANGE_TO_GO_STRAIGHT_MODE()		{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus;}
@@ -575,29 +576,7 @@ void motion_stop_pwm(void)
 		printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
 		printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
 
-		if(Offset_Left == FMSDS_Ptr->OffsetFlag)
-		{
-			printf("Offset_Left\r\n");
-		}
-		else if(Offset_Right == FMSDS_Ptr->OffsetFlag)
-		{
-			printf("Offset_Right\r\n");
-		}
-		else
-		{
-			printf("Offset_None\r\n");
-		}
 		
-		if(Six_Bit == FMSDS_Ptr->BitNum)
-		{
-			printf("Six_Bit\r\n");
-		}
-		else
-		{
-			printf("Five_Bit\r\n");
-		}
-		
-		printf("MSD_Dec = %d\r\n\r\n", FMSDS_Ptr->MSD_Dec);
 	}
 	#endif
 	
@@ -907,150 +886,139 @@ void motion_stop(void)
 
 void walking_goStraight(void)
 {
-	static u8 lastLMS = 0x00, lastRMS = 0x00;
-	
-	static u8 recodeDec = 0x00;
-	static Offset_Flag recodeFlag = Offset_None;
-	static Bit_Num recodeNum = Six_Bit;
+	#if 1
 
-	if((recodeDec != FMSDS_Ptr->MSD_Dec) || (recodeFlag != FMSDS_Ptr->OffsetFlag) || (recodeNum != FMSDS_Ptr->BitNum))
+	MSDF_Opts_Ptr->MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
+	printf("MSD_Dec = %d\r\n", FMSDS_Ptr->MSD_Dec);
+
+	if(FMSDS_Ptr->MSD_Dec > 0)		//左偏
 	{
-		recodeDec = FMSDS_Ptr->MSD_Dec;
-		recodeFlag = FMSDS_Ptr->OffsetFlag;
-		recodeNum = FMSDS_Ptr->BitNum;
-
-		#if 0
-		if(Offset_Left == FMSDS_Ptr->OffsetFlag)		// 左偏
+		if(Six_Bit == FMSDS_Ptr->BitNum)
 		{
-			if(ctrlParasPtr->leftMotorSettedSpeed >= ctrlParasPtr->rightMotorSettedSpeed)	// 如果电机左边的PWM已经比右边的电机PWM大/等于,还是左偏的话, 那么增加左边电机占空比
+			if(ctrlParasPtr->leftMotorSettedSpeed < ctrlParasPtr->rightMotorSettedSpeed)
 			{
-				if(Six_Bit == FMSDS_Ptr->BitNum)
-				{
-					ctrlParasPtr->leftMotorSettedSpeed += (FMSDS_Ptr->MSD_Dec * 5);
-				}
-				else
-				{
-					ctrlParasPtr->leftMotorSettedSpeed += (FMSDS_Ptr->MSD_Dec * 1);
-				}
-				
-				printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-				
-				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-			}
-			else		// 如果电机左边的PWM比右边的PWM占空比小,则判定为右边电机PWM占空比增加过,则需要先将右边PWM降下来
-			{
-				
-				if(Six_Bit == FMSDS_Ptr->BitNum)
-				{
-					ctrlParasPtr->rightMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 5);
-				}
-				else
-				{
-					ctrlParasPtr->rightMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 1);
-				}
-
-				printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-				
+				ctrlParasPtr->rightMotorSettedSpeed -= 1;
 				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-			}
-			
-		}
-		else if(Offset_Right == FMSDS_Ptr->OffsetFlag)	// 右偏
-		{
-			if(ctrlParasPtr->rightMotorSettedSpeed >= ctrlParasPtr->leftMotorSettedSpeed)	// 如果电机右边的PWM已经比左边的电机PWM大/等于,还是右偏的话, 那么增加右边电机占空比
-			{
-				if(Six_Bit == FMSDS_Ptr->BitNum)
-				{
-					ctrlParasPtr->rightMotorSettedSpeed += (FMSDS_Ptr->MSD_Dec * 5);
-				}
-				else
-				{
-					ctrlParasPtr->rightMotorSettedSpeed += (FMSDS_Ptr->MSD_Dec * 1);
-				}
-
-				printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-				
-				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-			}
-			else		// 如果电机右边的PWM比左边的PWM占空比小,则判定为左边电机PWM占空比增加过,则需要先将左边PWM降下来
-			{
-				
-				if(Six_Bit == FMSDS_Ptr->BitNum)
-				{
-					ctrlParasPtr->leftMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 5);
-				}
-				else
-				{
-					ctrlParasPtr->leftMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 1);
-				}
-
-				printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-				
-				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-			}
-		}
-		else if(Offset_None == FMSDS_Ptr->OffsetFlag)	// 没有偏移
-		{
-			// 保持速度
-			ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
-
-			printf("lefttMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-			printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-			
-			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-		}
-
-		#else
-
-		if(Offset_Left == FMSDS_Ptr->OffsetFlag)		// 左偏 右边电机减速
-		{
-			if(Six_Bit == FMSDS_Ptr->BitNum)
-			{
-				ctrlParasPtr->rightMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 5);
+				printf("01rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
 			}
 			else
 			{
-				ctrlParasPtr->rightMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 1);
+				ctrlParasPtr->leftMotorSettedSpeed += 1;
+				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+				printf("02leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
 			}
-			
-			printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-			
-			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-			
 		}
-		else if(Offset_Right == FMSDS_Ptr->OffsetFlag)	// 右偏 左边电机减速
+		else
 		{
-			if(Six_Bit == FMSDS_Ptr->BitNum)
+			if(ctrlParasPtr->leftMotorSettedSpeed < ctrlParasPtr->rightMotorSettedSpeed)
 			{
-				ctrlParasPtr->leftMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 5);
+				ctrlParasPtr->rightMotorSettedSpeed -= 1;
+				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+				printf("03rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
 			}
 			else
 			{
-				ctrlParasPtr->leftMotorSettedSpeed -= (FMSDS_Ptr->MSD_Dec * 1);
-			}
-
-			printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-			
-			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+				ctrlParasPtr->leftMotorSettedSpeed += 1;
+				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+				printf("04leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+			}	
 		}
-		else if(Offset_None == FMSDS_Ptr->OffsetFlag)	// 没有偏移
+	}
+	else if(FMSDS_Ptr->MSD_Dec < 0)		//右偏
+	{
+		if(Six_Bit == FMSDS_Ptr->BitNum)
 		{
-			// 保持速度
-			ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
-
-			printf("lefttMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-			printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-			
-			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+			if(ctrlParasPtr->rightMotorSettedSpeed < ctrlParasPtr->leftMotorSettedSpeed)
+			{
+				ctrlParasPtr->leftMotorSettedSpeed -= 1;
+				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+				printf("11leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+			}
+			else
+			{
+				ctrlParasPtr->rightMotorSettedSpeed += 1;
+				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+				printf("12rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+			}
 		}
-
-		#endif
+		else
+		{
+			if(ctrlParasPtr->rightMotorSettedSpeed < ctrlParasPtr->leftMotorSettedSpeed)
+			{
+				ctrlParasPtr->leftMotorSettedSpeed -= 1;
+				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+				printf("13leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+			}
+			else
+			{
+				ctrlParasPtr->rightMotorSettedSpeed += 1;
+				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+				printf("14rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+			}
+		}
+		
+	}
+	else
+	{
+		
 	}
 	
+
+	#else
+
+	if(FMSDS_Ptr->MSD_Dec < 0)		//左偏
+	{
+		if(Six_Bit == FMSDS_Ptr->BitNum)
+		{
+			if(ctrlParasPtr->rightMotorSettedSpeed >= 2)
+			{
+				ctrlParasPtr->rightMotorSettedSpeed -= 2;
+			}
+			
+			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+			printf("01rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+		}
+		else
+		{
+			if(ctrlParasPtr->rightMotorSettedSpeed >= 1)
+			{
+				ctrlParasPtr->rightMotorSettedSpeed -= 1;
+			}
+			
+			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+			printf("01rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+		}
+	}
+	else if(FMSDS_Ptr->MSD_Dec > 0)		//右偏
+	{
+		if(Six_Bit == FMSDS_Ptr->BitNum)
+		{
+			if(ctrlParasPtr->leftMotorSettedSpeed >= 2)
+			{
+				ctrlParasPtr->leftMotorSettedSpeed -= 2;
+			}
+			
+			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+			printf("11leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+		}
+		else
+		{
+			if(ctrlParasPtr->leftMotorSettedSpeed >= 1)
+			{
+				ctrlParasPtr->leftMotorSettedSpeed -= 1;
+			}
+			
+			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+			printf("11leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+		}
+	}
+	else
+	{
+		MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
+		MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
+	}
+
+	#endif
 }
 
 void walking_backStatus(void)
@@ -1078,18 +1046,64 @@ void walking_stopStatus(void)
 
 void AGV_Walking(void)
 {
+	static u32 responseTime = 0;
+	
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 	{
-		MSDF_Opts_Ptr->MS_Scan();
 		
-		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		if(MagnSensorScanTime >= Max_MAGN_SCAN_TIME)
 		{
-			agv_walking_func[stopStatus]();
+			MagnSensorScanTime = 0;
+			
+			MSDF_Opts_Ptr->MS_Scan();
+
+			if(FMSDS_Ptr->MSD_Hex == 0xF81F)
+			{
+				//MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
+				//MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
+				printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+				printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+				//motion_stop_pwm();
+			}
+			
+			responseTime++;
 		}
-		else
+
+		//printf("responseTime = %d\r\n", responseTime);
+		//if(RESPONSE_TIME_CALU(ctrlParasPtr->settedSpeed) == responseTime)
+		if(responseTime >= 50)
 		{
+			responseTime = 0;
+			//printf("in\r\n");
+			
+			#if 1
 			agv_walking_func[ctrlParasPtr->agvStatus]();
+			#else
+			switch(ctrlParasPtr->agvStatus)
+			{
+				case stopStatus:
+					break;
+					
+				case goStraightStatus:
+					walking_goStraight();
+					break;
+					
+				case backStatus:
+					break;
+					
+				case cirLeft:
+					break;
+					
+				case cirRight:
+					break;
+
+				default:
+					break;
+			}
+			#endif
+			
 		}
+		
 	}
 	else if(ManualMode == ctrlParasPtr->agvWalkingMode)
 	{
@@ -1106,8 +1120,8 @@ void AGV_Walking_Test(void)
 	#else
 	CHANGE_TO_BACK_MODE();
 	#endif
-	
-	ctrlParasPtr->settedSpeed = 10;
+	//MOTOR_LEFT_STOP_PIN_SET();
+	ctrlParasPtr->settedSpeed = 2;
 	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	

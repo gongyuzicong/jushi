@@ -4,6 +4,8 @@
 #include "data_type.h"
 #include "common_include.h"
 
+#define RESPONSE_TIME_CALU(x)		(1000 - x * 100)
+
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
 
