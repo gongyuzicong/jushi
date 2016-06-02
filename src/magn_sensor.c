@@ -1,4 +1,5 @@
 #include "magn_sensor.h"
+#include "motion_control.h"
 
 Magn_Sensor_Data_Sturct FMSDS;
 Magn_Sensor_Data_Sturct_P FMSDS_Ptr = &FMSDS;
@@ -328,41 +329,52 @@ void Magn_Sensor_Scan(void)
 
 	static u16 tempFMS = 0x00, tempRMS = 0x00;
 	u32 TimeNow = 0;
-	
-	FMSDS_Ptr->MSD_Hex = FMS_Hex;
-	RMSDS_Ptr->MSD_Hex = RMS_Hex;
 
-	if(tempFMS != FMSDS_Ptr->MSD_Hex)
+	if(ctrlParasPtr->agvStatus == goStraightStatus)
 	{
-		FMSDS_Pre = FMSDS;
-		
-		FMSDS_Ptr->TimeRecoder = SystemRunningTime;
-		
-		tempFMS = FMSDS_Ptr->MSD_Hex;
-		//printf("F: ");
-		//MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
+		FMSDS_Ptr->MSD_Hex = FMS_Hex;
+		RMSDS_Ptr->MSD_Hex = RMS_Hex;
 
-		// 1. 分析出采集到的磁传感器数据,并且将信息处理成 (传感器)
-		My_MSD_Opt(FMSDS_Ptr);
-		Magn_VandA_Calu(FMSDS_Ptr, FMSDS_Pre_Ptr);
-		//Show_Opt_MSD(FMSDS_Ptr);
-		//printf("\r\n");
-	}
-	
-	
-	if(tempRMS != RMSDS_Ptr->MSD_Hex)
-	{
-		RMSDS_Pre = RMSDS;
+		if(0 != (FMSDS_Ptr->MSD_Hex & 0x8001))
+		{
+			if(tempFMS != FMSDS_Ptr->MSD_Hex)
+			{
+				FMSDS_Pre = FMSDS;
+				
+				FMSDS_Ptr->TimeRecoder = SystemRunningTime;
+				
+				tempFMS = FMSDS_Ptr->MSD_Hex;
+				//printf("F: ");
+				//MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
+
+				// 1. 分析出采集到的磁传感器数据,并且将信息处理成 (传感器)
+				My_MSD_Opt(FMSDS_Ptr);
+				Magn_VandA_Calu(FMSDS_Ptr, FMSDS_Pre_Ptr);
+				//Show_Opt_MSD(FMSDS_Ptr);
+				//printf("\r\n");
+			}
+		}
 		
-		RMSDS_Ptr->TimeRecoder = SystemRunningTime;
 		
-		tempRMS = RMSDS_Ptr->MSD_Hex;
-		//printf("R: ");
-		//MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
-		My_MSD_Opt(RMSDS_Ptr);
-		Magn_VandA_Calu(RMSDS_Ptr, RMSDS_Pre_Ptr);
-		//Show_Opt_MSD(RMSDS_Ptr);
-		//printf("\r\n");
+
+		if(~(RMSDS_Ptr->MSD_Hex) < 0x8000)
+		{
+			if(tempRMS != RMSDS_Ptr->MSD_Hex)
+			{
+				RMSDS_Pre = RMSDS;
+				
+				RMSDS_Ptr->TimeRecoder = SystemRunningTime;
+				
+				tempRMS = RMSDS_Ptr->MSD_Hex;
+				//printf("R: ");
+				//MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
+				My_MSD_Opt(RMSDS_Ptr);
+				Magn_VandA_Calu(RMSDS_Ptr, RMSDS_Pre_Ptr);
+				//Show_Opt_MSD(RMSDS_Ptr);
+				//printf("\r\n");
+			}
+		}
+		
 	}
 	
 	#endif

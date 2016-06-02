@@ -999,10 +999,10 @@ void walking_goStraight(void)
 
 	if(AgvCent2Left == FMSDS_Ptr->agvDirection)			// 往外偏移,加速
 	{
-		if(ctrlParasPtr->leftMotorSettedSpeed < 11)
+		if(ctrlParasPtr->leftMotorSettedSpeed < 17)
 		{
-			ctrlParasPtr->leftMotorSettedSpeed = 11;
-			ctrlParasPtr->rightMotorSettedSpeed = 9;
+			ctrlParasPtr->leftMotorSettedSpeed = 17;
+			ctrlParasPtr->rightMotorSettedSpeed = 13;
 			MOTOR_RIGHT_DUTY_SET_Setted();
 			MOTOR_LEFT_DUTY_SET_Setted();
 		}
@@ -1010,21 +1010,33 @@ void walking_goStraight(void)
 	}
 	else if(AgvCent2Right == FMSDS_Ptr->agvDirection)	// 往外偏移,加速
 	{
-		if(ctrlParasPtr->rightMotorSettedSpeed < 11)
+		if(ctrlParasPtr->rightMotorSettedSpeed < 17)
 		{
-			ctrlParasPtr->leftMotorSettedSpeed = 9;
-			ctrlParasPtr->rightMotorSettedSpeed = 11;
+			ctrlParasPtr->leftMotorSettedSpeed = 13;
+			ctrlParasPtr->rightMotorSettedSpeed = 17;
 			MOTOR_RIGHT_DUTY_SET_Setted();
 			MOTOR_LEFT_DUTY_SET_Setted();
 		}
 	}
 	else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)	// 往回偏移,减速
 	{
-		
+		if(ctrlParasPtr->rightMotorSettedSpeed < 17)
+		{
+			ctrlParasPtr->leftMotorSettedSpeed = 14;
+			ctrlParasPtr->rightMotorSettedSpeed = 16;
+			MOTOR_RIGHT_DUTY_SET_Setted();
+			MOTOR_LEFT_DUTY_SET_Setted();
+		}
 	}
 	else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 	// 往回偏移,减速
 	{
-		
+		if(ctrlParasPtr->leftMotorSettedSpeed < 17)
+		{
+			ctrlParasPtr->leftMotorSettedSpeed = 16;
+			ctrlParasPtr->rightMotorSettedSpeed = 14;
+			MOTOR_RIGHT_DUTY_SET_Setted();
+			MOTOR_LEFT_DUTY_SET_Setted();
+		}
 	}
 	else if(AgvLeft2Right == FMSDS_Ptr->agvDirection)	// 左到右极速偏移,加减速同时作用
 	{
@@ -1036,7 +1048,10 @@ void walking_goStraight(void)
 	}
 	else if(AgvCenter == FMSDS_Ptr->agvDirection)		// 在中央位置
 	{
-		
+		ctrlParasPtr->leftMotorSettedSpeed = 15;
+		ctrlParasPtr->rightMotorSettedSpeed = 15;
+		MOTOR_RIGHT_DUTY_SET_Setted();
+		MOTOR_LEFT_DUTY_SET_Setted();
 	}
 	
 	#endif
@@ -1108,7 +1123,7 @@ void AGV_Walking_Test(void)
 	CHANGE_TO_BACK_MODE();
 	#endif
 	//MOTOR_LEFT_STOP_PIN_SET();
-	ctrlParasPtr->settedSpeed = 10;
+	ctrlParasPtr->settedSpeed = 15;
 	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
