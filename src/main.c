@@ -38,6 +38,7 @@ int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 1, cir2 = 0;
+	u32 time = 0;
 	
 	CB_RCC_Config();	/*配置系统时钟*/
 	CB_GPIO_Config();	/*配置GPIO口*/
@@ -46,7 +47,8 @@ int main(void)
 	
 	//printf("start\r\n");
 	motionOptsPtr->agv_walk_test();
-	
+
+	time = SystemRunningTime;
 	while(1)
 	{
 		#if 1
@@ -56,7 +58,7 @@ int main(void)
 			//printf("%d\r\n", keyScan());
 			keyScanFlag = 0;
 		}
-
+		
 		/*
 		if(need2SendInfo)
 		{
@@ -66,6 +68,12 @@ int main(void)
 		//NRF24L01OptsPtr->TEST_Recv();
 		*/
 		#endif
+		/*
+		if((SystemRunningTime - time) >= 5000)
+		{
+			motionOptsPtr->agv_walk_test2();
+		}
+		*/
 		
 		//MSDF_Opts_Ptr->MSD_Test();
 		motionOptsPtr->agv_walk();

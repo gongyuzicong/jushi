@@ -12,7 +12,7 @@ u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM 频率设置 范围 1k~10k
 {
 	u8 flag = 1;
 	
-	if((pwmArguPtr->Frequency >= 2) && (pwmArguPtr->Frequency <= 10))
+	if((pwmArguPtr->Frequency >= 1) && (pwmArguPtr->Frequency <= 10))
 	{
 		/* 定义 TIM_TimeBase 初始化结构体 TIM_TimeBaseStructure */
 		TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
@@ -24,7 +24,7 @@ u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM 频率设置 范围 1k~10k
 		*  	时钟分割0
 		*  	向上计数模式
 		*/
-		//TIM_TimeBaseStructure.TIM_Period = 36000;
+		//TIM_TimeBaseStructure.TIM_Period = 72000;
 		pwmArguPtr->PwmFrequencyCounterNum = 72000 / pwmArguPtr->Frequency;
 		pwmArguPtr->ResolutionPreStep = pwmArguPtr->PwmFrequencyCounterNum / pwmArguPtr->PwmResolution;
 		

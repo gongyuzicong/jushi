@@ -7,17 +7,28 @@
 #define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
 #define MAX_STEP_SPEED_INC	1
 
-#define X3X2X1_MAX_SPEED_LIMIT	0x07
+#define X3X2X1_MAX_SPEED_LIMIT		0x07
+
+#define MOTOR_SPEED_RESPON_TIME		(100)
 
 
 ControlerParaStruct ctrlParas;
 ControlerParaStruct_P ctrlParasPtr = &ctrlParas;
 MotionOperaterStruct motionOpts;
 MotionOperaterStruct_P motionOptsPtr = &motionOpts;
+u32 responseTime = 0;
 void (*agv_walking_func[5]) (void);
 
 #define MOTOR_RIGHT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed))
 #define MOTOR_LEFT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, speed))
+
+#define MOTOR_RIGHT_DUTY_SET_Setted()			{pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->rightMotorSettedSpeed);}
+#define MOTOR_LEFT_DUTY_SET_Setted()			{pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->leftMotorSettedSpeed);}
+
+
+#define MOTOR_RIGHT_DUTY_OFFSET()		{pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->settedSpeed + ctrlParasPtr->rightMotorSpeedOffset);}
+#define MOTOR_LEFT_DUTY_OFFSET()		{pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->settedSpeed + ctrlParasPtr->leftMotorSpeedOffset);}
+
 
 #define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
@@ -884,140 +895,150 @@ void motion_stop(void)
 }
 
 
+// 巨石这什么烂摊子, 可以去吃屎吗 ^_^
 void walking_goStraight(void)
 {
-	#if 1
-
-	MSDF_Opts_Ptr->MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
-	printf("MSD_Dec = %d\r\n", FMSDS_Ptr->MSD_Dec);
-
-	if(FMSDS_Ptr->MSD_Dec > 0)		//左偏
+	#if 0
+	
+	MSDF_Opts_Ptr->magn_show(FMSDS_Ptr);
+	MSDF_Opts_Ptr->magn_show(FMSDS_Pre_Ptr);
+	
+	// 一个礼拜写一个控制算法,客户你这么厉害你爸妈知道吗 ^_^ 客户你行你来啊
+	if(AgvCent2Left == FMSDS_Ptr->agvDirection)		// 往外偏移,加速  客户你妈妈叫你回家吃饭你知道吗 ^_^
 	{
-		if(Six_Bit == FMSDS_Ptr->BitNum)
+		if(AgvCent2Left == FMSDS_Pre_Ptr->agvDirection)		// 情况没有改善,右侧电机减速
 		{
-			if(ctrlParasPtr->leftMotorSettedSpeed < ctrlParasPtr->rightMotorSettedSpeed)
-			{
-				ctrlParasPtr->rightMotorSettedSpeed -= 1;
-				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-				printf("01rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-			}
-			else
-			{
-				ctrlParasPtr->leftMotorSettedSpeed += 1;
-				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-				printf("02leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-			}
+			ctrlParasPtr->rightMotorSpeedOffset -= ((5 - FMSDS_Ptr->RightRemain) * 1);
+			MOTOR_RIGHT_DUTY_OFFSET();
+			printf("1rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
 		}
 		else
 		{
-			if(ctrlParasPtr->leftMotorSettedSpeed < ctrlParasPtr->rightMotorSettedSpeed)
-			{
-				ctrlParasPtr->rightMotorSettedSpeed -= 1;
-				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-				printf("03rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-			}
-			else
-			{
-				ctrlParasPtr->leftMotorSettedSpeed += 1;
-				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-				printf("04leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-			}	
+			ctrlParasPtr->leftMotorSpeedOffset += ((5 - FMSDS_Ptr->RightRemain) * 1);
+			MOTOR_LEFT_DUTY_OFFSET();
+			printf("2leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
 		}
 	}
-	else if(FMSDS_Ptr->MSD_Dec < 0)		//右偏
+	else if(AgvCent2Right == FMSDS_Ptr->agvDirection)	// 往外偏移,加速
 	{
-		if(Six_Bit == FMSDS_Ptr->BitNum)
+		if(AgvCent2Right == FMSDS_Pre_Ptr->agvDirection)		// 情况没有改善,左侧电机减速
 		{
-			if(ctrlParasPtr->rightMotorSettedSpeed < ctrlParasPtr->leftMotorSettedSpeed)
+			ctrlParasPtr->leftMotorSpeedOffset -= ((5 - FMSDS_Ptr->LeftRemain) * 1);
+			MOTOR_LEFT_DUTY_OFFSET();
+			printf("3leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
+		}
+		else
+		{
+			ctrlParasPtr->rightMotorSpeedOffset += ((5 - FMSDS_Ptr->LeftRemain) * 1);
+			MOTOR_RIGHT_DUTY_OFFSET();
+			printf("4rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
+		}
+	}
+	else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)	// 往回偏移,减速
+	{
+		#if 0
+		
+		if((0 != ctrlParasPtr->rightMotorSpeedOffset) || (0 != ctrlParasPtr->leftMotorSpeedOffset))
+		{
+			if(0 != ctrlParasPtr->leftMotorSpeedOffset)
 			{
-				ctrlParasPtr->leftMotorSettedSpeed -= 1;
-				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-				printf("11leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+				ctrlParasPtr->leftMotorSpeedOffset -= (ctrlParasPtr->leftMotorSpeedOffset / 2);
+				MOTOR_LEFT_DUTY_OFFSET();
 			}
 			else
 			{
-				ctrlParasPtr->rightMotorSettedSpeed += 1;
-				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-				printf("12rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+				ctrlParasPtr->rightMotorSpeedOffset -= (ctrlParasPtr->rightMotorSpeedOffset / 2);
+				MOTOR_RIGHT_DUTY_OFFSET();
 			}
 		}
 		else
 		{
-			if(ctrlParasPtr->rightMotorSettedSpeed < ctrlParasPtr->leftMotorSettedSpeed)
-			{
-				ctrlParasPtr->leftMotorSettedSpeed -= 1;
-				MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-				printf("13leftMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-			}
-			else
-			{
-				ctrlParasPtr->rightMotorSettedSpeed += 1;
-				MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-				printf("14rightMotorSettedSpeed = %d\r\n\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-			}
+			
+		}
+		
+		#endif
+
+		ctrlParasPtr->rightMotorSpeedOffset -= (ctrlParasPtr->rightMotorSpeedOffset / 2);
+		MOTOR_RIGHT_DUTY_OFFSET();
+		printf("5rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
+	}
+	else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 	// 往回偏移,减速
+	{
+		ctrlParasPtr->leftMotorSpeedOffset -= (ctrlParasPtr->leftMotorSpeedOffset / 2);
+		MOTOR_LEFT_DUTY_OFFSET();
+		printf("6leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
+	}
+	else if(AgvLeft2Right == FMSDS_Ptr->agvDirection)	// 左到右极速偏移,加减速同时作用
+	{
+		ctrlParasPtr->leftMotorSpeedOffset -= (ctrlParasPtr->leftMotorSpeedOffset / 2);
+		MOTOR_LEFT_DUTY_OFFSET();
+		printf("7leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
+		ctrlParasPtr->rightMotorSpeedOffset += ((5 - FMSDS_Ptr->LeftRemain) * 1);
+		MOTOR_RIGHT_DUTY_OFFSET();
+		printf("8rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
+	}
+	else if(AgvRight2Left == FMSDS_Ptr->agvDirection)	// 右到左极速偏移,加减速同时作用
+	{
+		ctrlParasPtr->rightMotorSpeedOffset -= (ctrlParasPtr->rightMotorSpeedOffset / 2);
+		MOTOR_RIGHT_DUTY_OFFSET();
+		printf("9rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
+		ctrlParasPtr->leftMotorSpeedOffset += ((5 - FMSDS_Ptr->RightRemain) * 1);
+		MOTOR_LEFT_DUTY_OFFSET();
+		printf("10leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
+	}
+	else if(AgvCenter == FMSDS_Ptr->agvDirection)		// 在中央位置
+	{
+		printf("11rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
+		printf("12leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
+	}
+
+	#else
+
+	MSDF_Opts_Ptr->magn_show(FMSDS_Ptr);
+	MSDF_Opts_Ptr->magn_show(FMSDS_Pre_Ptr);
+
+	if(AgvCent2Left == FMSDS_Ptr->agvDirection)			// 往外偏移,加速
+	{
+		if(ctrlParasPtr->leftMotorSettedSpeed < 11)
+		{
+			ctrlParasPtr->leftMotorSettedSpeed = 11;
+			ctrlParasPtr->rightMotorSettedSpeed = 9;
+			MOTOR_RIGHT_DUTY_SET_Setted();
+			MOTOR_LEFT_DUTY_SET_Setted();
 		}
 		
 	}
-	else
+	else if(AgvCent2Right == FMSDS_Ptr->agvDirection)	// 往外偏移,加速
+	{
+		if(ctrlParasPtr->rightMotorSettedSpeed < 11)
+		{
+			ctrlParasPtr->leftMotorSettedSpeed = 9;
+			ctrlParasPtr->rightMotorSettedSpeed = 11;
+			MOTOR_RIGHT_DUTY_SET_Setted();
+			MOTOR_LEFT_DUTY_SET_Setted();
+		}
+	}
+	else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)	// 往回偏移,减速
+	{
+		
+	}
+	else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 	// 往回偏移,减速
+	{
+		
+	}
+	else if(AgvLeft2Right == FMSDS_Ptr->agvDirection)	// 左到右极速偏移,加减速同时作用
+	{
+		
+	}
+	else if(AgvRight2Left == FMSDS_Ptr->agvDirection)	// 右到左极速偏移,加减速同时作用
+	{
+		
+	}
+	else if(AgvCenter == FMSDS_Ptr->agvDirection)		// 在中央位置
 	{
 		
 	}
 	
-
-	#else
-
-	if(FMSDS_Ptr->MSD_Dec < 0)		//左偏
-	{
-		if(Six_Bit == FMSDS_Ptr->BitNum)
-		{
-			if(ctrlParasPtr->rightMotorSettedSpeed >= 2)
-			{
-				ctrlParasPtr->rightMotorSettedSpeed -= 2;
-			}
-			
-			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-			printf("01rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-		}
-		else
-		{
-			if(ctrlParasPtr->rightMotorSettedSpeed >= 1)
-			{
-				ctrlParasPtr->rightMotorSettedSpeed -= 1;
-			}
-			
-			MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-			printf("01rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-		}
-	}
-	else if(FMSDS_Ptr->MSD_Dec > 0)		//右偏
-	{
-		if(Six_Bit == FMSDS_Ptr->BitNum)
-		{
-			if(ctrlParasPtr->leftMotorSettedSpeed >= 2)
-			{
-				ctrlParasPtr->leftMotorSettedSpeed -= 2;
-			}
-			
-			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-			printf("11leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-		}
-		else
-		{
-			if(ctrlParasPtr->leftMotorSettedSpeed >= 1)
-			{
-				ctrlParasPtr->leftMotorSettedSpeed -= 1;
-			}
-			
-			MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-			printf("11leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-		}
-	}
-	else
-	{
-		MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
-		MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
-	}
-
 	#endif
 }
 
@@ -1046,63 +1067,29 @@ void walking_stopStatus(void)
 
 void AGV_Walking(void)
 {
-	static u32 responseTime = 0;
+	//static u32 responseTime = 0;
 	
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 	{
+		// 1. 扫描并且计算磁传感器相关数据
+		MSDF_Opts_Ptr->MS_Scan();		
 		
-		if(MagnSensorScanTime >= Max_MAGN_SCAN_TIME)
-		{
-			MagnSensorScanTime = 0;
-			
-			MSDF_Opts_Ptr->MS_Scan();
-
-			if(FMSDS_Ptr->MSD_Hex == 0xF81F)
-			{
-				//MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
-				//MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
-				printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-				printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-				//motion_stop_pwm();
-			}
-			
-			responseTime++;
-		}
 
 		//printf("responseTime = %d\r\n", responseTime);
 		//if(RESPONSE_TIME_CALU(ctrlParasPtr->settedSpeed) == responseTime)
-		if(responseTime >= 50)
+
+		// 2. 根据处理到的数据, 对电机做相应的调速(P Control)(此处要预留一定的响应时间)
+		//printf("responseTime = %d\r\n", responseTime);
+		//printf("SystemRunningTime = %d\r\n", SystemRunningTime);
+		if(responseTime >= MOTOR_SPEED_RESPON_TIME)
 		{
 			responseTime = 0;
-			//printf("in\r\n");
-			
-			#if 1
 			agv_walking_func[ctrlParasPtr->agvStatus]();
-			#else
-			switch(ctrlParasPtr->agvStatus)
-			{
-				case stopStatus:
-					break;
-					
-				case goStraightStatus:
-					walking_goStraight();
-					break;
-					
-				case backStatus:
-					break;
-					
-				case cirLeft:
-					break;
-					
-				case cirRight:
-					break;
-
-				default:
-					break;
-			}
-			#endif
-			
 		}
+
+		
+		// 3. 监测电机转速, 并且结合传感器数据, 对电机的PWM做相应的调整(D Control)
+		
 		
 	}
 	else if(ManualMode == ctrlParasPtr->agvWalkingMode)
@@ -1121,13 +1108,32 @@ void AGV_Walking_Test(void)
 	CHANGE_TO_BACK_MODE();
 	#endif
 	//MOTOR_LEFT_STOP_PIN_SET();
-	ctrlParasPtr->settedSpeed = 2;
+	ctrlParasPtr->settedSpeed = 10;
 	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
 	MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
 	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
 }
+
+void AGV_Walking_Test2(void)
+{
+	MOTOR_POWER = 0;
+
+	#if 1
+	CHANGE_TO_GO_STRAIGHT_MODE();
+	#else
+	CHANGE_TO_BACK_MODE();
+	#endif
+	//MOTOR_LEFT_STOP_PIN_SET();
+	ctrlParasPtr->settedSpeed = 100;
+	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
+	
+	MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
+	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
+}
+
 
 void AGV_Walking_Stop(void)
 {	
@@ -1257,6 +1263,7 @@ void Motion_Ctrl_Init(void)
 	motionOptsPtr->agv_walk = AGV_Walking;
 	motionOptsPtr->agv_walk_test = AGV_Walking_Test;
 	motionOptsPtr->agv_walk_stop = AGV_Walking_Stop;
+	motionOptsPtr->agv_walk_test2 = AGV_Walking_Test2;
 
 	agv_walking_func[stopStatus] = walking_stopStatus;
 	agv_walking_func[goStraightStatus] = walking_goStraight;

@@ -609,16 +609,7 @@ void TIM4_IRQHandler(void)
 	if(TIM4->SR & 0x0001)	// 溢出中断
 	{
 		SystemRunningTime++;
-
-		#ifdef FIX_SCAN
-			
-		MagnSensorScanTime++;
-
-		#else
-
-		
-		
-		#endif
+		responseTime++;
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM4->SR &= ~(1 << 0);	// 清除中断标志位

@@ -3,13 +3,17 @@
 Magn_Sensor_Data_Sturct FMSDS;
 Magn_Sensor_Data_Sturct_P FMSDS_Ptr = &FMSDS;
 
+Magn_Sensor_Data_Sturct FMSDS_Pre;
+Magn_Sensor_Data_Sturct_P FMSDS_Pre_Ptr = &FMSDS_Pre;
+
 Magn_Sensor_Data_Sturct RMSDS;
 Magn_Sensor_Data_Sturct_P RMSDS_Ptr = &RMSDS;
 
+Magn_Sensor_Data_Sturct RMSDS_Pre;
+Magn_Sensor_Data_Sturct_P RMSDS_Pre_Ptr = &RMSDS_Pre;
+
 MSD_Functions_Struct MSDF_Opts;
 MSD_Functions_Struct_P MSDF_Opts_Ptr = &MSDF_Opts;
-
-vu8 MagnSensorScanTime = 0x00;
 
 u8 station = 0x00;
 
@@ -41,85 +45,123 @@ void MSD_Show_Bin(u32 showNum)
 左偏为: 正值
 右偏为: 负值
 ***********************************/
-void My_MSD_Opt(u16 numHex, Magn_Sensor_Data_Sturct_P ptr)
+void My_MSD_Opt(Magn_Sensor_Data_Sturct_P ptr)
 {
 	u16 tempNumHex = 0x00;
 	s16 numDec = 0;
-	u8 cir = 0, bitCount = 0;
+	u8 cir1 = 0, cir2 = 0, bit0Count = 0, bit1Count = 0, stageThree = 0;
 
-	tempNumHex = ~numHex;
-	
-	if(tempNumHex != STD_MS_NUM)
+	tempNumHex = ptr->MSD_Hex;
+
+	if(0 == (tempNumHex & 0x01))		// 如果一上来就是在左偏移极限位置
 	{
-		for(cir = 0; cir < 16; cir++)
+		for(cir1 = 0; cir1 < 16; cir1++)
 		{
-			if(0 != (tempNumHex & 0x01))
+			if(0 == (tempNumHex & 0x01))
 			{
-				
-				//MSD_Show_Bin(tempNumHex);
-				if(0x3F == tempNumHex)		//six bit
-				{
-					ptr->BitNum = Six_Bit;
-
-					ptr->MSD_Dec = 5 - cir;
-					//printf("cir = %d\r\n", cir);
-					//printf("1ptr->MSD_Dec = %d\r\n", ptr->MSD_Dec);
-				}
-				else						// five bit
-				{
-					ptr->BitNum = Five_Bit;
-
-					if(cir <= 5)
-					{
-						ptr->MSD_Dec = 6 - cir;
-						//printf("cir = %d\r\n", cir);
-						//printf("2ptr->MSD_Dec = %d\r\n", ptr->MSD_Dec);
-					}
-					else if(cir > 5)
-					{
-						ptr->MSD_Dec = 5 - cir;
-						//printf("cir = %d\r\n", cir);
-						//printf("3ptr->MSD_Dec = %d\r\n", ptr->MSD_Dec);
-					}
-				}
-				
+				bit0Count++;
+			}
+			else
+			{
 				break;
 			}
+
 			tempNumHex = (tempNumHex >> 1);
 		}
-	}
-	else if(tempNumHex == MS_ERROR)
-	{
-		// stop counter
+
+		ptr->BitNum = bit0Count;
+		ptr->LeftRemain = 16 - bit0Count;
+		ptr->RightRemain = 0;
 		
 	}
+	else if(0xFFFF == tempNumHex)		// 数据是0xFFFF的状态
+	{
+		ptr->LeftRemain = 0xFF;
+		ptr->RightRemain = 0xFF;
+		ptr->BitNum = 0;
+	}
 	else
 	{
-		ptr->MSD_Dec = 0;
-		ptr->BitNum = Six_Bit;
-		//printf("4ptr->MSD_Dec = %d\r\n", ptr->MSD_Dec);
-	}
 
+		for(cir1 = 0; cir1 < 16; cir1++)
+		{
+			if(1 == (tempNumHex & 0x01))
+			{
+				if(0 == stageThree)
+				{
+					bit1Count++;
+				}
+				else
+				{
+					break;
+				}
+			}
+			else if(0 == (tempNumHex & 0x01))
+			{
+				stageThree = 1;
+
+				bit0Count++;
+			}
+			
+			tempNumHex = (tempNumHex >> 1);
+		}
+
+		ptr->BitNum = bit0Count;
+		ptr->RightRemain = bit1Count;
+		ptr->LeftRemain = 16 - bit0Count - bit1Count;
+		
+	}
 	
 }
 
-
-
-void Show_Opt_MSD(Magn_Sensor_Data_Sturct_P ptr)
+void Show_Opt_MSD(Magn_Sensor_Data_Sturct_P show)
 {
-	printf("Offset = %d\r\n", ptr->MSD_Dec);
+	printf("LeftRemain = %d\r\n", show->LeftRemain);
+	printf("RightRemain = %d\r\n", show->RightRemain);
+	printf("BitNum = %d\r\n", show->BitNum);
 	
-	if(Six_Bit == ptr->BitNum)
+	switch(show->agvDirection)
 	{
-		printf("Six_Bit\r\n");
-	}
-	else
-	{
-		printf("Five_Bit\r\n");
+		case AgvCenter:
+			printf("AgvCenter\r\n");
+			break;
+			
+		case AgvCent2Left:
+			printf("AgvCent2Left\r\n");
+			break;
+			
+		case AgvCent2Right:
+			printf("AgvCent2Right\r\n");
+			break;
+			
+		case AgvRight2Cent:
+			printf("AgvRight2Cent\r\n");
+			break;
+			
+		case AgvLeft2Cent:
+			printf("AgvLeft2Cent\r\n");
+			break;
+			
+		case AgvLeft2Right:
+			printf("AgvLeft2Right\r\n");
+			break;
+			
+		case AgvRight2Left:
+			printf("AgvRight2Left\r\n");
+			break;
+
+		default:
+			printf("agvDirection = %d\r\n", show->agvDirection);
+			break;
+			
 	}
 	
-	printf("MSD_Dec = %d\r\n\r\n", ptr->MSD_Dec);
+	printf("VelocityXt = %d\r\n", show->VelocityXt);
+	printf("AcceleratedXt = %d\r\n", show->AcceleratedXt);
+	printf("\r\n");
+	
 }
+
 
 void My_MSD_Show(u32 showNumF, u32 showNumR)
 {
@@ -201,40 +243,78 @@ void My_MSD_Test(void)
 	
 }
 
-void Magn_VandA_Calu(Magn_Sensor_Data_Sturct_P now)
+void Magn_VandA_Calu(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)
 {
-	#if 1
-	u8 cycleTime = Max_MAGN_SCAN_TIME;
-	static u8 flag = 0x01;
-	static Magn_Sensor_Data_Sturct pre = {0, 0, Six_Bit, 0, 0};
-	
-	if(flag)
+	if(AgvInitS != pre->agvDirection)
 	{
-		flag--;
+		if(now->LeftRemain < 5)		//  左边剩余少于5, 本次状态为右偏
+		{
+			if(pre->LeftRemain <= 5)
+			{
+				if(now->LeftRemain > pre->LeftRemain)
+				{
+					now->agvDirection = AgvRight2Cent;
+				}
+				else
+				{
+					now->agvDirection = AgvCent2Right;
+				}
+			}
+			else
+			{
+				now->agvDirection = AgvLeft2Right;
+			}
+			
+		}
+		else if(now->RightRemain < 5)	// 右边剩余少于5, 本次状态为左偏
+		{
+			if(pre->RightRemain <= 5)
+			{
+				if(now->RightRemain > pre->RightRemain)
+				{
+					now->agvDirection = AgvLeft2Cent;
+				}
+				else
+				{
+					now->agvDirection = AgvCent2Left;
+				}
+			}
+			else
+			{
+				now->agvDirection = AgvRight2Left;
+			}
+			
+		}
+		else		// 中间位置
+		{
+			now->agvDirection = AgvCenter;
+		}
+
+		now->VelocityXt = now->TimeRecoder - pre->TimeRecoder;		// VelocityXt   的值越大, 则速度越小
+		now->AcceleratedXt = now->VelocityXt - pre->VelocityXt;		// AcceleratedXt的值越大, 则加速度越小
 	}
 	else
 	{
-		if(0 == now->MSD_Dec)
+		if(now->LeftRemain < 5)
 		{
-			
+			now->agvDirection = AgvCent2Right;
+		}
+		else if(now->LeftRemain = 5)
+		{
+			now->agvDirection = AgvCenter;
 		}
 		else
 		{
-			//printf("now->MSD_Dec = %d, pre.MSD_Dec = %d\r\n", now->MSD_Dec, pre.MSD_Dec);
-			now->VelocityX = now->MSD_Dec - pre.MSD_Dec;
-			//printf("now->VelocityX = %d, pre.VelocityX = %d\r\n", now->VelocityX, pre.VelocityX);
-			now->AcceleratedX = now->VelocityX - pre.VelocityX;
-			//printf("VelocityX = %d\r\n", now->VelocityX);
-			//printf("AcceleratedX = %d\r\n", now->AcceleratedX);
+			now->agvDirection = AgvCent2Left;
 		}
 	}
+	
+}
 
-	pre.AcceleratedX = now->AcceleratedX;
-	pre.BitNum = now->BitNum;
-	pre.MSD_Dec = now->MSD_Dec;
-	pre.MSD_Hex = now->MSD_Hex;
-	pre.VelocityX = now->VelocityX;
-	#endif
+void magn_show(Magn_Sensor_Data_Sturct_P show)
+{
+	MSD_Show_Bin(show->MSD_Hex);
+	Show_Opt_MSD(show);
 }
 
 void Magn_Sensor_Scan(void)
@@ -247,31 +327,43 @@ void Magn_Sensor_Scan(void)
 	#else
 
 	static u16 tempFMS = 0x00, tempRMS = 0x00;
+	u32 TimeNow = 0;
 	
 	FMSDS_Ptr->MSD_Hex = FMS_Hex;
-	
+	RMSDS_Ptr->MSD_Hex = RMS_Hex;
 
 	if(tempFMS != FMSDS_Ptr->MSD_Hex)
-	//if(1)
 	{
+		FMSDS_Pre = FMSDS;
+		
+		FMSDS_Ptr->TimeRecoder = SystemRunningTime;
+		
 		tempFMS = FMSDS_Ptr->MSD_Hex;
 		//printf("F: ");
 		//MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
-		My_MSD_Opt(FMSDS_Ptr->MSD_Hex, FMSDS_Ptr);
+
+		// 1. 分析出采集到的磁传感器数据,并且将信息处理成 (传感器)
+		My_MSD_Opt(FMSDS_Ptr);
+		Magn_VandA_Calu(FMSDS_Ptr, FMSDS_Pre_Ptr);
 		//Show_Opt_MSD(FMSDS_Ptr);
-		Magn_VandA_Calu(FMSDS_Ptr);
 		//printf("\r\n");
 	}
 	
 	
-	/*
-	if(tempRMS != RMS_Hex)
+	if(tempRMS != RMSDS_Ptr->MSD_Hex)
 	{
-		tempRMS = RMS_Hex;
-		My_MSD_Opt(RMS_Hex, RMSDS_Ptr);
+		RMSDS_Pre = RMSDS;
 		
+		RMSDS_Ptr->TimeRecoder = SystemRunningTime;
+		
+		tempRMS = RMSDS_Ptr->MSD_Hex;
+		//printf("R: ");
+		//MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
+		My_MSD_Opt(RMSDS_Ptr);
+		Magn_VandA_Calu(RMSDS_Ptr, RMSDS_Pre_Ptr);
+		//Show_Opt_MSD(RMSDS_Ptr);
+		//printf("\r\n");
 	}
-	*/
 	
 	#endif
 }
@@ -297,26 +389,30 @@ void Magn_Sensor_Init(void)
 	Magn_Sensor_Gpio_Init();
 	
 	FMSDS_Ptr->MSD_Hex = 0x00;
-	RMSDS_Ptr->MSD_Hex = 0x00;
 	
 	FMSDS_Ptr->MSD_Dec = 0x00;
-	RMSDS_Ptr->MSD_Dec = 0x00;
-
-	FMSDS_Ptr->BitNum = Six_Bit;
-	RMSDS_Ptr->BitNum = Six_Bit;
 
 	FMSDS_Ptr->VelocityX = 0x00;
-	RMSDS_Ptr->VelocityX = 0x00;
 
 	FMSDS_Ptr->AcceleratedX = 0x00;
-	RMSDS_Ptr->AcceleratedX = 0x00;
+
+	FMSDS_Ptr->LeftRemain = 0;
+
+	FMSDS_Ptr->RightRemain = 0;
+
+	FMSDS_Ptr->BitNum = 0;
+
+	FMSDS_Ptr->agvDirection = AgvInitS;
+
+	*RMSDS_Ptr = *FMSDS_Pre_Ptr = *RMSDS_Pre_Ptr = *FMSDS_Ptr;
 	
 	MSDF_Opts_Ptr->MY_MSD_Operator = My_MSD_Opt;
 	MSDF_Opts_Ptr->MS_Scan = Magn_Sensor_Scan;
 	MSDF_Opts_Ptr->MSD_SHOW = My_MSD_Show;
 	MSDF_Opts_Ptr->MSD_Test = My_MSD_Test;
 	MSDF_Opts_Ptr->MSD_Show_Bin = MSD_Show_Bin;
-	
+	MSDF_Opts_Ptr->Show_Opt_MSD = Show_Opt_MSD;
+	MSDF_Opts_Ptr->magn_show = magn_show;
 }
 
 

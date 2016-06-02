@@ -138,8 +138,8 @@ void TIM3_Init(u16 Arr, u16 Psc)
 	*	向上计数模式
 	*/
 	TIM_TimeBaseStructure.TIM_Period = 36000;
-	TIM_TimeBaseStructure.TIM_Prescaler = 0;
-	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_Prescaler = 1;
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; 
 	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 

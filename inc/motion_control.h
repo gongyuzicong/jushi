@@ -103,6 +103,8 @@ typedef struct
 	AgvWalkMode agvWalkingMode;
 	u8 speedModeValue_Right;
 	u8 speedModeValue_Left;
+	s8 rightMotorSpeedOffset;
+	s8 leftMotorSpeedOffset;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -114,6 +116,7 @@ typedef struct
 	void (*motor_stop)(void);
 	void (*agv_walk)(void);
 	void (*agv_walk_test)(void);
+	void (*agv_walk_test2)(void);
 	void (*agv_walk_stop)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
@@ -122,6 +125,7 @@ void Motion_Ctrl_Init(void);
 
 extern ControlerParaStruct_P ctrlParasPtr;
 extern MotionOperaterStruct_P motionOptsPtr;
+extern u32 responseTime;
 
 #endif
 
