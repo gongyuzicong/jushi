@@ -45,7 +45,7 @@ int main(void)
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
 	
-	//printf("start\r\n");
+	printf("Start\r\n");
 	motionOptsPtr->agv_walk_test();
 
 	time = SystemRunningTime;

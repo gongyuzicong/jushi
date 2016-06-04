@@ -610,6 +610,15 @@ void TIM4_IRQHandler(void)
 	{
 		SystemRunningTime++;
 		responseTime++;
+		
+		if(ctrlParasPtr->bruce_center_count_start)
+		{
+			ctrlParasPtr->bruce_center_counter++;
+		}
+		else
+		{
+			ctrlParasPtr->bruce_center_counter = 0;
+		}
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM4->SR &= ~(1 << 0);	// 清除中断标志位
@@ -736,31 +745,48 @@ void USART3_IRQHandler(void)
 *******************************************************************************/
 void EXTI15_10_IRQHandler(void)
 {
-	static u8 lMotorCount = 0x00, RMotorCount = 0x00;
+	static u8 lMotorCount = 0x00, rMotorCount = 0x00;
 	static u32 lTimeRecode = 0x00, rTimeRecode = 0x00;
+	u32 tempTime = 0x00;
+
+	tempTime = SystemRunningTime;
 	
 	if(EXTI_GetITStatus(EXTI_Line12) != RESET)
 	{
-		printf("exti12\r\n");
+		//printf("exti12\r\n");
 		
-		if(lMotorCount < 10)
+		if(lMotorCount >= MAX_HALL_COUNT)
 		{
-			lMotorCount++;
-			
+			lMotorCount = 0;
+			ctrlParasPtr->leftHallIntervalTime = tempTime - lTimeRecode;
+			lTimeRecode = tempTime;
+			//motionOptsPtr->agv_motor_speed_calu(ctrlParasPtr, 0);
 		}
 		else
 		{
-			SystemRunningTime;
-			lMotorCount = 0;
-			
+			lMotorCount++;
 		}
 		
 		//EXTI->PR = ((u32)0x01000);
 		EXTI_ClearITPendingBit(EXTI_Line12);
 	}
-	else if(EXTI_GetITStatus(EXTI_Line14) != RESET)
+
+	if(EXTI_GetITStatus(EXTI_Line14) != RESET)
 	{
 		//printf("exti14\r\n");
+				
+		if(rMotorCount >= MAX_HALL_COUNT)
+		{
+			lMotorCount = 0;
+			ctrlParasPtr->rightHallIntervalTime = tempTime - rTimeRecode;
+			rTimeRecode = tempTime;
+			//motionOptsPtr->agv_motor_speed_calu(ctrlParasPtr, 1);
+		}
+		else
+		{
+			lMotorCount++;
+		}
+		
 		//EXTI->PR = ((u32)0x04000);
 		EXTI_ClearITPendingBit(EXTI_Line14);
 	}

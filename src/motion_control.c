@@ -11,6 +11,26 @@
 
 #define MOTOR_SPEED_RESPON_TIME		(100)
 
+#define OFFSET_DUTY					(10)
+#define OFFSET_DUTY_Div(NUM)		((OFFSET_DUTY / 10) * NUM)
+
+#define C2L_LM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
+#define C2L_RM_DC		(ctrlParasPtr->settedSpeed)
+#define L2C_LM_DC		(ctrlParasPtr->settedSpeed + 1)
+#define L2C_RM_DC		(ctrlParasPtr->settedSpeed)
+
+#define C2R_LM_DC		(ctrlParasPtr->settedSpeed)
+#define C2R_RM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
+#define R2C_LM_DC		(ctrlParasPtr->settedSpeed)
+#define R2C_RM_DC		(ctrlParasPtr->settedSpeed + 1)
+
+#define OUTR_LM_DC		(ctrlParasPtr->settedSpeed)
+#define OUTR_RM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
+#define OUTL_LM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
+#define OUTL_RM_DC		(ctrlParasPtr->settedSpeed)
+
+#define CENT_LM_DC		(ctrlParasPtr->settedSpeed)
+#define CENT_RM_DC		(ctrlParasPtr->settedSpeed)
 
 ControlerParaStruct ctrlParas;
 ControlerParaStruct_P ctrlParasPtr = &ctrlParas;
@@ -22,8 +42,8 @@ void (*agv_walking_func[5]) (void);
 #define MOTOR_RIGHT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed))
 #define MOTOR_LEFT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, speed))
 
-#define MOTOR_RIGHT_DUTY_SET_Setted()			{pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->rightMotorSettedSpeed);}
-#define MOTOR_LEFT_DUTY_SET_Setted()			{pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->leftMotorSettedSpeed);}
+#define MOTOR_RIGHT_DUTY_SET_Setted(speed)			{ctrlParasPtr->rightMotorSettedSpeed = speed; pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->rightMotorSettedSpeed);}
+#define MOTOR_LEFT_DUTY_SET_Setted(speed)			{ctrlParasPtr->leftMotorSettedSpeed = speed; pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->leftMotorSettedSpeed);}
 
 
 #define MOTOR_RIGHT_DUTY_OFFSET()		{pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->settedSpeed + ctrlParasPtr->rightMotorSpeedOffset);}
@@ -285,8 +305,8 @@ void motion_up_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -303,8 +323,8 @@ void motion_up_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -326,8 +346,8 @@ void motion_up_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -353,8 +373,8 @@ void motion_down_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -371,8 +391,8 @@ void motion_down_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -394,8 +414,8 @@ void motion_down_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -419,8 +439,8 @@ void motion_left_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -438,8 +458,8 @@ void motion_left_pwm(void)
 			ctrlParasPtr->rightMotorSettedSpeed++;
 		}
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -457,8 +477,8 @@ void motion_left_pwm(void)
 			ctrlParasPtr->rightMotorSettedSpeed++;
 		}
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -479,8 +499,8 @@ void motion_left_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -503,8 +523,8 @@ void motion_right_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -522,8 +542,8 @@ void motion_right_pwm(void)
 			ctrlParasPtr->leftMotorSettedSpeed++;
 		}
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -541,8 +561,8 @@ void motion_right_pwm(void)
 			ctrlParasPtr->leftMotorSettedSpeed++;
 		}
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -563,8 +583,8 @@ void motion_right_pwm(void)
 		ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 		
-		ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-		ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+		ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+		ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 		MOTOR_RIGHT_CR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 		MOTOR_LEFT_CR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -594,8 +614,8 @@ void motion_stop_pwm(void)
 	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
-	ctrlParasPtr->leftMotorSpeed = ctrlParasPtr->leftMotorSettedSpeed;
-	ctrlParasPtr->rightMotorSpeed = ctrlParasPtr->rightMotorSettedSpeed;
+	ctrlParasPtr->leftMotorRealSpeed = ctrlParasPtr->leftMotorSettedSpeed;
+	ctrlParasPtr->rightMotorRealSpeed = ctrlParasPtr->rightMotorSettedSpeed;
 
 	MOTOR_RIGHT_CCR_DEF(ctrlParasPtr->rightMotorSettedSpeed);
 	MOTOR_LEFT_CCR_DEF(ctrlParasPtr->leftMotorSettedSpeed);
@@ -895,166 +915,177 @@ void motion_stop(void)
 }
 
 
-// 巨石这什么烂摊子, 可以去吃屎吗 ^_^
 void walking_goStraight(void)
 {
-	#if 0
+	u8 temp = 0;
 	
-	MSDF_Opts_Ptr->magn_show(FMSDS_Ptr);
-	MSDF_Opts_Ptr->magn_show(FMSDS_Pre_Ptr);
+	ctrlParasPtr->comflag = 6;
+	//printf("AgvMSLocation = %d\r\n", FMSDS_Ptr->AgvMSLocation);
 	
-	// 一个礼拜写一个控制算法,客户你这么厉害你爸妈知道吗 ^_^ 客户你行你来啊
-	if(AgvCent2Left == FMSDS_Ptr->agvDirection)		// 往外偏移,加速  客户你妈妈叫你回家吃饭你知道吗 ^_^
+	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 	{
-		if(AgvCent2Left == FMSDS_Pre_Ptr->agvDirection)		// 情况没有改善,右侧电机减速
-		{
-			ctrlParasPtr->rightMotorSpeedOffset -= ((5 - FMSDS_Ptr->RightRemain) * 1);
-			MOTOR_RIGHT_DUTY_OFFSET();
-			printf("1rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
-		}
-		else
-		{
-			ctrlParasPtr->leftMotorSpeedOffset += ((5 - FMSDS_Ptr->RightRemain) * 1);
-			MOTOR_LEFT_DUTY_OFFSET();
-			printf("2leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
-		}
-	}
-	else if(AgvCent2Right == FMSDS_Ptr->agvDirection)	// 往外偏移,加速
-	{
-		if(AgvCent2Right == FMSDS_Pre_Ptr->agvDirection)		// 情况没有改善,左侧电机减速
-		{
-			ctrlParasPtr->leftMotorSpeedOffset -= ((5 - FMSDS_Ptr->LeftRemain) * 1);
-			MOTOR_LEFT_DUTY_OFFSET();
-			printf("3leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
-		}
-		else
-		{
-			ctrlParasPtr->rightMotorSpeedOffset += ((5 - FMSDS_Ptr->LeftRemain) * 1);
-			MOTOR_RIGHT_DUTY_OFFSET();
-			printf("4rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
-		}
-	}
-	else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)	// 往回偏移,减速
-	{
-		#if 0
+		ctrlParasPtr->comflag = 1;
 		
-		if((0 != ctrlParasPtr->rightMotorSpeedOffset) || (0 != ctrlParasPtr->leftMotorSpeedOffset))
+		if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
 		{
-			if(0 != ctrlParasPtr->leftMotorSpeedOffset)
+			ctrlParasPtr->bruce_center_count_start = 1;
+			
+			if(ctrlParasPtr->bruce_center_counter >= 100)
 			{
-				ctrlParasPtr->leftMotorSpeedOffset -= (ctrlParasPtr->leftMotorSpeedOffset / 2);
-				MOTOR_LEFT_DUTY_OFFSET();
+				// 加速操作
+				ctrlParasPtr->leftMotorSpeedOffset += 5;
+				ctrlParasPtr->rightMotorSpeedOffset += 5;
+				
+				MOTOR_LEFT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+				MOTOR_RIGHT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+			}
+		}
+		else
+		{
+			ctrlParasPtr->bruce_center_count_start = 0;
+
+			ctrlParasPtr->leftMotorSpeedOffset = 0;
+			ctrlParasPtr->rightMotorSpeedOffset = 0;
+			
+			MOTOR_LEFT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+			MOTOR_RIGHT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+		}
+		
+		
+	}
+	else
+	{
+		if(ctrlParasPtr->bruce_center_count_start)
+		{
+			ctrlParasPtr->bruce_center_count_start = 0;
+			
+			ctrlParasPtr->leftMotorSpeedOffset = 0;
+			ctrlParasPtr->rightMotorSpeedOffset = 0;
+			
+			MOTOR_LEFT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+			MOTOR_RIGHT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+		}
+		
+		
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_Begin) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_End))			// 往外偏移,加速
+		{
+			#if 0
+			
+			if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)
+			{
+				temp = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_Begin) * 2;
+				printf("temp = %d\r\n", temp);
+				MOTOR_LEFT_DUTY_SET_Setted(ctrlParasPtr->settedSpeed + temp);
+				MOTOR_RIGHT_DUTY_SET_Setted(C2L_RM_DC);
 			}
 			else
 			{
-				ctrlParasPtr->rightMotorSpeedOffset -= (ctrlParasPtr->rightMotorSpeedOffset / 2);
-				MOTOR_RIGHT_DUTY_OFFSET();
+				if(ctrlParasPtr->leftMotorSettedSpeed < (ctrlParasPtr->settedSpeed + (FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_Begin) * 2))
+				{
+					//ctrlParasPtr->leftMotorSettedSpeed = C2L_LM_DC;
+					//ctrlParasPtr->rightMotorSettedSpeed = C2L_RM_DC;
+					MOTOR_LEFT_DUTY_SET_Setted(ctrlParasPtr->settedSpeed + (FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_Begin) * 2);
+					MOTOR_RIGHT_DUTY_SET_Setted(C2L_RM_DC);
+				}
 			}
-		}
-		else
-		{
+			
+			#else
+			
+			ctrlParasPtr->comflag = 2;
+			ctrlParasPtr->leftMotorSpeedOffset = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_Begin) * 2;
+			ctrlParasPtr->rightMotorSpeedOffset = 0;
+			
+			MOTOR_LEFT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+			MOTOR_RIGHT_DUTY_SET_Setted(C2L_RM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+				
+			#endif
 			
 		}
-		
-		#endif
-
-		ctrlParasPtr->rightMotorSpeedOffset -= (ctrlParasPtr->rightMotorSpeedOffset / 2);
-		MOTOR_RIGHT_DUTY_OFFSET();
-		printf("5rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
-	}
-	else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 	// 往回偏移,减速
-	{
-		ctrlParasPtr->leftMotorSpeedOffset -= (ctrlParasPtr->leftMotorSpeedOffset / 2);
-		MOTOR_LEFT_DUTY_OFFSET();
-		printf("6leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
-	}
-	else if(AgvLeft2Right == FMSDS_Ptr->agvDirection)	// 左到右极速偏移,加减速同时作用
-	{
-		ctrlParasPtr->leftMotorSpeedOffset -= (ctrlParasPtr->leftMotorSpeedOffset / 2);
-		MOTOR_LEFT_DUTY_OFFSET();
-		printf("7leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
-		ctrlParasPtr->rightMotorSpeedOffset += ((5 - FMSDS_Ptr->LeftRemain) * 1);
-		MOTOR_RIGHT_DUTY_OFFSET();
-		printf("8rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
-	}
-	else if(AgvRight2Left == FMSDS_Ptr->agvDirection)	// 右到左极速偏移,加减速同时作用
-	{
-		ctrlParasPtr->rightMotorSpeedOffset -= (ctrlParasPtr->rightMotorSpeedOffset / 2);
-		MOTOR_RIGHT_DUTY_OFFSET();
-		printf("9rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
-		ctrlParasPtr->leftMotorSpeedOffset += ((5 - FMSDS_Ptr->RightRemain) * 1);
-		MOTOR_LEFT_DUTY_OFFSET();
-		printf("10leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
-	}
-	else if(AgvCenter == FMSDS_Ptr->agvDirection)		// 在中央位置
-	{
-		printf("11rightMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->rightMotorSpeedOffset);
-		printf("12leftMotorSpeedOffset = %d\r\n\r\n", ctrlParasPtr->leftMotorSpeedOffset);
-	}
-
-	#else
-
-	MSDF_Opts_Ptr->magn_show(FMSDS_Ptr);
-	MSDF_Opts_Ptr->magn_show(FMSDS_Pre_Ptr);
-
-	if(AgvCent2Left == FMSDS_Ptr->agvDirection)			// 往外偏移,加速
-	{
-		if(ctrlParasPtr->leftMotorSettedSpeed < 17)
+		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_Begin) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 		{
-			ctrlParasPtr->leftMotorSettedSpeed = 17;
-			ctrlParasPtr->rightMotorSettedSpeed = 13;
-			MOTOR_RIGHT_DUTY_SET_Setted();
-			MOTOR_LEFT_DUTY_SET_Setted();
+
+			#if 0
+			
+			if(AgvRight2Cent == FMSDS_Ptr->agvDirection)
+			{
+
+				//ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed + OFFSET_DUTY_Div(9);
+				MOTOR_LEFT_DUTY_SET_Setted(OUTR_LM_DC);
+				MOTOR_RIGHT_DUTY_SET_Setted((FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_Begin) * 2);
+				
+			}
+			else
+			{
+				if(ctrlParasPtr->rightMotorSettedSpeed < (FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_Begin) * 2)
+				{
+					//ctrlParasPtr->leftMotorSettedSpeed = C2R_LM_DC;
+					//ctrlParasPtr->rightMotorSettedSpeed = C2R_RM_DC;
+					MOTOR_LEFT_DUTY_SET_Setted(C2R_LM_DC);
+					MOTOR_RIGHT_DUTY_SET_Setted((FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_Begin) * 2);
+				}
+			}
+
+			#else
+			
+			ctrlParasPtr->comflag = 3;
+			ctrlParasPtr->rightMotorSpeedOffset = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_Begin) * 2;
+			ctrlParasPtr->leftMotorSpeedOffset = 0;
+			
+			MOTOR_LEFT_DUTY_SET_Setted(C2R_LM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+			MOTOR_RIGHT_DUTY_SET_Setted(C2R_LM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+
+			#endif
+			
 		}
-		
-	}
-	else if(AgvCent2Right == FMSDS_Ptr->agvDirection)	// 往外偏移,加速
-	{
-		if(ctrlParasPtr->rightMotorSettedSpeed < 17)
+		else if(Agv_MS_Right_Outside == FMSDS_Ptr->AgvMSLocation)
 		{
-			ctrlParasPtr->leftMotorSettedSpeed = 13;
-			ctrlParasPtr->rightMotorSettedSpeed = 17;
-			MOTOR_RIGHT_DUTY_SET_Setted();
-			MOTOR_LEFT_DUTY_SET_Setted();
-		}
-	}
-	else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)	// 往回偏移,减速
-	{
-		if(ctrlParasPtr->rightMotorSettedSpeed < 17)
-		{
-			ctrlParasPtr->leftMotorSettedSpeed = 14;
-			ctrlParasPtr->rightMotorSettedSpeed = 16;
-			MOTOR_RIGHT_DUTY_SET_Setted();
-			MOTOR_LEFT_DUTY_SET_Setted();
-		}
-	}
-	else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 	// 往回偏移,减速
-	{
-		if(ctrlParasPtr->leftMotorSettedSpeed < 17)
-		{
-			ctrlParasPtr->leftMotorSettedSpeed = 16;
-			ctrlParasPtr->rightMotorSettedSpeed = 14;
-			MOTOR_RIGHT_DUTY_SET_Setted();
-			MOTOR_LEFT_DUTY_SET_Setted();
-		}
-	}
-	else if(AgvLeft2Right == FMSDS_Ptr->agvDirection)	// 左到右极速偏移,加减速同时作用
-	{
+			#if 0
+			
+			if(ctrlParasPtr->rightMotorSettedSpeed < OUTR_RM_DC)
+			{
+				//ctrlParasPtr->leftMotorSettedSpeed = OUTR_LM_DC;
+				//ctrlParasPtr->rightMotorSettedSpeed = OUTR_RM_DC;
+				MOTOR_LEFT_DUTY_SET_Setted(OUTR_LM_DC);
+				MOTOR_RIGHT_DUTY_SET_Setted((FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_Begin) * 2);
+			}
+			
+			#else
+			
+			ctrlParasPtr->comflag = 4;
+			ctrlParasPtr->rightMotorSpeedOffset = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_Begin) * 2;
+			ctrlParasPtr->leftMotorSpeedOffset = 0;
 		
-	}
-	else if(AgvRight2Left == FMSDS_Ptr->agvDirection)	// 右到左极速偏移,加减速同时作用
-	{
-		
-	}
-	else if(AgvCenter == FMSDS_Ptr->agvDirection)		// 在中央位置
-	{
-		ctrlParasPtr->leftMotorSettedSpeed = 15;
-		ctrlParasPtr->rightMotorSettedSpeed = 15;
-		MOTOR_RIGHT_DUTY_SET_Setted();
-		MOTOR_LEFT_DUTY_SET_Setted();
+			MOTOR_LEFT_DUTY_SET_Setted(OUTR_LM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+			MOTOR_RIGHT_DUTY_SET_Setted(OUTR_LM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+
+			#endif
+		}
+		else if(Agv_MS_Left_Outside == FMSDS_Ptr->AgvMSLocation)
+		{
+			#if 0
+			
+			if(ctrlParasPtr->leftMotorSettedSpeed < OUTL_LM_DC)
+			{
+				//ctrlParasPtr->leftMotorSettedSpeed = OUTL_LM_DC;
+				//ctrlParasPtr->rightMotorSettedSpeed = OUTL_RM_DC;
+				MOTOR_LEFT_DUTY_SET_Setted((FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_Begin) * 2);
+				MOTOR_RIGHT_DUTY_SET_Setted(OUTL_RM_DC);
+			}
+			
+			#else
+			
+			ctrlParasPtr->comflag = 5;
+			ctrlParasPtr->leftMotorSpeedOffset = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_Begin) * 2;
+			ctrlParasPtr->rightMotorSpeedOffset = 0;
+
+			MOTOR_LEFT_DUTY_SET_Setted(OUTL_RM_DC + ctrlParasPtr->leftMotorSpeedOffset);
+			MOTOR_RIGHT_DUTY_SET_Setted(OUTL_RM_DC + ctrlParasPtr->rightMotorSpeedOffset);
+				
+			#endif
+		}
 	}
 	
-	#endif
+	
 }
 
 void walking_backStatus(void)
@@ -1096,12 +1127,23 @@ void AGV_Walking(void)
 		// 2. 根据处理到的数据, 对电机做相应的调速(P Control)(此处要预留一定的响应时间)
 		//printf("responseTime = %d\r\n", responseTime);
 		//printf("SystemRunningTime = %d\r\n", SystemRunningTime);
+		/*
 		if(responseTime >= MOTOR_SPEED_RESPON_TIME)
 		{
 			responseTime = 0;
 			agv_walking_func[ctrlParasPtr->agvStatus]();
 		}
-
+		*/
+		
+		agv_walking_func[ctrlParasPtr->agvStatus]();
+		
+		if(MagnInfomationUpdate)
+		{
+			MagnInfomationUpdate = 0;
+			MSDF_Opts_Ptr->Show_Infomation();
+		}
+		
+		//agv_walking_func[ctrlParasPtr->agvStatus]();
 		
 		// 3. 监测电机转速, 并且结合传感器数据, 对电机的PWM做相应的调整(D Control)
 		
@@ -1123,7 +1165,7 @@ void AGV_Walking_Test(void)
 	CHANGE_TO_BACK_MODE();
 	#endif
 	//MOTOR_LEFT_STOP_PIN_SET();
-	ctrlParasPtr->settedSpeed = 15;
+	ctrlParasPtr->settedSpeed = 10;
 	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
@@ -1149,6 +1191,18 @@ void AGV_Walking_Test2(void)
 	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
 }
 
+void AGV_Motor_Speed_Calu(ControlerParaStruct_P ptr, u8 flag)
+{
+	if(0 == flag)
+	{
+		//ptr->leftHallIntervalTime = ;
+		
+	}
+	else
+	{
+		//ptr->rightHallIntervalTime = ;
+	}
+}
 
 void AGV_Walking_Stop(void)
 {	
@@ -1256,9 +1310,9 @@ void Motion_Ctrl_Init(void)
 	
 	ctrlParasPtr->agvStatus = stopStatus;
 	ctrlParasPtr->settedSpeed = 0;
-	ctrlParasPtr->rightMotorSpeed = 0;
+	ctrlParasPtr->rightMotorRealSpeed = 0;
 	ctrlParasPtr->rightMotorSettedSpeed = 0;
-	ctrlParasPtr->leftMotorSpeed = 0;
+	ctrlParasPtr->leftMotorRealSpeed = 0;
 	ctrlParasPtr->leftMotorSettedSpeed = 0;
 	ctrlParasPtr->leftInc = 0;
 	ctrlParasPtr->rightInc = 0;
@@ -1266,6 +1320,7 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->speedModeValue_Right = 0x00;
 	ctrlParasPtr->speedModeValue_Left = 0x00;
 	ctrlParasPtr->agvWalkingMode = AutomaticMode;
+	ctrlParasPtr->bruce_center_count_start = 0;
 	
 	x3x2x1_left_setting();
 	x3x2x1_right_setting();
@@ -1279,6 +1334,7 @@ void Motion_Ctrl_Init(void)
 	motionOptsPtr->agv_walk_test = AGV_Walking_Test;
 	motionOptsPtr->agv_walk_stop = AGV_Walking_Stop;
 	motionOptsPtr->agv_walk_test2 = AGV_Walking_Test2;
+	motionOptsPtr->agv_motor_speed_calu = AGV_Motor_Speed_Calu;
 
 	agv_walking_func[stopStatus] = walking_stopStatus;
 	agv_walking_func[goStraightStatus] = walking_goStraight;

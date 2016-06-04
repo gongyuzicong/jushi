@@ -6,6 +6,8 @@
 
 #define RESPONSE_TIME_CALU(x)		(1000 - x * 100)
 
+#define MAX_HALL_COUNT		5
+
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
 
@@ -94,8 +96,8 @@ typedef struct
 	u8 settedSpeed;
 	u8 rightMotorSettedSpeed;
 	u8 leftMotorSettedSpeed;		
-	u8 rightMotorSpeed;	// 电机实际速度
-	u8 leftMotorSpeed;	// 电机实际速度
+	u8 rightMotorRealSpeed;	// 电机实际速度
+	u8 leftMotorRealSpeed;	// 电机实际速度
 	u8 rightInc;
 	u8 leftInc;
 	AgvStatus agvStatus;
@@ -105,6 +107,13 @@ typedef struct
 	u8 speedModeValue_Left;
 	s8 rightMotorSpeedOffset;
 	s8 leftMotorSpeedOffset;
+	
+	u32 rightHallIntervalTime;
+	u32 leftHallIntervalTime;
+	u8 comflag;
+
+	u8 bruce_center_count_start;
+	u8 bruce_center_counter;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -118,6 +127,7 @@ typedef struct
 	void (*agv_walk_test)(void);
 	void (*agv_walk_test2)(void);
 	void (*agv_walk_stop)(void);
+	void (*agv_motor_speed_calu)(ControlerParaStruct_P, u8);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
 
