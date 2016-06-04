@@ -329,242 +329,77 @@ void Magn_VandA_Calu(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pr
 
 void Check_Magn_Location(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)
 {
-	#if 0
 	
 	if(MSD_NORMAL == now->MSDCategory)	
 	{
-		if(now->LeftRemain < 5)
+		if(now->BitNum >= 3)
 		{
-			if(now->LeftRemain > 0)
+			if(now->LeftRemain == now->RightRemain)
 			{
-				switch(now->LeftRemain)
-				{
-					case 4:
-						now->AgvMSLocation = Agv_MS_Right_1;
-						now->AgvMSLocation_s = 1;
-						break;
-
-					case 3:
-						now->AgvMSLocation = Agv_MS_Right_2;
-						now->AgvMSLocation_s = 2;
-						break;
-
-					case 2:
-						now->AgvMSLocation = Agv_MS_Right_3;
-						now->AgvMSLocation_s = 3;
-						break;
-
-					case 1:
-						now->AgvMSLocation = Agv_MS_Right_4;
-						now->AgvMSLocation_s = 4;
-						break;
-
-					default:
-						printf("error:1 MSL = %d, 0Bits = %d\r\n", now->AgvMSLocation, now->BitNum);
-						break;
-				}
-				
+				now->AgvMSLocation = Agv_MS_Center;
+				now->AgvMSLocation_s = 0;
 			}
-			else if(0 == now->LeftRemain)
+			else if(now->LeftRemain == 5)
 			{
-				switch(now->BitNum)
+				if(now->LeftRemain < now->RightRemain)
 				{
-					case 6:
-						now->AgvMSLocation = Agv_MS_Right_5;
-						now->AgvMSLocation_s = 5;
-						break;
-
-					case 5:
-						now->AgvMSLocation = Agv_MS_Right_6;
-						now->AgvMSLocation_s = 6;
-						break;
-
-					case 4:
-						now->AgvMSLocation = Agv_MS_Right_7;
-						now->AgvMSLocation_s = 7;
-						break;
-
-					case 3:
-						now->AgvMSLocation = Agv_MS_Right_8;
-						now->AgvMSLocation_s = 8;
-						break;
-
-					case 2:
-						now->AgvMSLocation = Agv_MS_Right_9;
-						now->AgvMSLocation_s = 9;
-						break;
-
-					case 1:
-						now->AgvMSLocation = Agv_MS_Right_10;
-						now->AgvMSLocation_s = 10;
-						break;
-
-					default:
-						printf("error:2 MSL = %d, 0Bits = %d\r\n", now->AgvMSLocation, now->BitNum);
-						break;
+					now->AgvMSLocation = Agv_MS_Right_Begin + (now->RightRemain - now->LeftRemain);
+					now->AgvMSLocation_s = now->AgvMSLocation - Agv_MS_Right_Begin;
+				}
+				else
+				{
+					printf("error: LeftRemain = %d, RightRemain = %d\r\n", now->LeftRemain, now->RightRemain);
+				}
+			}
+			else if(now->LeftRemain < 5)
+			{
+				if(now->RightRemain > (10 - now->LeftRemain))		//按照右的算
+				{
+					now->AgvMSLocation = Agv_MS_Right_Begin + (now->RightRemain - 5);
+					now->AgvMSLocation_s = (now->RightRemain - now->LeftRemain);
+				}
+				else		//按照左的算
+				{
+					now->AgvMSLocation = Agv_MS_Right_Begin + (5 - now->LeftRemain);
+					now->AgvMSLocation_s = now->AgvMSLocation - Agv_MS_Right_Begin;
+				}
+			}
+			else if(now->LeftRemain > 5)
+			{
+				if(now->RightRemain > (10 - now->LeftRemain))		//按照右的算
+				{
+					now->AgvMSLocation = Agv_MS_Left_Begin + (now->LeftRemain - 5);
+					now->AgvMSLocation_s = -(now->AgvMSLocation - Agv_MS_Left_Begin);
+				}
+				else		//按照左的算
+				{
+					now->AgvMSLocation = Agv_MS_Left_Begin + (5 - now->RightRemain);
+					now->AgvMSLocation_s = now->AgvMSLocation - Agv_MS_Left_Begin;
 				}
 			}
 		}
-		else if(now->RightRemain < 5)
-		{
-			if(now->RightRemain > 0)
-			{
-				switch(now->RightRemain)
-				{
-					case 4:
-						now->AgvMSLocation = Agv_MS_Left_1;
-						now->AgvMSLocation_s = -1;
-						break;
-
-					case 3:
-						now->AgvMSLocation = Agv_MS_Left_2;
-						now->AgvMSLocation_s = -2;
-						break;
-						
-					case 2:
-						now->AgvMSLocation = Agv_MS_Left_3;
-						now->AgvMSLocation_s = -3;
-						break;
-						
-					case 1:
-						now->AgvMSLocation = Agv_MS_Left_4;
-						now->AgvMSLocation_s = -4;
-						break;
-						
-					default:
-						printf("error:3 MSL = %d, 0Bits = %d\r\n", now->AgvMSLocation, now->BitNum);
-						break;
-				}
-				
-			}
-			else if(0 == now->RightRemain)
-			{
-				switch(now->BitNum)
-				{
-					case 6:
-						now->AgvMSLocation = Agv_MS_Left_5;
-						now->AgvMSLocation_s = -5;
-						break;
-
-					case 5:
-						now->AgvMSLocation = Agv_MS_Left_6;
-						now->AgvMSLocation_s = -6;
-						break;
-
-					case 4:
-						now->AgvMSLocation = Agv_MS_Left_7;
-						now->AgvMSLocation_s = -7;
-						break;
-
-					case 3:
-						now->AgvMSLocation = Agv_MS_Left_8;
-						now->AgvMSLocation_s = -8;
-						break;
-
-					case 2:
-						now->AgvMSLocation = Agv_MS_Left_9;
-						now->AgvMSLocation_s = -9;
-						break;
-
-					case 1:
-						now->AgvMSLocation = Agv_MS_Left_10;
-						now->AgvMSLocation_s = -10;
-						break;
-
-					default:
-						printf("error:4 MSL = %d, 0Bits = %d\r\n", now->AgvMSLocation, now->BitNum);
-						break;
-				}
-			}
-		}
-		//else if((5 == now->LeftRemain) && (5 == now->RightRemain))
-		else if(now->LeftRemain == now->RightRemain)
-		{
-			now->AgvMSLocation = Agv_MS_Center;
-			now->AgvMSLocation_s = 0;
-		}
-	}
-	else if(MSD_OUTSIDE == now->MSDCategory)
-	{
-		if((pre->AgvMSLocation > Agv_MS_Left_Begin) && (pre->AgvMSLocation < Agv_MS_Left_End))
-		{
-			now->AgvMSLocation = Agv_MS_Left_Outside;
-			now->AgvMSLocation_s = 0xFF;
-		}
-		else if((pre->AgvMSLocation > Agv_MS_Right_Begin) && (pre->AgvMSLocation < Agv_MS_Right_End))
-		{
-			now->AgvMSLocation = Agv_MS_Right_Outside;
-			now->AgvMSLocation_s = 0xFF;
-		}
-	}
-
-
-	#else
-
-	if(MSD_NORMAL == now->MSDCategory)	
-	{
-		if(now->LeftRemain == now->RightRemain)
-		{
-			now->AgvMSLocation = Agv_MS_Center;
-			now->AgvMSLocation_s = 0;
-		}
-		else if(now->LeftRemain == 5)
-		{
-			if(now->LeftRemain < now->RightRemain)
-			{
-				now->AgvMSLocation = Agv_MS_Right_Begin + (now->RightRemain - now->LeftRemain);
-				now->AgvMSLocation_s = now->AgvMSLocation - Agv_MS_Right_Begin;
-			}
-			else
-			{
-				printf("error: LeftRemain = %d, RightRemain = %d\r\n", now->LeftRemain, now->RightRemain);
-			}
-		}
-		else if(now->LeftRemain < 5)
-		{
-			if(now->RightRemain > (10 - now->LeftRemain))		//按照右的算
-			{
-				now->AgvMSLocation = Agv_MS_Right_Begin + (now->RightRemain - 5);
-				now->AgvMSLocation_s = (now->RightRemain - now->LeftRemain);
-			}
-			else		//按照左的算
-			{
-				now->AgvMSLocation = Agv_MS_Right_Begin + (5 - now->LeftRemain);
-				now->AgvMSLocation_s = now->AgvMSLocation - Agv_MS_Right_Begin;
-			}
-		}
-		else if(now->LeftRemain > 5)
-		{
-			if(now->RightRemain > (10 - now->LeftRemain))		//按照右的算
-			{
-				now->AgvMSLocation = Agv_MS_Left_Begin + (now->LeftRemain - 5);
-				now->AgvMSLocation_s = -(now->AgvMSLocation - Agv_MS_Left_Begin);
-			}
-			else		//按照左的算
-			{
-				now->AgvMSLocation = Agv_MS_Left_Begin + (5 - now->RightRemain);
-				now->AgvMSLocation_s = now->AgvMSLocation - Agv_MS_Left_Begin;
-			}
-		}
-		
-		//else if((5 == now->LeftRemain) && (5 == now->RightRemain))
 		
 	}
 	else if(MSD_OUTSIDE == now->MSDCategory)
 	{
-		if((pre->AgvMSLocation > Agv_MS_Left_Begin) && (pre->AgvMSLocation < Agv_MS_Left_End))
+		if((pre->AgvMSLocation > Agv_MS_Left_8) && (pre->AgvMSLocation < Agv_MS_Left_End))
 		{
 			now->AgvMSLocation = Agv_MS_Left_Outside;
 			now->AgvMSLocation_s = 0xFF;
 		}
-		else if((pre->AgvMSLocation > Agv_MS_Right_Begin) && (pre->AgvMSLocation < Agv_MS_Right_End))
+		else if((pre->AgvMSLocation > Agv_MS_Right_8) && (pre->AgvMSLocation < Agv_MS_Right_End))
 		{
 			now->AgvMSLocation = Agv_MS_Right_Outside;
 			now->AgvMSLocation_s = 0xFF;
 		}
+		else
+		{
+			now->AgvMSLocation = Agv_MS_Undefine;
+			now->AgvMSLocation_s = 0xFF;
+		}
 	}
 
-	#endif
+	
 }
 
 
@@ -1003,6 +838,19 @@ void Show_Infomation(void)
 	printf("\r\n");
 }
 
+u16 hex_reload(u16 hex)
+{
+	u8 cir = 0;
+	u16 temp = 0x00;
+
+	for(cir = 0; cir < 16; cir++)
+	{
+		temp |= ((hex >> cir) & 0x01) << (15 - cir);
+	}
+
+	return temp;
+}
+
 void Magn_Sensor_Scan(void)
 {
 	#if 0
@@ -1016,8 +864,16 @@ void Magn_Sensor_Scan(void)
 	u32 TimeNow = 0;
 	static u8 lineCounter = 0x00;
 
-	FMSDS_Ptr->MSD_Hex = FMS_Hex;
-	RMSDS_Ptr->MSD_Hex = RMS_Hex;
+	if(goStraightStatus == ctrlParasPtr->agvStatus)
+	{
+		FMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
+		RMSDS_Ptr->MSD_Hex = RMS_Hex;
+	}
+	else if(backStatus == ctrlParasPtr->agvStatus)
+	{
+		FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
+		RMSDS_Ptr->MSD_Hex = FMS_Hex;
+	}
 
 	if(tempFMS != FMSDS_Ptr->MSD_Hex)
 	{
@@ -1037,7 +893,7 @@ void Magn_Sensor_Scan(void)
 			{
 				if(lineCounter < 5)
 				{
-					lineCounter++;
+					FMSDS_Ptr->bruce_crossroads_counter++;
 				}
 				
 			}
@@ -1045,7 +901,7 @@ void Magn_Sensor_Scan(void)
 			{
 				if(lineCounter > 0)
 				{
-					lineCounter--;
+					FMSDS_Ptr->bruce_crossroads_counter--;
 				}
 			}
 		}
@@ -1168,6 +1024,9 @@ void Magn_Sensor_Init(void)
 	FMSDS_Pre_Ptr->AgvMSLocation_s = 0;
 
 	FMSDS_Pre_Ptr->MSDCategory = MSD_NORMAL;
+
+	FMSDS_Ptr->zeropointfive = 0;
+	FMSDS_Ptr->zflag = 0;
 	
 	*RMSDS_Ptr = *FMSDS_Ptr;
 	*RMSDS_Pre_Ptr = *FMSDS_Pre_Ptr;

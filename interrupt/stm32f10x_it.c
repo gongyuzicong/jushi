@@ -610,14 +610,14 @@ void TIM4_IRQHandler(void)
 	{
 		SystemRunningTime++;
 		responseTime++;
-		
-		if(ctrlParasPtr->bruce_center_count_start)
+
+		if(FMSDS_Ptr->zflag)
 		{
-			ctrlParasPtr->bruce_center_counter++;
+			FMSDS_Ptr->zeropointfive++;
 		}
 		else
 		{
-			ctrlParasPtr->bruce_center_counter = 0;
+			FMSDS_Ptr->zeropointfive = 0;
 		}
 	}
 	//printf("%d\r\n", SystemRunningTime);

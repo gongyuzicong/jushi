@@ -55,6 +55,8 @@ typedef enum
 	
 	Agv_MS_Right_Outside,
 	Agv_MS_Left_Outside,
+
+	Agv_MS_Undefine,
 	
 }Agv_MS_Location;
 
@@ -125,6 +127,9 @@ typedef struct
 	MSD_Category MSDCategory;
 
 	u8 bruce_crossroads_counter;
+
+	u16 zeropointfive;
+	u8 zflag;
 }Magn_Sensor_Data_Sturct, *Magn_Sensor_Data_Sturct_P;
 
 

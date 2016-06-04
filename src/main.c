@@ -77,6 +77,29 @@ int main(void)
 		
 		//MSDF_Opts_Ptr->MSD_Test();
 		motionOptsPtr->agv_walk();
+
+		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		{
+			FMSDS_Ptr->zflag = 1;
+
+			if(FMSDS_Ptr->zeropointfive >= 2000)
+			{
+				FMSDS_Ptr->zflag = 0;
+				
+				if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+				{
+					if(goStraightStatus == ctrlParasPtr->agvStatus)
+					{
+						motionOptsPtr->backStatus_change();
+					}
+					else if(backStatus == ctrlParasPtr->agvStatus)
+					{
+						motionOptsPtr->goStraight_change();
+					}
+				}
+				
+			}
+		}
 	}
 
 	

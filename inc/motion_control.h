@@ -107,13 +107,16 @@ typedef struct
 	u8 speedModeValue_Left;
 	s8 rightMotorSpeedOffset;
 	s8 leftMotorSpeedOffset;
+
+	u8* rightMotorSettedSpeed_p;
+	u8* leftMotorSettedSpeed_p;
+	s8* rightMotorSpeedOffset_p;
+	s8* leftMotorSpeedOffset_p;
 	
 	u32 rightHallIntervalTime;
 	u32 leftHallIntervalTime;
 	u8 comflag;
 
-	u8 bruce_center_count_start;
-	u8 bruce_center_counter;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -128,6 +131,10 @@ typedef struct
 	void (*agv_walk_test2)(void);
 	void (*agv_walk_stop)(void);
 	void (*agv_motor_speed_calu)(ControlerParaStruct_P, u8);
+	void (*motor_left_duty_offset)(u8);
+	void (*motor_right_duty_offset)(u8);
+	void (*goStraight_change)(void);
+	void (*backStatus_change)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
 
