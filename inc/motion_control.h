@@ -131,8 +131,6 @@ typedef struct
 	void (*agv_walk_test2)(void);
 	void (*agv_walk_stop)(void);
 	void (*agv_motor_speed_calu)(ControlerParaStruct_P, u8);
-	void (*motor_left_duty_offset)(u8);
-	void (*motor_right_duty_offset)(u8);
 	void (*goStraight_change)(void);
 	void (*backStatus_change)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;

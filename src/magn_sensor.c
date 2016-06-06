@@ -864,16 +864,17 @@ void Magn_Sensor_Scan(void)
 	u32 TimeNow = 0;
 	static u8 lineCounter = 0x00;
 
-	if(goStraightStatus == ctrlParasPtr->agvStatus)
-	{
-		FMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
-		RMSDS_Ptr->MSD_Hex = RMS_Hex;
-	}
-	else if(backStatus == ctrlParasPtr->agvStatus)
+	if(backStatus == ctrlParasPtr->agvStatus)
 	{
 		FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
 		RMSDS_Ptr->MSD_Hex = FMS_Hex;
 	}
+	else
+	{
+		FMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
+		RMSDS_Ptr->MSD_Hex = RMS_Hex;
+	}
+	
 
 	if(tempFMS != FMSDS_Ptr->MSD_Hex)
 	{
@@ -922,8 +923,7 @@ void Magn_Sensor_Scan(void)
 			MagnInfomationUpdate = 1;
 		}
 		
-		//Magn_VandA_Calu(FMSDS_Ptr, FMSDS_Pre_Ptr);
-		//Show_Opt_MSD(FMSDS_Ptr);
+		
 	}
 
 	

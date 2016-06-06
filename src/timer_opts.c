@@ -6,9 +6,9 @@ u8 fac_us;
 u16 fac_ms;
 
 
-
 void Delay_Init(u8 sysclk)
 {
+	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);	//选择外部时钟  HCLK/8
 	// 时钟源设置为HCLK的8分频
 	//SysTick->CTRL &= 0xFFFFFFFB;
 	SysTick->CTRL &= ~(0x01 << 2);
@@ -182,5 +182,7 @@ void TIM3_Init(u16 Arr, u16 Psc)
 	
 
 }
+
+
 
 

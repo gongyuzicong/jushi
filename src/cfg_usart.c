@@ -153,12 +153,6 @@ void cb_usart_test(void)
 
 
 
-
-
-
-
-
-
 void CB_USART_Config(void)
 {
 	USART_InitTypeDef USART_InitStructure;
@@ -176,21 +170,23 @@ void CB_USART_Config(void)
 #ifdef USE_USART1
 	/***USART3 初始化 BEGIN***/
 	/*设置串口*/
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+
+	/*
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQChannel;		//选择中断通道
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
 	NVIC_Init(&NVIC_InitStructure);								//初始化
-
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 	
 	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
 	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
 	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
 	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
 	USART_ClockInit(USART1, &USART_ClockInitStructure);
-
+	*/
 	USART_InitStructure.USART_BaudRate = 115200;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -205,10 +201,23 @@ void CB_USART_Config(void)
 
 #ifdef USE_USART3
 	/***USART3 初始化 BEGIN***/
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+
+	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
+	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
+	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
+	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
+	USART_ClockInit(USART3, &USART_ClockInitStructure);
 	
 	USART_ClockInit(USART3, &USART_ClockInitStructure);
-	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_BaudRate = 9600;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
@@ -220,8 +229,8 @@ void CB_USART_Config(void)
 	/***USART3 初始化 END***/
 #endif
 
-	//USART1->CR1 |= (1 << 8);	// PE(校验错误)中断使能
-	//USART1->CR1 |= (1 << 5);	// RXNE(接收缓冲区)非空中断使能
+	//USART3->CR1 |= (1 << 8);	// PE(校验错误)中断使能
+	USART3->CR1 |= (1 << 5);	// RXNE(接收缓冲区)非空中断使能
 	//My_Nvic_Init(node);
 
 #ifdef USE_TC

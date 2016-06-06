@@ -734,6 +734,17 @@ void USART2_IRQHandler(void)
 *******************************************************************************/
 void USART3_IRQHandler(void)
 {
+	if(0 != (USART3->SR & (0x01 << 6)))	
+	{
+		xBitOff(USART3->SR, 6);
+		
+	}	
+	else if(0 != (USART3->SR & (0x01 << 5)))	// ÅÐ¶ÏÊÇ·ñÎªRXNEÖÐ¶Ï
+	{
+		u8 recvD = USART3_RECV_DATA;
+		printf("3recvD = %x\r\n", recvD);
+		
+	}
 }
 
 /*******************************************************************************

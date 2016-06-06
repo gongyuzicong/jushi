@@ -39,6 +39,8 @@ int main(void)
 	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 1, cir2 = 0;
 	u32 time = 0;
+	static u8 flag = 1;
+	
 	
 	CB_RCC_Config();	/*配置系统时钟*/
 	CB_GPIO_Config();	/*配置GPIO口*/
@@ -46,7 +48,7 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	motionOptsPtr->agv_walk_test();
+	//motionOptsPtr->agv_walk_test();
 
 	time = SystemRunningTime;
 	while(1)
@@ -76,30 +78,54 @@ int main(void)
 		*/
 		
 		//MSDF_Opts_Ptr->MSD_Test();
-		motionOptsPtr->agv_walk();
-
-		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		//motionOptsPtr->agv_walk();
+		
+		if(0 != (USART3->SR & (0x01 << 5)))
 		{
-			FMSDS_Ptr->zflag = 1;
-
-			if(FMSDS_Ptr->zeropointfive >= 2000)
+			u8 recvD = USART3_RECV_DATA;
+			printf("mrecvD = %x\r\n", recvD);
+		
+		}
+		
+		/*
+		if((goStraightStatus == ctrlParasPtr->agvStatus) || (backStatus == ctrlParasPtr->agvStatus))
+		{
+			if(1 == flag)
 			{
-				FMSDS_Ptr->zflag = 0;
-				
 				if(0xFFFF == FMSDS_Ptr->MSD_Hex)
 				{
-					if(goStraightStatus == ctrlParasPtr->agvStatus)
+					flag = 0;
+					FMSDS_Ptr->zflag = 1;
+				}
+			}
+			else
+			{
+				if(FMSDS_Ptr->zeropointfive >= 1000)
+				{
+					if(0xFFFF == FMSDS_Ptr->MSD_Hex)
 					{
-						motionOptsPtr->backStatus_change();
+						if(goStraightStatus == ctrlParasPtr->agvStatus)
+						{
+							motionOptsPtr->backStatus_change();
+							printf("backStatus_change\r\n");
+						}
+						else if(backStatus == ctrlParasPtr->agvStatus)
+						{
+							motionOptsPtr->goStraight_change();
+							printf("goStraight_change\r\n");
+						}
 					}
-					else if(backStatus == ctrlParasPtr->agvStatus)
-					{
-						motionOptsPtr->goStraight_change();
-					}
+
+					flag = 1;
+					
+					FMSDS_Ptr->zflag = 0;
 				}
 				
 			}
 		}
+		*/
+		
+		
 	}
 
 	
