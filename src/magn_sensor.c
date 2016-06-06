@@ -851,6 +851,8 @@ u16 hex_reload(u16 hex)
 	return temp;
 }
 
+
+#if 0
 void Magn_Sensor_Scan(void)
 {
 	#if 0
@@ -958,6 +960,513 @@ void Magn_Sensor_Scan(void)
 	
 	#endif
 }
+
+#else
+
+u8 Check_Zero_Bit_Special(u16 MSD_Hex)
+{
+	u8 flag = 0;
+
+	switch(MSD_Hex)
+	{
+		case 0x8000:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_1;
+			flag = 1;
+			break;
+
+		case 0xC000:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_2;
+			flag = 1;
+			break;
+
+		case 0xE000:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_3;
+			flag = 1;
+			break;
+
+		case 0xF000:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_4;
+			flag = 1;
+			break;
+
+		case 0xF800:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_5;
+			flag = 1;
+			break;
+
+		case 0xFC00:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_6;
+			flag = 1;
+			break;
+
+		case 0xFE00:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_7;
+			flag = 1;
+			break;
+
+		case 0xFF00:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_8;
+			flag = 1;
+			break;
+
+		case 0xFF80:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_9;
+			flag = 1;
+			break;
+
+		case 0xFFC0:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_10;
+			flag = 1;
+			break;
+
+		case 0xFFE0:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_11;
+			flag = 1;
+			break;
+
+		case 0xFFF0:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_12;
+			flag = 1;
+			break;
+
+		case 0xFFF8:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_13;
+			flag = 1;
+			break;
+
+		case 0xFFFC:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_14;
+			flag = 1;
+			break;
+
+		case 0xFFFE:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_15;
+			flag = 1;
+			break;
+
+		case 0x7FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_15;
+			flag = 1;
+			break;
+
+		case 0x3FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_14;
+			flag = 1;
+			break;
+
+		case 0x1FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_13;
+			flag = 1;
+			break;
+
+		case 0x0FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_12;
+			flag = 1;
+			break;
+
+		case 0x07FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_11;
+			flag = 1;
+			break;
+
+		case 0x03FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_10;
+			flag = 1;
+			break;
+
+		case 0x01FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_9;
+			flag = 1;
+			break;
+
+		case 0x00FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_8;
+			flag = 1;
+			break;
+
+		case 0x007F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_7;
+			flag = 1;
+			break;
+
+		case 0x003F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_6;
+			flag = 1;
+			break;
+
+		case 0x001F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_5;
+			flag = 1;
+			break;
+
+		case 0x000F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_4;
+			flag = 1;
+			break;
+
+		case 0x0007:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_3;
+			flag = 1;
+			break;
+
+		case 0x0003:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_2;
+			flag = 1;
+			break;
+
+		case 0x0001:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_1;
+			flag = 1;
+			break;
+	}
+
+	return flag;
+}
+
+
+u8 Check_Zero_Bit_LeftOrRight(u16 MSD_Hex)		
+{
+	u8 flag = 0;
+
+	switch(MSD_Hex)
+	{
+		case 0xFFFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Undefine;
+			flag = 1;
+			break;
+		
+		case 0x7FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_10;
+			flag = 1;
+			break;
+
+		case 0x3FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_9;
+			flag = 1;
+			break;
+
+		case 0x1FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_8;
+			flag = 1;
+			break;
+
+		case 0x0FFF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_7;
+			flag = 1;
+			break;
+
+		case 0x07FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_6;
+			flag = 1;
+			break;
+
+		case 0x03FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			flag = 1;
+			break;
+
+		case 0x01FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			flag = 1;
+			break;
+		
+		case 0xFF80:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			flag = 1;
+			break;
+
+		case 0xFFC0:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			flag = 1;
+			break;
+
+		case 0xFFE0:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_6;
+			flag = 1;
+			break;
+
+		case 0xFFF0:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_7;
+			flag = 1;
+			break;
+
+		case 0xFFF8:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_8;
+			flag = 1;
+			break;
+
+		case 0xFFFC:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_9;
+			flag = 1;
+			break;
+
+		case 0xFFFE:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_10;
+			flag = 1;
+			break;
+	}
+
+	return flag;
+}
+
+u8 Check_7_Zero_Bit(u16 MSD_Hex)		//CHECK
+{
+	u8 flag = 0;
+	
+	switch(MSD_Hex)
+	{
+		case 0x80FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			flag = 1;
+			break;
+
+		case 0xC07F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			flag = 1;
+			break;
+
+		case 0xE03F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			flag = 1;
+			break;
+
+		case 0xF01F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			flag = 1;
+			break;
+
+		case 0xF80F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			flag = 1;
+			break;
+
+		case 0xFC07:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			flag = 1;
+			break;
+
+		case 0xFE03:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			flag = 1;
+			break;
+
+		case 0xFF01:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			flag = 1;
+			break;
+		
+	}
+
+	return flag;
+}
+
+u8 Check_6_Zero_Bit(u16 MSD_Hex)		//CHECK
+{
+	u8 flag = 0;
+	
+	switch(MSD_Hex)
+	{
+		case 0x81FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			flag = 1;
+			break;
+
+		case 0xC0FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			flag = 1;
+			break;
+
+		case 0xE07F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			flag = 1;
+			break;
+
+		case 0xF03F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			flag = 1;
+			break;
+
+		case 0xF81F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Center;
+			flag = 1;
+			break;
+
+		case 0xFC0F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			flag = 1;
+			break;
+
+		case 0xFE07:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			flag = 1;
+			break;
+
+		case 0xFF03:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			flag = 1;
+			break;
+
+		case 0xFF81:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			flag = 1;
+			break;
+		
+	}
+
+	return flag;
+}
+
+u8 Check_5_Zero_Bit(u16 MSD_Hex)		// check
+{
+	u8 flag = 0;
+
+	switch(MSD_Hex)
+	{
+		case 0x83FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			flag = 1;
+			break;
+
+		case 0xC1FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			flag = 1;
+			break;
+
+		case 0xE0FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			flag = 1;
+			break;
+
+		case 0xF07F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			flag = 1;
+			break;
+
+		case 0xF83F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			flag = 1;
+			break;
+
+		case 0xFC1F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			flag = 1;
+			break;
+
+		case 0xFE0F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			flag = 1;
+			break;
+
+		case 0xFF07:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			flag = 1;
+			break;
+
+		case 0xFF83:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			flag = 1;
+			break;
+
+		case 0xFFC1:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			flag = 1;
+			break;
+	}
+
+	return flag;
+}
+
+u8 Check_4_Zero_Bit(u16 MSD_Hex)		// CHECK
+{
+	u8 flag = 0;
+
+	switch(MSD_Hex)
+	{
+		case 0x87FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			flag = 1;
+			break;
+
+		case 0xC3FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			flag = 1;
+			break;
+
+		case 0xE1FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			flag = 1;
+			break;
+
+		case 0xF0FF:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			flag = 1;
+			break;
+
+		case 0xF87F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			flag = 1;
+			break;
+
+		case 0xFC3F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Center;
+			flag = 1;
+			break;
+
+		case 0xFE1F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			flag = 1;
+			break;
+
+		case 0xFF0F:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			flag = 1;
+			break;
+
+		case 0xFF87:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			flag = 1;
+			break;
+
+		case 0xFFC3:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			flag = 1;
+			break;
+
+		case 0xFFE1:
+			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			flag = 1;
+			break;
+	}
+
+	return flag;
+}
+
+
+void Magn_Sensor_Scan(void)
+{
+	static u16 tempFMS = 0x00, tempRMS = 0x00;
+	u32 TimeNow = 0;
+	static u8 lineCounter = 0x00;
+
+	if(backStatus == ctrlParasPtr->agvStatus)
+	{
+		FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
+		RMSDS_Ptr->MSD_Hex = FMS_Hex;
+	}
+	else
+	{
+		FMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
+		RMSDS_Ptr->MSD_Hex = RMS_Hex;
+	}
+
+
+	
+	
+	
+}
+
+
+#endif
 
 void Magn_Sensor_Gpio_Init(void)
 {

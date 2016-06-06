@@ -16,7 +16,7 @@
 
 u8 DutyTable[10] = {2, 6, 9, 12, 16, 16, 16, 16, 16, 16};
 
-u8 DutyTable_Duty10[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+u8 DutyTable_Duty10[10] = {0, 0, 2, 3, 4, 5, 6, 7, 8, 9};
 
 #define C2L_LM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
 #define C2L_RM_DC		(ctrlParasPtr->settedSpeed)
@@ -1261,15 +1261,44 @@ void walking_backStatus(void)
 
 void walking_cirLeft(void)
 {
+	static u8 lmSpeed = 0, rmSpeed = 0, stepFlag = 0;
+	u8 dutyTable[10] = {1, 5, 5, 5, 5, 5, 5, 6, 7, 8};
 
-	
-	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_Begin) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_End))
+	if(0 == stepFlag)
 	{
+		lmSpeed = rmSpeed = 15;
 		
-		
-		MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-		MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+		MOTOR_LEFT_DUTY_SET(lmSpeed);
+		MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		{
+			stepFlag = 1;
+		}
 	}
+	else if(1 == stepFlag)
+	{
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_Begin) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_End))
+		{
+			lmSpeed = rmSpeed = dutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+			
+			if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+			{
+				stepFlag = 0;
+				motionOptsPtr->goStraight_change();
+			}
+			
+		}
+		else
+		{
+			lmSpeed = rmSpeed = 7;
+		}
+		
+		MOTOR_LEFT_DUTY_SET(lmSpeed);
+		MOTOR_RIGHT_DUTY_SET(rmSpeed);
+	}
+		
+	
 	
 }
 
@@ -1478,30 +1507,13 @@ void Motion_Ctrl_GPIO_Init(void)
 
 void goStraight_change(void)
 {
-	ctrlParasPtr->settedSpeed = 0;
-	ctrlParasPtr->leftMotorSettedSpeed = 0;
-	ctrlParasPtr->rightMotorSettedSpeed = 0;
-	ctrlParasPtr->leftMotorSpeedOffset = 0;
-	ctrlParasPtr->rightMotorSpeedOffset = 0;
 	MOTOR_RIGHT_DUTY_SET(0);
 	MOTOR_LEFT_DUTY_SET(0);
 	
 	Delay_ms(1000);
 
-	ctrlParasPtr->settedSpeed = 10;
-	MOTOR_RIGHT_DUTY_SET(10);
-	MOTOR_LEFT_DUTY_SET(10);
-
 	CHANGE_TO_GO_STRAIGHT_MODE();
-
-	/*
-	ctrlParasPtr->leftMotorSpeedOffset_p = &(ctrlParasPtr->leftMotorSpeedOffset);
-	ctrlParasPtr->rightMotorSpeedOffset_p = &(ctrlParasPtr->rightMotorSpeedOffset);
-	ctrlParasPtr->leftMotorSettedSpeed_p = &(ctrlParasPtr->leftMotorSettedSpeed);
-	ctrlParasPtr->rightMotorSettedSpeed_p = &(ctrlParasPtr->rightMotorSettedSpeed);
-	motionOptsPtr->motor_left_duty_offset = motor_left_duty_offset;
-	motionOptsPtr->motor_right_duty_offset = motor_right_duty_offset;
-	*/
+	
 }
 
 void backStatus_change(void)
