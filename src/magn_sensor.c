@@ -19,7 +19,6 @@ MSD_Functions_Struct_P MSDF_Opts_Ptr = &MSDF_Opts;
 Agv_Midpoint_Location_Struct AGV_MPLS;
 Agv_Midpoint_Location_Struct_P AGV_MPLS_Ptr = &AGV_MPLS;
 
-u8 MagnInfomationUpdate = 0x00;
 
 u8 station = 0x00;
 
@@ -130,6 +129,7 @@ void My_MSD_Opt(Magn_Sensor_Data_Sturct_P ptr)
 	
 }
 
+#if 0
 
 void Check_MSD_Category(Magn_Sensor_Data_Sturct_P ptr)
 {	
@@ -159,6 +159,12 @@ void Check_MSD_Category(Magn_Sensor_Data_Sturct_P ptr)
 	
 }
 
+#else
+
+
+
+#endif
+
 void Show_Check_MSD_Category(Magn_Sensor_Data_Sturct_P ptr)
 {
 	switch(ptr->MSDCategory)
@@ -185,79 +191,7 @@ void Show_My_MSD_Opt(Magn_Sensor_Data_Sturct_P show)
 	printf("%2d\t", show->RightRemain);
 }
 
-void My_MSD_Test(void)
-{
-	static u16 showNumF = 0xFF, showNumR = 0xFF;
-
-	#if 0
-	
-	if((showNumF != FMS_Hex) || (showNumR != RMS_Hex))
-	{
-		showNumF = FMS_Hex;
-		showNumR = RMS_Hex;
-		My_MSD_Show(showNumF, showNumR);
-	}
-	
-	#else
-
-	#if 0
-	
-	if((showNumF != FMS_Hex) || (showNumR != RMS_Hex))
-	{
-		
-		if(showNumR != FMS_Hex)
-		{
-			showNumF = FMS_Hex;
-			printf("F: ");
-			MSD_Show_Bin(showNumF);
-		}
-		
-		if(showNumR != RMS_Hex)
-		{
-			showNumR = RMS_Hex;
-			printf("R: ");
-			MSD_Show_Bin(showNumR);
-		}
-		
-		printf("\r\n");
-	}
-	
-	#else
-
-	#if 1
-	
-	if(showNumR != RMS_Hex)
-	{
-		
-		if(showNumR != RMS_Hex)
-		{
-			showNumR = RMS_Hex;
-			printf("R: ");
-			MSD_Show_Bin(showNumR);
-		}
-		
-	}
-	
-	#else
-	if(showNumF != FMS_Hex)
-	{
-		
-		if(showNumR != FMS_Hex)
-		{
-			showNumF = FMS_Hex;
-			printf("F: ");
-			MSD_Show_Bin(showNumF);
-		}
-		
-	}
-	#endif
-
-	#endif
-	
-	#endif
-	
-}
-
+#if 0
 void Magn_VandA_Calu(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)
 {
 	if(AgvInitS != pre->agvDirection)
@@ -326,6 +260,10 @@ void Magn_VandA_Calu(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pr
 	
 }
 
+#endif
+
+
+#if 0
 
 void Check_Magn_Location(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)
 {
@@ -402,6 +340,8 @@ void Check_Magn_Location(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_
 	
 }
 
+#endif
+
 
 void Show_Check_Magn_Location(Magn_Sensor_Data_Sturct_P now)
 {
@@ -413,10 +353,6 @@ void Show_Check_Magn_Location(Magn_Sensor_Data_Sturct_P now)
 		
 		case Agv_MS_Center:
 			printf("MS_Cen");
-			break;
-
-		case Agv_MS_Left_Begin:
-			printf("MS_LB ");
 			break;
 
 		case Agv_MS_Left_1:
@@ -462,11 +398,7 @@ void Show_Check_Magn_Location(Magn_Sensor_Data_Sturct_P now)
 		case Agv_MS_Left_End:
 			printf("MS_LE ");
 			break;
-
-		case Agv_MS_Right_Begin:
-			printf("MS_RB ");
 			
-			break;
 		case Agv_MS_Right_1:
 			printf("MS_R1 ");
 			break;
@@ -525,9 +457,9 @@ void Show_Check_Magn_Location(Magn_Sensor_Data_Sturct_P now)
 
 void Check_Magn_Direction(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)
 {
-	if((now->AgvMSLocation > Agv_MS_Left_Begin) && (now->AgvMSLocation < Agv_MS_Left_End))
+	if((now->AgvMSLocation > Agv_MS_Left_End) && (now->AgvMSLocation < Agv_MS_Center))
 	{
-		if((pre->AgvMSLocation > Agv_MS_Left_Begin) && (pre->AgvMSLocation < Agv_MS_Left_End))
+		if((pre->AgvMSLocation > Agv_MS_Left_End) && (pre->AgvMSLocation < Agv_MS_Center))
 		{
 			if(now->AgvMSLocation > pre->AgvMSLocation)
 			{
@@ -542,14 +474,14 @@ void Check_Magn_Direction(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct
 				now->agvDirection = AgvNone;
 			}
 		}
-		else if((pre->AgvMSLocation > Agv_MS_Right_Begin) && (pre->AgvMSLocation < Agv_MS_Right_End))
+		else if((pre->AgvMSLocation > Agv_MS_Center) && (pre->AgvMSLocation < Agv_MS_Right_End))
 		{
 			now->agvDirection = AgvRight2Left;
 		}
 	}
-	else if((now->AgvMSLocation > Agv_MS_Right_Begin) && (now->AgvMSLocation < Agv_MS_Right_End))
+	else if((now->AgvMSLocation > Agv_MS_Center) && (now->AgvMSLocation < Agv_MS_Right_End))
 	{
-		if((pre->AgvMSLocation > Agv_MS_Right_Begin) && (pre->AgvMSLocation < Agv_MS_Right_End))
+		if((pre->AgvMSLocation > Agv_MS_Center) && (pre->AgvMSLocation < Agv_MS_Right_End))
 		{
 			if(now->AgvMSLocation > pre->AgvMSLocation)
 			{
@@ -564,18 +496,18 @@ void Check_Magn_Direction(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct
 				now->agvDirection = AgvNone;
 			}
 		}
-		else if((pre->AgvMSLocation > Agv_MS_Left_Begin) && (pre->AgvMSLocation < Agv_MS_Left_End))
+		else if((pre->AgvMSLocation > Agv_MS_Left_End) && (pre->AgvMSLocation < Agv_MS_Left_End))
 		{
 			now->agvDirection = AgvLeft2Right;
 		}
 	}
 	else if(Agv_MS_Center == now->AgvMSLocation)
 	{
-		if((pre->AgvMSLocation > Agv_MS_Right_Begin) && (pre->AgvMSLocation < Agv_MS_Right_End))
+		if((pre->AgvMSLocation > Agv_MS_Center) && (pre->AgvMSLocation < Agv_MS_Right_End))
 		{
 			now->agvDirection = AgvCent2Right;
 		}
-		else if((pre->AgvMSLocation > Agv_MS_Left_Begin) && (pre->AgvMSLocation < Agv_MS_Left_End))
+		else if((pre->AgvMSLocation > Agv_MS_Left_End) && (pre->AgvMSLocation < Agv_MS_Center))
 		{
 			now->agvDirection = AgvCent2Left;
 		}
@@ -637,7 +569,7 @@ void Check_Agv_Location(Agv_Midpoint_Location_Struct_P amls, Magn_Sensor_Data_St
 		{
 			amls->AgvMPLocation = Agv_MP_Center;
 		}
-		else if((rear->AgvMSLocation > Agv_MS_Left_Begin) && (rear->AgvMSLocation < Agv_MS_Right_End))
+		else if((rear->AgvMSLocation > Agv_MS_Left_End) && (rear->AgvMSLocation < Agv_MS_Right_End))
 		{
 			switch(rear->AgvMSLocation)
 			{
@@ -676,7 +608,7 @@ void Check_Agv_Location(Agv_Midpoint_Location_Struct_P amls, Magn_Sensor_Data_St
 			}
 		}
 	}
-	else if((front->AgvMSLocation > Agv_MS_Left_Begin) && (front->AgvMSLocation < Agv_MS_Right_End))
+	else if((front->AgvMSLocation > Agv_MS_Left_End) && (front->AgvMSLocation < Agv_MS_Right_End))
 	{
 		
 	}
@@ -813,28 +745,26 @@ void Show_Infomation(void)
 	MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
 	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
 	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
-	printf("LMSO = %2d,\t", ctrlParasPtr->leftMotorSpeedOffset);
-	printf("RMSO = %2d,\t", ctrlParasPtr->rightMotorSpeedOffset);
 	printf("f = %d,\t", ctrlParasPtr->comflag);
 	Show_Check_MSD_Category(FMSDS_Ptr);
-	Show_My_MSD_Opt(FMSDS_Ptr);
+	//Show_My_MSD_Opt(FMSDS_Ptr);
 	Show_Check_Magn_Location(FMSDS_Ptr);
 	Show_Check_Magn_Direction(FMSDS_Ptr);
-	Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
-	Show_Magn_AcceleratedXt_Clau(FMSDS_Ptr);
+	//Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
+	//Show_Magn_AcceleratedXt_Clau(FMSDS_Ptr);
 	printf("\t");
 
 	printf("R: ");
 	MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
 	Show_Check_MSD_Category(RMSDS_Ptr);
-	Show_My_MSD_Opt(RMSDS_Ptr);
+	//Show_My_MSD_Opt(RMSDS_Ptr);
 	Show_Check_Magn_Location(RMSDS_Ptr);
 	Show_Check_Magn_Direction(RMSDS_Ptr);
-	Show_Magn_VelocityXt_Clau(RMSDS_Ptr);
-	Show_Magn_AcceleratedXt_Clau(RMSDS_Ptr);
+	//Show_Magn_VelocityXt_Clau(RMSDS_Ptr);
+	//Show_Magn_AcceleratedXt_Clau(RMSDS_Ptr);
 	
-	Check_Agv_Location_S(AGV_MPLS_Ptr, FMSDS_Ptr, RMSDS_Ptr);
-	Show_Check_Agv_Location_S(AGV_MPLS_Ptr);
+	//Check_Agv_Location_S(AGV_MPLS_Ptr, FMSDS_Ptr, RMSDS_Ptr);
+	//Show_Check_Agv_Location_S(AGV_MPLS_Ptr);
 	printf("\r\n");
 }
 
@@ -963,159 +893,89 @@ void Magn_Sensor_Scan(void)
 
 #else
 
-u8 Check_Zero_Bit_Special(u16 MSD_Hex)
+u8 Check_Zero_Bit_Special(Magn_Sensor_Data_Sturct_P ptr)
 {
 	u8 flag = 0;
 
-	switch(MSD_Hex)
+	switch(ptr->MSD_Hex)
 	{
 		case 0x8000:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_1;
+			ptr->AgvMSLocation = Agv_MS_LOut_1;
 			flag = 1;
 			break;
 
 		case 0xC000:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_2;
+			ptr->AgvMSLocation = Agv_MS_LOut_2;
 			flag = 1;
 			break;
 
 		case 0xE000:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_3;
+			ptr->AgvMSLocation = Agv_MS_LOut_3;
 			flag = 1;
 			break;
 
 		case 0xF000:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_4;
+			ptr->AgvMSLocation = Agv_MS_LOut_4;
 			flag = 1;
 			break;
 
 		case 0xF800:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_5;
+			ptr->AgvMSLocation = Agv_MS_LOut_5;
 			flag = 1;
 			break;
 
 		case 0xFC00:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_6;
+			ptr->AgvMSLocation = Agv_MS_LOut_6;
 			flag = 1;
 			break;
 
 		case 0xFE00:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_7;
+			ptr->AgvMSLocation = Agv_MS_LOut_7;
 			flag = 1;
 			break;
 
 		case 0xFF00:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_8;
-			flag = 1;
-			break;
-
-		case 0xFF80:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_9;
-			flag = 1;
-			break;
-
-		case 0xFFC0:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_10;
-			flag = 1;
-			break;
-
-		case 0xFFE0:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_11;
-			flag = 1;
-			break;
-
-		case 0xFFF0:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_12;
-			flag = 1;
-			break;
-
-		case 0xFFF8:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_13;
-			flag = 1;
-			break;
-
-		case 0xFFFC:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_14;
-			flag = 1;
-			break;
-
-		case 0xFFFE:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_LOut_15;
-			flag = 1;
-			break;
-
-		case 0x7FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_15;
-			flag = 1;
-			break;
-
-		case 0x3FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_14;
-			flag = 1;
-			break;
-
-		case 0x1FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_13;
-			flag = 1;
-			break;
-
-		case 0x0FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_12;
-			flag = 1;
-			break;
-
-		case 0x07FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_11;
-			flag = 1;
-			break;
-
-		case 0x03FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_10;
-			flag = 1;
-			break;
-
-		case 0x01FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_9;
+			ptr->AgvMSLocation = Agv_MS_LOut_8;
 			flag = 1;
 			break;
 
 		case 0x00FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_8;
+			ptr->AgvMSLocation = Agv_MS_ROut_8;
 			flag = 1;
 			break;
 
 		case 0x007F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_7;
+			ptr->AgvMSLocation = Agv_MS_ROut_7;
 			flag = 1;
 			break;
 
 		case 0x003F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_6;
+			ptr->AgvMSLocation = Agv_MS_ROut_6;
 			flag = 1;
 			break;
 
 		case 0x001F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_5;
+			ptr->AgvMSLocation = Agv_MS_ROut_5;
 			flag = 1;
 			break;
 
 		case 0x000F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_4;
+			ptr->AgvMSLocation = Agv_MS_ROut_4;
 			flag = 1;
 			break;
 
 		case 0x0007:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_3;
+			ptr->AgvMSLocation = Agv_MS_ROut_3;
 			flag = 1;
 			break;
 
 		case 0x0003:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_2;
+			ptr->AgvMSLocation = Agv_MS_ROut_2;
 			flag = 1;
 			break;
 
 		case 0x0001:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_ROut_1;
+			ptr->AgvMSLocation = Agv_MS_ROut_1;
 			flag = 1;
 			break;
 	}
@@ -1124,84 +984,85 @@ u8 Check_Zero_Bit_Special(u16 MSD_Hex)
 }
 
 
-u8 Check_Zero_Bit_LeftOrRight(u16 MSD_Hex)		
+u8 Check_Zero_Bit_LeftOrRight(Magn_Sensor_Data_Sturct_P ptr)		
 {
 	u8 flag = 0;
 
-	switch(MSD_Hex)
+	switch(ptr->MSD_Hex)
 	{
 		case 0xFFFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Undefine;
+			ptr->AgvMSLocation = Agv_MS_Undefine;
 			flag = 1;
+			ptr->MSDCategory = MSD_OUTSIDE;
 			break;
 		
 		case 0x7FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_10;
+			ptr->AgvMSLocation = Agv_MS_Right_10;
 			flag = 1;
 			break;
 
 		case 0x3FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_9;
+			ptr->AgvMSLocation = Agv_MS_Right_9;
 			flag = 1;
 			break;
 
 		case 0x1FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_8;
+			ptr->AgvMSLocation = Agv_MS_Right_8;
 			flag = 1;
 			break;
 
 		case 0x0FFF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_7;
+			ptr->AgvMSLocation = Agv_MS_Right_7;
 			flag = 1;
 			break;
 
 		case 0x07FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_6;
+			ptr->AgvMSLocation = Agv_MS_Right_6;
 			flag = 1;
 			break;
 
 		case 0x03FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			ptr->AgvMSLocation = Agv_MS_Right_5;
 			flag = 1;
 			break;
 
 		case 0x01FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			ptr->AgvMSLocation = Agv_MS_Right_5;
 			flag = 1;
 			break;
 		
 		case 0xFF80:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			ptr->AgvMSLocation = Agv_MS_Left_5;
 			flag = 1;
 			break;
 
 		case 0xFFC0:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			ptr->AgvMSLocation = Agv_MS_Left_5;
 			flag = 1;
 			break;
 
 		case 0xFFE0:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_6;
+			ptr->AgvMSLocation = Agv_MS_Left_6;
 			flag = 1;
 			break;
 
 		case 0xFFF0:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_7;
+			ptr->AgvMSLocation = Agv_MS_Left_7;
 			flag = 1;
 			break;
 
 		case 0xFFF8:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_8;
+			ptr->AgvMSLocation = Agv_MS_Left_8;
 			flag = 1;
 			break;
 
 		case 0xFFFC:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_9;
+			ptr->AgvMSLocation = Agv_MS_Left_9;
 			flag = 1;
 			break;
 
 		case 0xFFFE:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_10;
+			ptr->AgvMSLocation = Agv_MS_Left_10;
 			flag = 1;
 			break;
 	}
@@ -1209,49 +1070,49 @@ u8 Check_Zero_Bit_LeftOrRight(u16 MSD_Hex)
 	return flag;
 }
 
-u8 Check_7_Zero_Bit(u16 MSD_Hex)		//CHECK
+u8 Check_7_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		//CHECK
 {
 	u8 flag = 0;
 	
-	switch(MSD_Hex)
+	switch(ptr->MSD_Hex)
 	{
 		case 0x80FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			ptr->AgvMSLocation = Agv_MS_Right_4;
 			flag = 1;
 			break;
 
 		case 0xC07F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			ptr->AgvMSLocation = Agv_MS_Right_3;
 			flag = 1;
 			break;
 
 		case 0xE03F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			ptr->AgvMSLocation = Agv_MS_Right_2;
 			flag = 1;
 			break;
 
 		case 0xF01F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			ptr->AgvMSLocation = Agv_MS_Right_1;
 			flag = 1;
 			break;
 
 		case 0xF80F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			ptr->AgvMSLocation = Agv_MS_Left_1;
 			flag = 1;
 			break;
 
 		case 0xFC07:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			ptr->AgvMSLocation = Agv_MS_Left_2;
 			flag = 1;
 			break;
 
 		case 0xFE03:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			ptr->AgvMSLocation = Agv_MS_Left_3;
 			flag = 1;
 			break;
 
 		case 0xFF01:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			ptr->AgvMSLocation = Agv_MS_Left_4;
 			flag = 1;
 			break;
 		
@@ -1260,54 +1121,54 @@ u8 Check_7_Zero_Bit(u16 MSD_Hex)		//CHECK
 	return flag;
 }
 
-u8 Check_6_Zero_Bit(u16 MSD_Hex)		//CHECK
+u8 Check_6_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		//CHECK
 {
 	u8 flag = 0;
 	
-	switch(MSD_Hex)
+	switch(ptr->MSD_Hex)
 	{
 		case 0x81FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			ptr->AgvMSLocation = Agv_MS_Right_4;
 			flag = 1;
 			break;
 
 		case 0xC0FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			ptr->AgvMSLocation = Agv_MS_Right_3;
 			flag = 1;
 			break;
 
 		case 0xE07F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			ptr->AgvMSLocation = Agv_MS_Right_2;
 			flag = 1;
 			break;
 
 		case 0xF03F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			ptr->AgvMSLocation = Agv_MS_Right_1;
 			flag = 1;
 			break;
 
 		case 0xF81F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Center;
+			ptr->AgvMSLocation = Agv_MS_Center;
 			flag = 1;
 			break;
 
 		case 0xFC0F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			ptr->AgvMSLocation = Agv_MS_Left_1;
 			flag = 1;
 			break;
 
 		case 0xFE07:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			ptr->AgvMSLocation = Agv_MS_Left_2;
 			flag = 1;
 			break;
 
 		case 0xFF03:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			ptr->AgvMSLocation = Agv_MS_Left_3;
 			flag = 1;
 			break;
 
 		case 0xFF81:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			ptr->AgvMSLocation = Agv_MS_Left_4;
 			flag = 1;
 			break;
 		
@@ -1316,59 +1177,59 @@ u8 Check_6_Zero_Bit(u16 MSD_Hex)		//CHECK
 	return flag;
 }
 
-u8 Check_5_Zero_Bit(u16 MSD_Hex)		// check
+u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 {
 	u8 flag = 0;
 
-	switch(MSD_Hex)
+	switch(ptr->MSD_Hex)
 	{
 		case 0x83FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			ptr->AgvMSLocation = Agv_MS_Right_5;
 			flag = 1;
 			break;
 
 		case 0xC1FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			ptr->AgvMSLocation = Agv_MS_Right_4;
 			flag = 1;
 			break;
 
 		case 0xE0FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			ptr->AgvMSLocation = Agv_MS_Right_3;
 			flag = 1;
 			break;
 
 		case 0xF07F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			ptr->AgvMSLocation = Agv_MS_Right_2;
 			flag = 1;
 			break;
 
 		case 0xF83F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			ptr->AgvMSLocation = Agv_MS_Right_1;
 			flag = 1;
 			break;
 
 		case 0xFC1F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			ptr->AgvMSLocation = Agv_MS_Left_1;
 			flag = 1;
 			break;
 
 		case 0xFE0F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			ptr->AgvMSLocation = Agv_MS_Left_2;
 			flag = 1;
 			break;
 
 		case 0xFF07:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			ptr->AgvMSLocation = Agv_MS_Left_3;
 			flag = 1;
 			break;
 
 		case 0xFF83:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			ptr->AgvMSLocation = Agv_MS_Left_4;
 			flag = 1;
 			break;
 
 		case 0xFFC1:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			ptr->AgvMSLocation = Agv_MS_Left_5;
 			flag = 1;
 			break;
 	}
@@ -1376,64 +1237,64 @@ u8 Check_5_Zero_Bit(u16 MSD_Hex)		// check
 	return flag;
 }
 
-u8 Check_4_Zero_Bit(u16 MSD_Hex)		// CHECK
+u8 Check_4_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// CHECK
 {
 	u8 flag = 0;
 
-	switch(MSD_Hex)
+	switch(ptr->MSD_Hex)
 	{
 		case 0x87FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_5;
+			ptr->AgvMSLocation = Agv_MS_Right_5;
 			flag = 1;
 			break;
 
 		case 0xC3FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_4;
+			ptr->AgvMSLocation = Agv_MS_Right_4;
 			flag = 1;
 			break;
 
 		case 0xE1FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_3;
+			ptr->AgvMSLocation = Agv_MS_Right_3;
 			flag = 1;
 			break;
 
 		case 0xF0FF:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_2;
+			ptr->AgvMSLocation = Agv_MS_Right_2;
 			flag = 1;
 			break;
 
 		case 0xF87F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Right_1;
+			ptr->AgvMSLocation = Agv_MS_Right_1;
 			flag = 1;
 			break;
 
 		case 0xFC3F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Center;
+			ptr->AgvMSLocation = Agv_MS_Center;
 			flag = 1;
 			break;
 
 		case 0xFE1F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_1;
+			ptr->AgvMSLocation = Agv_MS_Left_1;
 			flag = 1;
 			break;
 
 		case 0xFF0F:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_2;
+			ptr->AgvMSLocation = Agv_MS_Left_2;
 			flag = 1;
 			break;
 
 		case 0xFF87:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_3;
+			ptr->AgvMSLocation = Agv_MS_Left_3;
 			flag = 1;
 			break;
 
 		case 0xFFC3:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_4;
+			ptr->AgvMSLocation = Agv_MS_Left_4;
 			flag = 1;
 			break;
 
 		case 0xFFE1:
-			FMSDS_Ptr->AgvMSLocation = Agv_MS_Left_5;
+			ptr->AgvMSLocation = Agv_MS_Left_5;
 			flag = 1;
 			break;
 	}
@@ -1448,6 +1309,9 @@ void Magn_Sensor_Scan(void)
 	u32 TimeNow = 0;
 	static u8 lineCounter = 0x00;
 
+	FMSDS_Pre = FMSDS;
+	RMSDS_Pre = RMSDS;
+	
 	if(backStatus == ctrlParasPtr->agvStatus)
 	{
 		FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
@@ -1458,10 +1322,80 @@ void Magn_Sensor_Scan(void)
 		FMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
 		RMSDS_Ptr->MSD_Hex = RMS_Hex;
 	}
+	
+
+	if(1 == Check_Zero_Bit_LeftOrRight(FMSDS_Ptr))
+	{
+		
+	}
+	else if(1 == Check_6_Zero_Bit(FMSDS_Ptr))
+	{
+		FMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_5_Zero_Bit(FMSDS_Ptr))
+	{
+		FMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_4_Zero_Bit(FMSDS_Ptr))
+	{
+		FMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_Zero_Bit_LeftOrRight(FMSDS_Ptr))
+	{
+		
+	}
+	else if(1 == Check_7_Zero_Bit(FMSDS_Ptr))
+	{
+		FMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_Zero_Bit_Special(FMSDS_Ptr))
+	{
+		
+	}
+	else
+	{
+		//printf("FMSS_Err: ");
+		MSDF_Opts_Ptr->MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
+		//printf("LMD = %d,\tRMD = %d,\t", ctrlParasPtr->leftMotorSettedSpeed, ctrlParasPtr->rightMotorSettedSpeed);
+		//printf("\r\n");
+	}
 
 
-	
-	
+	if(1 == Check_Zero_Bit_LeftOrRight(RMSDS_Ptr))
+	{
+		
+	}
+	else if(1 == Check_6_Zero_Bit(RMSDS_Ptr))
+	{
+		RMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_5_Zero_Bit(RMSDS_Ptr))
+	{
+		RMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_4_Zero_Bit(RMSDS_Ptr))
+	{
+		RMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_Zero_Bit_LeftOrRight(RMSDS_Ptr))
+	{
+		
+	}
+	else if(1 == Check_7_Zero_Bit(RMSDS_Ptr))
+	{
+		RMSDS_Ptr->MSDCategory = MSD_NORMAL;
+	}
+	else if(1 == Check_Zero_Bit_Special(RMSDS_Ptr))
+	{
+		
+	}
+	else
+	{
+		printf("RMSS_Err: ");
+		MSDF_Opts_Ptr->MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
+		//printf("LMD = %d,\tRMD = %d,\t", ctrlParasPtr->leftMotorSettedSpeed, ctrlParasPtr->rightMotorSettedSpeed);
+		printf("\r\n");
+	}
 	
 }
 
@@ -1542,7 +1476,6 @@ void Magn_Sensor_Init(void)
 	
 	MSDF_Opts_Ptr->MY_MSD_Operator = My_MSD_Opt;
 	MSDF_Opts_Ptr->MS_Scan = Magn_Sensor_Scan;
-	MSDF_Opts_Ptr->MSD_Test = My_MSD_Test;
 	MSDF_Opts_Ptr->MSD_Show_Bin = MSD_Show_Bin;
 	MSDF_Opts_Ptr->Show_Opt_MSD = Show_My_MSD_Opt;
 	MSDF_Opts_Ptr->magn_show = magn_show;

@@ -38,7 +38,7 @@ typedef enum
 	Agv_MS_Left_1,
 	//Agv_MS_Left_Begin,
 
-	Agv_MS_Center,
+	Agv_MS_Center,		//12
 	
 	//Agv_MS_Right_Begin,
 	Agv_MS_Right_1,
@@ -66,13 +66,6 @@ typedef enum
 	Agv_MS_LOut_6,
 	Agv_MS_LOut_7,
 	Agv_MS_LOut_8,
-	Agv_MS_LOut_9,
-	Agv_MS_LOut_10,
-	Agv_MS_LOut_11,
-	Agv_MS_LOut_12,
-	Agv_MS_LOut_13,
-	Agv_MS_LOut_14,
-	Agv_MS_LOut_15,
 
 	Agv_MS_ROut_1,
 	Agv_MS_ROut_2,
@@ -82,13 +75,6 @@ typedef enum
 	Agv_MS_ROut_6,
 	Agv_MS_ROut_7,
 	Agv_MS_ROut_8,
-	Agv_MS_ROut_9,
-	Agv_MS_ROut_10,
-	Agv_MS_ROut_11,
-	Agv_MS_ROut_12,
-	Agv_MS_ROut_13,
-	Agv_MS_ROut_14,
-	Agv_MS_ROut_15,
 	
 }Agv_MS_Location;
 
@@ -177,7 +163,6 @@ typedef struct
 {
 	void (*MY_MSD_Operator)(Magn_Sensor_Data_Sturct_P);
 	void (*MS_Scan)(void);
-	void (*MSD_Test)(void);
 	void (*MSD_Show_Bin)(u32);
 	void (*Show_Opt_MSD)(Magn_Sensor_Data_Sturct_P);
 	void (*magn_show)(Magn_Sensor_Data_Sturct_P);
@@ -196,7 +181,6 @@ extern MSD_Functions_Struct_P MSDF_Opts_Ptr;
 
 extern vu8 MagnSensorScanTime;
 
-extern u8 MagnInfomationUpdate;
 
 void Magn_Sensor_Init(void);
 

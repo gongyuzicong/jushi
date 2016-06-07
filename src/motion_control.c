@@ -14,7 +14,9 @@
 #define OFFSET_DUTY					(10)
 #define OFFSET_DUTY_Div(NUM)		((OFFSET_DUTY / 10) * NUM)
 
-u8 DutyTable[10] = {2, 6, 9, 12, 16, 16, 16, 16, 16, 16};
+u8 AgvGear[5] = {5, 10, 15, 20, 25};
+
+u8 DutyTable[10] = {2, 6, 9, 12, 14, 14, 14, 14, 14, 14};
 
 u8 DutyTable_Duty10[10] = {0, 0, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -1046,7 +1048,7 @@ void motor_right_duty_set(u8 duty)
 	}
 }
 
-
+#if 0
 void walking_goStraight(void)
 {
 	static u32 counter = 0;
@@ -1148,9 +1150,166 @@ void walking_goStraight(void)
 		}
 	}
 	
+}
+#else
+
+void walking_goStraight(void)
+{
+	static u32 counter = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, stepFlag = 0, gearRecod = 1;
+	u8 offset = 2;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	{
+		ctrlParasPtr->comflag = 11;
+		//printf("AgvMSLocation = %d\r\n", RMSDS_Ptr->AgvMSLocation);
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			counter++;
+			//printf("counter= %d\r\n", counter);
+			if(counter >= 3000)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 111;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + offset;
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		counter = 0;
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+		{
+			ctrlParasPtr->comflag = 12;
+			
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_3))
+			{
+				ctrlParasPtr->comflag = 121;
+				if(gearRecod > 1)
+				{
+					gearRecod--;
+				}
+				
+				lmSpeed = AgvGear[gearRecod] + offset;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			else
+			{
+				ctrlParasPtr->comflag = 122;
+				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + 3;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+		{		
+			ctrlParasPtr->comflag = 13;
+
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{
+				ctrlParasPtr->comflag = 131;
+				if(gearRecod > 1)
+				{
+					gearRecod--;
+				}
+				
+				lmSpeed = AgvGear[gearRecod] + offset;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			else
+			{
+				//printf("gearRecod = %d\r\n", gearRecod);
+				ctrlParasPtr->comflag = 132;
+				lmSpeed = AgvGear[gearRecod] + offset;
+				rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+			}
+			
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+		else if(Agv_MS_Right_Outside == FMSDS_Ptr->AgvMSLocation)
+		{
+
+			ctrlParasPtr->comflag = 14;
+			
+			lmSpeed = 10 + offset;
+			rmSpeed = 10;
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+		}
+		else if(Agv_MS_Left_Outside == FMSDS_Ptr->AgvMSLocation)
+		{	
+			ctrlParasPtr->comflag = 15;
+			
+			lmSpeed = 10 + offset;
+			rmSpeed = 10;
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+		else
+		{
+			ctrlParasPtr->comflag = 16;
+
+			lmSpeed = 10 + offset;
+			rmSpeed = 10;
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+	}
 	
 }
 
+
+#endif
+
+#if 0
 void walking_backStatus(void)
 {
 	static u32 counter = 0;
@@ -1163,7 +1322,7 @@ void walking_backStatus(void)
 		ctrlParasPtr->comflag = 21;
 		
 		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
-		if(((RMSDS_Ptr->AgvMSLocation > Agv_MS_Left_Begin) && (RMSDS_Ptr->AgvMSLocation < Agv_MS_Left_2)) || ((RMSDS_Ptr->AgvMSLocation > Agv_MS_Right_Begin) && (RMSDS_Ptr->AgvMSLocation < Agv_MS_Right_2)))
+		if(((RMSDS_Ptr->AgvMSLocation > Agv_MS_Left_2) && (RMSDS_Ptr->AgvMSLocation < Agv_MS_Left_2)) || ((RMSDS_Ptr->AgvMSLocation > Agv_MS_Right_Begin) && (RMSDS_Ptr->AgvMSLocation < Agv_MS_Right_2)))
 		{
 			counter++;
 			if(counter >= 500)
@@ -1257,7 +1416,165 @@ void walking_backStatus(void)
 	
 }
 
+#else
 
+void walking_backStatus(void)
+{
+	static u32 counter = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, stepFlag = 0, gearRecod = 1;
+	u8 offset = 0;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	{
+		ctrlParasPtr->comflag = 21;
+		//printf("AgvMSLocation = %d\r\n", RMSDS_Ptr->AgvMSLocation);
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			counter++;
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 3000)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 211;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + offset;
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		counter = 0;
+		
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+		{
+			ctrlParasPtr->comflag = 22;
+			
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_5))
+			{
+				ctrlParasPtr->comflag = 221;
+				if(gearRecod > 1)
+				{
+					gearRecod--;
+				}
+				
+				lmSpeed = AgvGear[gearRecod] + offset;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			else
+			{
+				ctrlParasPtr->comflag = 222;
+				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + 3;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+			MOTOR_LEFT_DUTY_SET(rmSpeed);
+			MOTOR_RIGHT_DUTY_SET(lmSpeed);
+			
+		}
+		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+		{		
+			ctrlParasPtr->comflag = 23;
+
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{
+				ctrlParasPtr->comflag = 231;
+				if(gearRecod > 1)
+				{
+					gearRecod--;
+				}
+				
+				lmSpeed = AgvGear[gearRecod] + offset;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			else
+			{
+				ctrlParasPtr->comflag = 232;
+				lmSpeed = AgvGear[gearRecod] + offset;
+				rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+			}
+			
+
+			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(rmSpeed);
+			MOTOR_RIGHT_DUTY_SET(lmSpeed);
+			
+		}
+		else if(Agv_MS_Right_Outside == FMSDS_Ptr->AgvMSLocation)
+		{
+
+			ctrlParasPtr->comflag = 24;
+			
+			lmSpeed = 10 + offset;
+			rmSpeed = 10;
+
+			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(rmSpeed);
+			MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+		}
+		else if(Agv_MS_Left_Outside == FMSDS_Ptr->AgvMSLocation)
+		{	
+			ctrlParasPtr->comflag = 25;
+			
+			lmSpeed = 10 + offset;
+			rmSpeed = 10;
+
+			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(rmSpeed);
+			MOTOR_RIGHT_DUTY_SET(lmSpeed);
+			
+		}
+		else
+		{
+			ctrlParasPtr->comflag = 26;
+
+			lmSpeed = 10 + offset;
+			rmSpeed = 10;
+
+			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(rmSpeed);
+			MOTOR_RIGHT_DUTY_SET(lmSpeed);
+			
+		}
+	}
+	
+}
+
+
+
+
+#endif
 
 void walking_cirLeft(void)
 {
@@ -1278,7 +1595,7 @@ void walking_cirLeft(void)
 	}
 	else if(1 == stepFlag)
 	{
-		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_Begin) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_End))
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_End))
 		{
 			lmSpeed = rmSpeed = dutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
 			
@@ -1297,7 +1614,6 @@ void walking_cirLeft(void)
 		MOTOR_LEFT_DUTY_SET(lmSpeed);
 		MOTOR_RIGHT_DUTY_SET(rmSpeed);
 	}
-		
 	
 	
 }
@@ -1326,28 +1642,15 @@ void AGV_Walking(void)
 		
 		MSDF_Opts_Ptr->MS_Scan();
 
-		//printf("responseTime = %d\r\n", responseTime);
-		//if(RESPONSE_TIME_CALU(ctrlParasPtr->settedSpeed) == responseTime)
-
 		// 2. 根据处理到的数据, 对电机做相应的调速(P Control)(此处要预留一定的响应时间)
-		//printf("responseTime = %d\r\n", responseTime);
-		//printf("SystemRunningTime = %d\r\n", SystemRunningTime);
-		/*
-		if(responseTime >= MOTOR_SPEED_RESPON_TIME)
-		{
-			responseTime = 0;
-			agv_walking_func[ctrlParasPtr->agvStatus]();
-		}
-		*/
 		
 		agv_walking_func[ctrlParasPtr->agvStatus]();
 		
-		if(MagnInfomationUpdate)
+		
+		if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 		{
-			MagnInfomationUpdate = 0;
 			MSDF_Opts_Ptr->Show_Infomation();
 		}
-		
 		
 		// 3. 监测电机转速, 并且结合传感器数据, 对电机的PWM做相应的调整(D Control)
 		
@@ -1364,18 +1667,18 @@ void AGV_Walking_Test(void)
 	MOTOR_POWER = 0;
 
 	#if 1
-	//CHANGE_TO_GO_STRAIGHT_MODE();
-	CHANGE_TO_CIR_LEFT_MODE();
+	CHANGE_TO_GO_STRAIGHT_MODE();
+	//CHANGE_TO_CIR_LEFT_MODE();
 	#else
 	CHANGE_TO_BACK_MODE();
 	#endif
 	//MOTOR_LEFT_STOP_PIN_SET();
 	ctrlParasPtr->settedSpeed = 10;
-	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed + 5;
+	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed + 3;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
-	MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->settedSpeed);
-	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
+	MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
 }
 
 void AGV_Walking_Test2(void)

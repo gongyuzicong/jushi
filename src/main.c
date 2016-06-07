@@ -48,7 +48,7 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	//motionOptsPtr->agv_walk_test();
+	motionOptsPtr->agv_walk_test();
 
 	time = SystemRunningTime;
 	while(1)
@@ -70,24 +70,12 @@ int main(void)
 		//NRF24L01OptsPtr->TEST_Recv();
 		*/
 		#endif
-		/*
-		if((SystemRunningTime - time) >= 5000)
-		{
-			motionOptsPtr->agv_walk_test2();
-		}
-		*/
+		
 		
 		//MSDF_Opts_Ptr->MSD_Test();
-		//motionOptsPtr->agv_walk();
+		motionOptsPtr->agv_walk();
 		
-		if(0 != (USART3->SR & (0x01 << 5)))
-		{
-			u8 recvD = USART3_RECV_DATA;
-			printf("mrecvD = %x\r\n", recvD);
 		
-		}
-		
-		/*
 		if((goStraightStatus == ctrlParasPtr->agvStatus) || (backStatus == ctrlParasPtr->agvStatus))
 		{
 			if(1 == flag)
@@ -123,7 +111,7 @@ int main(void)
 				
 			}
 		}
-		*/
+		
 		
 		
 	}
