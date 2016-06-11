@@ -20,8 +20,6 @@ typedef enum
 }KeyScanState_Typedef;
 
 
-extern u8 keyScanFlag;
-
 
 int keyScan(void);
 void keyEvent(int key);

@@ -10,7 +10,6 @@
 
 void (*keyStatusEventPtr[KEY_SATAUS_STEP])(int *);
 void (*keyEventOpts[KEY_NUM])(void);
-u8 keyScanFlag = 0;
 KeyScanState_Typedef keyScanStatus = KeyScanState_Check;
 
 int keyScan(void)

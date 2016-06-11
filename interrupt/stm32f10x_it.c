@@ -517,6 +517,22 @@ void TIM2_IRQHandler(void)
 	if(TIM2->SR & 0x0001)	// 溢出中断
 	{
 		PCout(9) = ~(PCin(9));
+		//PCout(8) = ~(PCin(8));
+		//PCout(7) = ~(PCin(7));
+		//PCout(6) = ~(PCin(6));
+		//PCout(5) = ~(PCin(5));
+
+		
+
+		if(ctrlParasPtr->avgFlagCount >= 1)
+		{
+			ctrlParasPtr->avgFlag = 1;
+			ctrlParasPtr->avgFlagCount = 0;
+		}
+		else
+		{
+			ctrlParasPtr->avgFlagCount++;
+		}
 		
 	}
 	
@@ -609,8 +625,9 @@ void TIM4_IRQHandler(void)
 	if(TIM4->SR & 0x0001)	// 溢出中断
 	{
 		SystemRunningTime++;
-		responseTime++;
-
+		PCout(6) = ~(PCin(6));
+		//printf("123\r\n");
+		/*
 		if(FMSDS_Ptr->zflag)
 		{
 			FMSDS_Ptr->zeropointfive++;
@@ -619,6 +636,7 @@ void TIM4_IRQHandler(void)
 		{
 			FMSDS_Ptr->zeropointfive = 0;
 		}
+		*/
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM4->SR &= ~(1 << 0);	// 清除中断标志位
@@ -758,9 +776,90 @@ void EXTI15_10_IRQHandler(void)
 {
 	static u8 lMotorCount = 0x00, rMotorCount = 0x00;
 	static u32 lTimeRecode = 0x00, rTimeRecode = 0x00;
-	u32 tempTime = 0x00;
+	u32 ltempTime = 0x00, rtempTime = 0x00;
 
-	tempTime = SystemRunningTime;
+	ltempTime = rtempTime = SystemRunningTime;
+
+	#if 1
+	if (((EXTI->PR & ((u32)0x04000)) != 0) && ((EXTI->IMR & ((u32)0x04000)) != 0))
+	{
+		#if 0
+		if(rMotorCount >= MAX_HALL_COUNT)
+		{
+			rMotorCount = 0;
+			ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
+			rTimeRecode = rtempTime;
+			//printf("rt = %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+		}
+		else
+		{
+			rMotorCount++;
+		}
+		#else
+		ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
+		/*
+		if(0 == ctrlParasPtr->rightHallIntervalTime)
+		{
+			printf("rtt = %d, rtr = %d\r\n", rtempTime, rTimeRecode);
+		}
+		*/
+		rTimeRecode = rtempTime;
+		#endif
+
+		EXTI->PR = ((u32)0x04000);
+	}	
+
+	if (((EXTI->PR & ((u32)0x01000)) != 0) && ((EXTI->IMR & ((u32)0x01000)) != 0))
+	{
+		#if 0
+		if(lMotorCount >= MAX_HALL_COUNT)
+		{
+			lMotorCount = 0;
+			ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
+			lTimeRecode = ltempTime;
+			//printf("lt = %d\r\n", ctrlParasPtr->leftHallIntervalTime);
+		}
+		else
+		{
+			lMotorCount++;
+		}
+		#else
+
+		ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
+		/*
+		if(0 == ctrlParasPtr->leftHallIntervalTime)
+		{
+			printf("ltt = %d, ltr = %d\r\n", ltempTime, lTimeRecode);
+		}
+		*/
+		lTimeRecode = ltempTime;
+
+		#endif
+
+		EXTI->PR = ((u32)0x01000);
+	}
+	
+	#else
+	
+	if(EXTI_GetITStatus(EXTI_Line14) != RESET)
+	{
+		//printf("exti14\r\n");
+				
+		if(rMotorCount >= MAX_HALL_COUNT)
+		{
+			rMotorCount = 0;
+			ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
+			rTimeRecode = rtempTime;
+			//printf("rt = %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+		}
+		else
+		{
+			rMotorCount++;
+		}
+		
+		//EXTI->PR = ((u32)0x04000);
+		EXTI_ClearITPendingBit(EXTI_Line14);
+	}
 	
 	if(EXTI_GetITStatus(EXTI_Line12) != RESET)
 	{
@@ -769,9 +868,9 @@ void EXTI15_10_IRQHandler(void)
 		if(lMotorCount >= MAX_HALL_COUNT)
 		{
 			lMotorCount = 0;
-			ctrlParasPtr->leftHallIntervalTime = tempTime - lTimeRecode;
-			lTimeRecode = tempTime;
-			//motionOptsPtr->agv_motor_speed_calu(ctrlParasPtr, 0);
+			ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
+			lTimeRecode = ltempTime;
+			//printf("lt = %d\r\n", ctrlParasPtr->leftHallIntervalTime);
 		}
 		else
 		{
@@ -782,25 +881,7 @@ void EXTI15_10_IRQHandler(void)
 		EXTI_ClearITPendingBit(EXTI_Line12);
 	}
 
-	if(EXTI_GetITStatus(EXTI_Line14) != RESET)
-	{
-		//printf("exti14\r\n");
-				
-		if(rMotorCount >= MAX_HALL_COUNT)
-		{
-			lMotorCount = 0;
-			ctrlParasPtr->rightHallIntervalTime = tempTime - rTimeRecode;
-			rTimeRecode = tempTime;
-			//motionOptsPtr->agv_motor_speed_calu(ctrlParasPtr, 1);
-		}
-		else
-		{
-			lMotorCount++;
-		}
-		
-		//EXTI->PR = ((u32)0x04000);
-		EXTI_ClearITPendingBit(EXTI_Line14);
-	}
+	#endif
 }
 
 /*******************************************************************************

@@ -6,7 +6,7 @@
 
 #define RESPONSE_TIME_CALU(x)		(1000 - x * 100)
 
-#define MAX_HALL_COUNT		5
+#define MAX_HALL_COUNT		1
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
@@ -14,6 +14,28 @@
 #define MOTOR_RIGHT_CR_DEF(X) 	Motor_Right_CCR(X)
 #define MOTOR_LEFT_CR_DEF(X) 	Motor_Left_CR(X)
 
+#define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
+#define MAX_STEP_SPEED_INC	1
+
+#define X3X2X1_MAX_SPEED_LIMIT		0x07
+
+#define MOTOR_SPEED_RESPON_TIME		(100)
+#define MAX_GEAR_NUM		21
+#define MAX_GEAR_OFFSET		11
+
+#define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
+#define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
+#define MOTOR_RIGHT_STOP_PIN_SET()		{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
+#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 0; MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_STOP_PIN_SET()		{MOTOR_LEFT_BK = 0; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 1;}
+
+#define CHANGE_TO_GO_STRAIGHT_MODE()		{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus;}
+#define CHANGE_TO_BACK_MODE()				{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus;}
+#define CHANGE_TO_CIR_LEFT_MODE()			{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft;}
+#define CHANGE_TO_CIR_RIGHT_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
+#define CHANGE_TO_STOP_MODE()				{MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus;}
+#define CHANGE_TO_TEST_MODE()				{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = testStatus;}
 
 /***********MOTOR RIGHT: START***************/
 /****MOTOR OUT: START****/
@@ -75,6 +97,7 @@ typedef enum
 	backStatus,
 	cirLeft,
 	cirRight,
+	testStatus,
 }AgvStatus, *AgvStatus_P;
 
 typedef enum
@@ -117,6 +140,13 @@ typedef struct
 	u32 leftHallIntervalTime;
 	u8 comflag;
 
+	u32 HLavg;
+	u32 HRavg;
+	u8 avgFlag;
+	u8 avgFlagCount;
+	u8 gear;
+
+	u8 changeModeFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -126,21 +156,35 @@ typedef struct
 	void (*motor_left)(void);
 	void (*motor_right)(void);
 	void (*motor_stop)(void);
-	void (*agv_walk)(void);
-	void (*agv_walk_test)(void);
 	void (*agv_walk_test2)(void);
 	void (*agv_walk_stop)(void);
-	void (*agv_motor_speed_calu)(ControlerParaStruct_P, u8);
-	void (*goStraight_change)(void);
-	void (*backStatus_change)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
 
 void Motion_Ctrl_Init(void);
+void AGV_Walking(void);
+void AGV_Change_Mode(void);
+void LeftOrRight_Counter(void);
+void AGV_Walking_Test(void);
+void AGV_Correct_back_1(void);
+void AGV_Correct_back_2(void);
+void AGV_Correct_gS_1(u8);
+void AGV_Correct_gS(void);
+void AGV_Correct(void);
+void AGV_Correct_back_3(u8);
+void AVG_Calu_Program(void);
+void CleanAllSpeed(void);
+
+
 
 extern ControlerParaStruct_P ctrlParasPtr;
 extern MotionOperaterStruct_P motionOptsPtr;
 extern u32 responseTime;
+extern u8 FLeftCompDuty[101];
+extern u8 FRightCompDuty[101];
+extern u8 BLeftCompDuty[101];
+extern u8 BRightCompDuty[101];
+extern u8 AgvGear[MAX_GEAR_NUM];
 
 #endif
 

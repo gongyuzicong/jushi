@@ -20,7 +20,7 @@ void SystemInit(void)
 	Delay_Init(72);
 	Timer2_Init(10000, 7199);	// 1s
 	TIM3_Init(65535, 35999);		
-	Timer4_Init(10, 7199);		// 1ms
+	Timer4_Init(9, 719);		// 1ms
 	Motion_Ctrl_Init();
 	Pwm_Init();
 	SPI_Initial();
@@ -38,9 +38,7 @@ int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 1, cir2 = 0;
-	u32 time = 0;
-	static u8 flag = 1;
-	
+	static u8 addGearFlag = 0;
 	
 	CB_RCC_Config();	/*配置系统时钟*/
 	CB_GPIO_Config();	/*配置GPIO口*/
@@ -48,70 +46,57 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	motionOptsPtr->agv_walk_test();
-
-	time = SystemRunningTime;
+	
+	AGV_Walking_Test();
+	
+	ctrlParasPtr->gear = 9;
+	
 	while(1)
 	{
-		#if 1
-		if(keyScanFlag)
+		//printf("l=%d,r=%d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->rightHallIntervalTime);
+		if(testStatus == ctrlParasPtr->agvStatus)
 		{
-			//keyEvent(keyScan());
-			//printf("%d\r\n", keyScan());
-			keyScanFlag = 0;
+			AVG_Calu_Program();
+			AGV_Correct();
 		}
-		
-		/*
-		if(need2SendInfo)
+		else
 		{
-			need2SendInfo = 0;
-			NRF24L01OptsPtr->Send_Info_To_Contorler();
-		}
-		//NRF24L01OptsPtr->TEST_Recv();
-		*/
-		#endif
-		
-		
-		//MSDF_Opts_Ptr->MSD_Test();
-		motionOptsPtr->agv_walk();
-		
-		
-		if((goStraightStatus == ctrlParasPtr->agvStatus) || (backStatus == ctrlParasPtr->agvStatus))
-		{
-			if(1 == flag)
-			{
-				if(0xFFFF == FMSDS_Ptr->MSD_Hex)
-				{
-					flag = 0;
-					FMSDS_Ptr->zflag = 1;
-				}
-			}
-			else
-			{
-				if(FMSDS_Ptr->zeropointfive >= 1000)
-				{
-					if(0xFFFF == FMSDS_Ptr->MSD_Hex)
-					{
-						if(goStraightStatus == ctrlParasPtr->agvStatus)
-						{
-							motionOptsPtr->backStatus_change();
-							printf("backStatus_change\r\n");
-						}
-						else if(backStatus == ctrlParasPtr->agvStatus)
-						{
-							motionOptsPtr->goStraight_change();
-							printf("goStraight_change\r\n");
-						}
-					}
+			Magn_Sensor_Scan();
+			
+			//AGV_Walking();
 
-					flag = 1;
-					
-					FMSDS_Ptr->zflag = 0;
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				//AGV_Correct_gS();
+				if(1 == addGearFlag)
+				{
+					addGearFlag = 0;
+					ctrlParasPtr->gear++;
+				}
+
+				if(ctrlParasPtr->gear > 10)
+				{
+					CleanAllSpeed();
+					CHANGE_TO_STOP_MODE();
 				}
 				
+				AGV_Correct_gS_1(ctrlParasPtr->gear);
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				addGearFlag = 1;
+				AGV_Correct_back_3(ctrlParasPtr->gear);
+			}
+			
+			AGV_Change_Mode();
+			
+			//LeftOrRight_Counter();
+
+			if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+			{
+				Show_Infomation();
 			}
 		}
-		
 		
 		
 	}

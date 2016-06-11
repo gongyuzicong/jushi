@@ -4,45 +4,104 @@
 #include "pwm_opts.h"
 #include "magn_sensor.h"
 
-#define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
-#define MAX_STEP_SPEED_INC	1
 
-#define X3X2X1_MAX_SPEED_LIMIT		0x07
 
-#define MOTOR_SPEED_RESPON_TIME		(100)
+u8 AgvGear[MAX_GEAR_NUM] = {0, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100};
 
-#define OFFSET_DUTY					(10)
-#define OFFSET_DUTY_Div(NUM)		((OFFSET_DUTY / 10) * NUM)
 
-u8 AgvGear[5] = {5, 10, 15, 20, 25};
+u8 FLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}};
 
-u8 DutyTable[10] = {2, 6, 9, 12, 14, 14, 14, 14, 14, 14};
+u8 FRG[6][MAX_GEAR_NUM] = 	  {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}};
+
+u8 BLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}};
+
+u8 BRG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},\
+							   {0, 2, 4, 6, 8, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}};
+
+
+u8 FLeftCompDuty[101] = {0,\
+						0, 0, 0, 0, 0, 0, 4, 4, 4, 4,\
+						4, 4, 4, 4, 4, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
+						1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
+						1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+u8 FRightCompDuty[101] = {0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+u8 BLeftCompDuty[101] = {0,\
+						0, 0, 0, 0, 0, 0, 4, 4, 4, 4,\
+						4, 4, 4, 4, 4, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
+						1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
+						1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+u8 BRightCompDuty[101] = {0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
+ 						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+
+u8 LTM[9] = {181, 104, 73, 55, 45, 37, 32, 29, 26};
+u8 RTM[9] = {132, 86, 63, 49, 41, 34, 30, 27, 24};
+
+u8 DutyTable[10] = {2, 4, 6, 8, 8, 8, 8, 8, 8, 8};
 
 u8 DutyTable_Duty10[10] = {0, 0, 2, 3, 4, 5, 6, 7, 8, 9};
 
-#define C2L_LM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
-#define C2L_RM_DC		(ctrlParasPtr->settedSpeed)
-#define L2C_LM_DC		(ctrlParasPtr->settedSpeed + 1)
-#define L2C_RM_DC		(ctrlParasPtr->settedSpeed)
-
-#define C2R_LM_DC		(ctrlParasPtr->settedSpeed)
-#define C2R_RM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
-#define R2C_LM_DC		(ctrlParasPtr->settedSpeed)
-#define R2C_RM_DC		(ctrlParasPtr->settedSpeed + 1)
-
-#define OUTR_LM_DC		(ctrlParasPtr->settedSpeed)
-#define OUTR_RM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
-#define OUTL_LM_DC		(ctrlParasPtr->settedSpeed + OFFSET_DUTY)
-#define OUTL_RM_DC		(ctrlParasPtr->settedSpeed)
-
-#define CENT_LM_DC		(ctrlParasPtr->settedSpeed)
-#define CENT_RM_DC		(ctrlParasPtr->settedSpeed)
 
 ControlerParaStruct ctrlParas;
 ControlerParaStruct_P ctrlParasPtr = &ctrlParas;
 MotionOperaterStruct motionOpts;
 MotionOperaterStruct_P motionOptsPtr = &motionOpts;
+
 u32 responseTime = 0;
+
 void (*agv_walking_func[5]) (void);
 
 #define MOTOR_RIGHT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed))
@@ -56,24 +115,13 @@ void (*agv_walking_func[5]) (void);
 #define MOTOR_LEFT_DUTY_OFFSET()		{pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->settedSpeed + ctrlParasPtr->leftMotorSpeedOffset);}
 
 
-#define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
-#define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
-#define MOTOR_RIGHT_STOP_PIN_SET()		{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
-#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 0; MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_STOP_PIN_SET()		{MOTOR_LEFT_BK = 0; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 1;}
 
-#define CHANGE_TO_GO_STRAIGHT_MODE()		{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus;}
-#define CHANGE_TO_BACK_MODE()				{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus;}
-#define CHANGE_TO_CIR_LEFT_MODE()			{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft;}
-#define CHANGE_TO_CIR_RIGHT_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
-#define CHANGE_TO_STOP_MODE()				{MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus;}
 
 /**********Motor Basic Control Unit: Begin****************/
 
 void Motor_Right_Set(u8 speed)
 {
-	if((speed >= 0) && (speed <= 100))
+	if((speed > 0) && (speed <= 100))
 	{
 		MOTOR_RIGHT_DUTY_SET(speed);
 	}
@@ -81,7 +129,7 @@ void Motor_Right_Set(u8 speed)
 
 void Motor_Left_Set(u8 speed)
 {
-	if((speed >= 0) && (speed <= 100))
+	if((speed > 0) && (speed <= 100))
 	{
 		MOTOR_LEFT_DUTY_SET(speed);
 	}
@@ -90,7 +138,7 @@ void Motor_Left_Set(u8 speed)
 void Motor_Right_CR(u8 speed)		// 正转
 {
 	
-	if((speed >= 0) && (speed <= 100))
+	if((speed > 0) && (speed <= 100))
 	{
 		pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed);
 	}
@@ -103,7 +151,7 @@ void Motor_Right_CCR(u8 speed)	// 反转
 	
 
 	#if 1
-	if((speed >= 0) && (speed <= 100))
+	if((speed > 0) && (speed <= 100))
 	{
 		pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed);
 	}
@@ -118,7 +166,7 @@ void Motor_Left_CR(u8 speed)		// 正转
 {
 	
 	
-	if((speed >= 0) && (speed <= 100))
+	if((speed > 0) && (speed <= 100))
 	{
 		pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, speed);
 	}
@@ -131,7 +179,7 @@ void Motor_Left_CCR(u8 speed)		// 反转
 {
 	
 	
-	if((speed >= 0) && (speed <= 100))
+	if((speed > 0) && (speed <= 100))
 	{
 		pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, speed);
 	}
@@ -1048,6 +1096,113 @@ void motor_right_duty_set(u8 duty)
 	}
 }
 
+void goStraight_change(void)
+{
+	ctrlParasPtr->settedSpeed = 0;
+	ctrlParasPtr->leftMotorSettedSpeed = 0;
+	ctrlParasPtr->rightMotorSettedSpeed = 0;
+	ctrlParasPtr->leftMotorSpeedOffset = 0;
+	ctrlParasPtr->rightMotorSpeedOffset = 0;
+	MOTOR_RIGHT_DUTY_SET(0);
+	MOTOR_LEFT_DUTY_SET(0);
+	CHANGE_TO_STOP_MODE();
+	
+	Delay_ms(1000);
+	
+	
+	CHANGE_TO_GO_STRAIGHT_MODE();
+	ctrlParasPtr->settedSpeed = 10;
+	MOTOR_RIGHT_DUTY_SET(10);
+	MOTOR_LEFT_DUTY_SET(10);
+
+	
+	
+}
+
+void backStatus_change(void)
+{
+	ctrlParasPtr->settedSpeed = 0;
+	ctrlParasPtr->leftMotorSettedSpeed = 0;
+	ctrlParasPtr->rightMotorSettedSpeed = 0;
+	ctrlParasPtr->leftMotorSpeedOffset = 0;
+	ctrlParasPtr->rightMotorSpeedOffset = 0;
+	MOTOR_RIGHT_DUTY_SET(0);
+	MOTOR_LEFT_DUTY_SET(0);
+	CHANGE_TO_STOP_MODE();
+	
+	Delay_ms(1000);
+	
+	
+	CHANGE_TO_BACK_MODE();
+	ctrlParasPtr->settedSpeed = 10;
+	MOTOR_RIGHT_DUTY_SET(10);
+	MOTOR_LEFT_DUTY_SET(10);
+	
+	
+
+	/*
+	ctrlParasPtr->leftMotorSpeedOffset_p = &(ctrlParasPtr->rightMotorSpeedOffset);
+	ctrlParasPtr->rightMotorSpeedOffset_p = &(ctrlParasPtr->leftMotorSpeedOffset);
+	ctrlParasPtr->leftMotorSettedSpeed_p = &(ctrlParasPtr->rightMotorSettedSpeed);
+	ctrlParasPtr->rightMotorSettedSpeed_p = &(ctrlParasPtr->leftMotorSettedSpeed);
+	motionOptsPtr->motor_left_duty_offset = motor_right_duty_offset;
+	motionOptsPtr->motor_right_duty_offset = motor_left_duty_offset;
+	*/
+}
+
+void CleanAllSpeed(void)
+{
+	ctrlParasPtr->leftMotorSpeedOffset = 0;
+	ctrlParasPtr->leftMotorSettedSpeed = 0;
+	
+	ctrlParasPtr->rightMotorSpeedOffset = 0;
+	ctrlParasPtr->rightMotorSettedSpeed = 0;
+
+	 MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+	 MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+}
+
+void LeftGearSpeed(u8 gearNum, u8 offset)
+{
+	ctrlParasPtr->leftMotorSpeedOffset = offset;
+	ctrlParasPtr->leftMotorSettedSpeed = AgvGear[gearNum] + FLeftCompDuty[gearNum] + ctrlParasPtr->leftMotorSpeedOffset;
+
+	 if(ctrlParasPtr->leftMotorSettedSpeed > 100)
+	 {
+		 ctrlParasPtr->leftMotorSettedSpeed = 100;
+	 }
+
+	 MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+}
+
+void RightGearSpeed(u8 gearNum, u8 offset)
+{
+	ctrlParasPtr->rightMotorSpeedOffset = offset;
+	ctrlParasPtr->rightMotorSettedSpeed = AgvGear[gearNum] + FRightCompDuty[gearNum] + ctrlParasPtr->rightMotorSpeedOffset;
+
+	 if(ctrlParasPtr->rightMotorSettedSpeed > 100)
+	 {
+		 ctrlParasPtr->rightMotorSettedSpeed = 100;
+	 }
+
+	 MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
+}
+
+void debugInfoShow(char *flag,u32 debugCode)
+{
+	#if 0
+	static u32 codeRecod = 0;
+	
+	if(codeRecod != debugCode)
+	{
+		MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
+		printf("\t");
+		codeRecod = debugCode;
+		printf("%s_%d\r\n", flag, debugCode);
+	}
+	#endif
+}
+
 #if 0
 void walking_goStraight(void)
 {
@@ -1156,21 +1311,22 @@ void walking_goStraight(void)
 void walking_goStraight(void)
 {
 	static u32 counter = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, stepFlag = 0, gearRecod = 1;
-	u8 offset = 2;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 2, lreco = 0, rreco = 0;
+	u8 offset = 0;
 	
 	ctrlParasPtr->comflag = 6;
 	
-	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	if(0)
 	{
 		ctrlParasPtr->comflag = 11;
-		//printf("AgvMSLocation = %d\r\n", RMSDS_Ptr->AgvMSLocation);
+		
 		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
 		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
 		{
 			counter++;
-			//printf("counter= %d\r\n", counter);
-			if(counter >= 3000)
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 300)
 			{
 				counter = 0;
 				// 加速操作
@@ -1208,16 +1364,17 @@ void walking_goStraight(void)
 				ctrlParasPtr->comflag = 121;
 				if(gearRecod > 1)
 				{
-					gearRecod--;
+					//gearRecod--;
 				}
-				
+				lreco++;
+				//printf("lreco = %d\r\n", lreco);
 				lmSpeed = AgvGear[gearRecod] + offset;
 				rmSpeed = AgvGear[gearRecod];
 			}
 			else
 			{
 				ctrlParasPtr->comflag = 122;
-				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + 3;
+				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + offset + lreco;
 				rmSpeed = AgvGear[gearRecod];
 			}
 			
@@ -1237,9 +1394,10 @@ void walking_goStraight(void)
 				ctrlParasPtr->comflag = 131;
 				if(gearRecod > 1)
 				{
-					gearRecod--;
+					//gearRecod--;
 				}
-				
+				rreco++;
+				//printf("rreco = %d\r\n", rreco);
 				lmSpeed = AgvGear[gearRecod] + offset;
 				rmSpeed = AgvGear[gearRecod];
 			}
@@ -1305,7 +1463,6 @@ void walking_goStraight(void)
 	}
 	
 }
-
 
 #endif
 
@@ -1421,7 +1578,7 @@ void walking_backStatus(void)
 void walking_backStatus(void)
 {
 	static u32 counter = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, stepFlag = 0, gearRecod = 1;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 1;
 	u8 offset = 0;
 	
 	ctrlParasPtr->comflag = 6;
@@ -1431,11 +1588,11 @@ void walking_backStatus(void)
 		ctrlParasPtr->comflag = 21;
 		//printf("AgvMSLocation = %d\r\n", RMSDS_Ptr->AgvMSLocation);
 		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
-		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
 		{
 			counter++;
 			//printf("counter = %d\r\n", counter);
-			if(counter >= 3000)
+			if(counter >= 300)
 			{
 				counter = 0;
 				// 加速操作
@@ -1444,8 +1601,8 @@ void walking_backStatus(void)
 					ctrlParasPtr->comflag = 211;
 					gearRecod++;
 					
-					lmSpeed = AgvGear[gearRecod] + offset;
-					rmSpeed = AgvGear[gearRecod];
+					lmSpeed = AgvGear[4] + offset;
+					rmSpeed = AgvGear[4];
 					
 					ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
 					ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
@@ -1483,7 +1640,7 @@ void walking_backStatus(void)
 			else
 			{
 				ctrlParasPtr->comflag = 222;
-				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + 3;
+				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + offset;
 				rmSpeed = AgvGear[gearRecod];
 			}
 			
@@ -1602,7 +1759,7 @@ void walking_cirLeft(void)
 			if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 			{
 				stepFlag = 0;
-				motionOptsPtr->goStraight_change();
+				goStraight_change();
 			}
 			
 		}
@@ -1631,54 +1788,2051 @@ void walking_stopStatus(void)
 
 /**********Motor Basic Control Mode: End****************/
 
+void AGV_Correct_gS(void)
+{
+	static u32 counter = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 2, lreco = 0, rreco = 0;
+	static u8 loffset = 0, roffset = 5;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	if(0)
+	{
+		ctrlParasPtr->comflag = 11;
+		
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			
+			counter++;
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 300)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 111;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod] + FRG[0][gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		counter = 0;
+		
+		
+		if(lreco > rreco)
+		{
+			if(lreco - rreco >= 3)
+			{
+				if(FRG[0][gearRecod] > 0)
+				{
+					FRG[0][gearRecod]--;
+				}
+				else
+				{
+					FLG[0][gearRecod]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", FLG[0][gearRecod], FRG[0][gearRecod]);
+				
+				
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+		else if(lreco < rreco)
+		{
+			if(rreco - lreco >= 3)
+			{
+				if(FLG[0][gearRecod] > 0)
+				{
+					FLG[0][gearRecod]--;
+				}
+				else
+				{
+					FRG[0][gearRecod]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", FLG[0][gearRecod], FRG[0][gearRecod]);
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+		
+		
+		
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+		{
+			ctrlParasPtr->comflag = 12;
+
+			if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+			{
+				if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Center)
+				{
+					lreco++;
+				}
+				
+			}
+			
+			/*
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_3))
+			{
+				ctrlParasPtr->comflag = 121;
+
+				lmSpeed = AgvGear[gearRecod];
+				rmSpeed = AgvGear[gearRecod];
+			}
+			else
+			{
+				ctrlParasPtr->comflag = 122;
+				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + loffset;
+				rmSpeed = AgvGear[gearRecod];
+			}
+			*/
+			//printf("lreco = %d\r\n", lreco);
+
+			lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + FLG[0][gearRecod];
+			rmSpeed = AgvGear[gearRecod];
+			
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+		{		
+			ctrlParasPtr->comflag = 13;
+
+			if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+			{
+				if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Center)
+				{
+					rreco++;
+				}
+				
+			}
+
+			/*
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{
+				ctrlParasPtr->comflag = 131;
+				
+				//rreco++;
+				//printf("rreco = %d\r\n", rreco);
+				lmSpeed = AgvGear[gearRecod];
+				rmSpeed = AgvGear[gearRecod];
+			}
+			else
+			{
+				//printf("gearRecod = %d\r\n", gearRecod);
+				ctrlParasPtr->comflag = 132;
+				lmSpeed = AgvGear[gearRecod];
+				rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + roffset;
+			}
+			*/
+			
+			lmSpeed = AgvGear[gearRecod];
+			rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + FRG[0][gearRecod];
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+		else if(Agv_MS_Right_Outside == FMSDS_Ptr->AgvMSLocation)
+		{
+
+			ctrlParasPtr->comflag = 14;
+			
+			lmSpeed = 10 + FLG[0][gearRecod];
+			rmSpeed = 10 + FRG[0][gearRecod];
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+		}
+		else if(Agv_MS_Left_Outside == FMSDS_Ptr->AgvMSLocation)
+		{	
+			ctrlParasPtr->comflag = 15;
+			
+			
+			lmSpeed = 10 + FLG[0][gearRecod];
+			rmSpeed = 10 + FRG[0][gearRecod];
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+		else
+		{
+			ctrlParasPtr->comflag = 16;
+
+			lmSpeed = 10 + FLG[0][gearRecod];
+			rmSpeed = 10 + FRG[0][gearRecod];
+
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+			
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
+			
+		}
+	}
+	
+}
+
+u8 getLTM_Tim(u8 speed)
+{
+	u8 ltm_tim = 0;
+	
+	if((speed >= 10) && (speed < 15))
+	{
+		if(10 == speed)
+		{
+			ltm_tim = LTM[0];
+		}
+		else
+		{
+			ltm_tim = (LTM[0] + LTM[1]) / 2;
+		}
+	}
+	else if((speed >= 15) && (speed < 20))
+	{
+		if(15 == speed)
+		{
+			ltm_tim = LTM[1];
+		}
+		else
+		{
+			ltm_tim = (LTM[1] + LTM[2]) / 2;
+		}
+	}
+	else if((speed >= 20) && (speed < 25))
+	{
+		if(20 == speed)
+		{
+			ltm_tim = LTM[2];
+		}
+		else
+		{
+			ltm_tim = (LTM[2] + LTM[3]) / 2;
+		}
+	}
+	else if((speed >= 25) && (speed < 30))
+	{
+		if(25 == speed)
+		{
+			ltm_tim = LTM[3];
+		}
+		else
+		{
+			ltm_tim = (LTM[3] + LTM[4]) / 2;
+		}
+	}
+	else if((speed >= 30) && (speed < 35))
+	{
+		if(30 == speed)
+		{
+			ltm_tim = LTM[4];
+		}
+		else
+		{
+			ltm_tim = (LTM[4] + LTM[5]) / 2;
+		}
+	}
+	else if((speed >= 35) && (speed < 40))
+	{
+		if(35 == speed)
+		{
+			ltm_tim = LTM[5];
+		}
+		else
+		{
+			ltm_tim = (LTM[5] + LTM[6]) / 2;
+		}
+	}
+	else if((speed >= 40) && (speed < 45))
+	{
+		if(40 == speed)
+		{
+			ltm_tim = LTM[6];
+		}
+		else
+		{
+			ltm_tim = (LTM[6] + LTM[7]) / 2;
+		}
+	}
+	else if((speed >= 45) && (speed <= 50))
+	{
+		if(45 == speed)
+		{
+			ltm_tim = LTM[7];
+		}
+		else if(50 == speed)
+		{
+			ltm_tim = LTM[8];
+		}
+		else
+		{
+			ltm_tim = (LTM[7] + LTM[8]) / 2;
+		}
+		
+	}
+	return ltm_tim;
+}
+
+u8 getRTM_Tim(u8 speed)
+{
+	u8 rtm_tim = 0;
+	
+	if((speed >= 10) && (speed < 15))
+	{
+		if(10 == speed)
+		{
+			rtm_tim = RTM[0];
+		}
+		else
+		{
+			rtm_tim = (RTM[0] + RTM[1]) / 2;
+		}
+	}
+	else if((speed >= 15) && (speed < 20))
+	{
+		if(15 == speed)
+		{
+			rtm_tim = RTM[1];
+		}
+		else
+		{
+			rtm_tim = (RTM[1] + RTM[2]) / 2;
+		}
+	}
+	else if((speed >= 20) && (speed < 25))
+	{
+		if(20 == speed)
+		{
+			rtm_tim = RTM[2];
+		}
+		else
+		{
+			rtm_tim = (RTM[2] + RTM[3]) / 2;
+		}
+	}
+	else if((speed >= 25) && (speed < 30))
+	{
+		if(25 == speed)
+		{
+			rtm_tim = RTM[3];
+		}
+		else
+		{
+			rtm_tim = (RTM[3] + RTM[4]) / 2;
+		}
+	}
+	else if((speed >= 30) && (speed < 35))
+	{
+		if(30 == speed)
+		{
+			rtm_tim = RTM[4];
+		}
+		else
+		{
+			rtm_tim = (RTM[4] + RTM[5]) / 2;
+		}
+	}
+	else if((speed >= 35) && (speed < 40))
+	{
+		if(35 == speed)
+		{
+			rtm_tim = RTM[5];
+		}
+		else
+		{
+			rtm_tim = (RTM[5] + RTM[6]) / 2;
+		}
+	}
+	else if((speed >= 40) && (speed < 45))
+	{
+		if(40 == speed)
+		{
+			rtm_tim = RTM[6];
+		}
+		else
+		{
+			rtm_tim = (RTM[6] + RTM[7]) / 2;
+		}
+	}
+	else if((speed >= 45) && (speed <= 50))
+	{
+		if(45 == speed)
+		{
+			rtm_tim = RTM[7];
+		}
+		else if(50 == speed)
+		{
+			rtm_tim = RTM[8];
+		}
+		else
+		{
+			rtm_tim = (RTM[7] + RTM[8]) / 2;
+		}
+		
+	}
+	return rtm_tim;
+}
+
+
+void AGV_Correct_gS_1(u8 gear)
+{
+	static u32 counter = 0, startCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0;
+	static u8 loffset = 0, roffset = 5;
+	static Agv_MS_Location MSLRecode = AgvInits;
+	u8 LTM_flag = 0;
+	u32 centCount = 0;
+
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	if(0)
+	{
+		ctrlParasPtr->comflag = 11;
+		
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			
+			counter++;
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 300)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 111;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		counter = 0;
+		
+		
+		if(lreco > rreco)
+		{
+			debugInfoShow("gs", 1);
+			
+			if(lreco - rreco >= 3)
+			{
+				debugInfoShow("gs", 11);
+				
+				if(FRightCompDuty[AgvGear[gearRecod]] > 0)
+				{
+					debugInfoShow("gs", 111);
+					
+					FRightCompDuty[AgvGear[gearRecod]]--;
+				}
+				else
+				{
+					debugInfoShow("gs", 112);
+					
+					FLeftCompDuty[AgvGear[gearRecod]]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", FLeftCompDuty[AgvGear[gearRecod]], FRightCompDuty[AgvGear[gearRecod]]);
+				
+				
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+		else if(lreco < rreco)
+		{
+			debugInfoShow("gs", 2);
+			
+			if(rreco - lreco >= 3)
+			{
+				debugInfoShow("gs", 21);
+				
+				if(FLeftCompDuty[AgvGear[gearRecod]] > 0)
+				{
+					debugInfoShow("gs", 211);
+					
+					FLeftCompDuty[AgvGear[gearRecod]]--;
+				}
+				else
+				{
+					debugInfoShow("gs", 212);
+					
+					FRightCompDuty[AgvGear[gearRecod]]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", FLeftCompDuty[AgvGear[gearRecod]], FRightCompDuty[AgvGear[gearRecod]]);
+				
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+
+
+
+		
+		if(0 == flag)
+		{
+				
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+			{
+				debugInfoShow("gs", 3);
+				
+				ctrlParasPtr->comflag = 12;
+	
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+				{
+					debugInfoShow("gs", 31);
+					
+					if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+					{
+						//if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Center)
+						if(FMSDS_Pre_Ptr->AgvMSLocation - FMSDS_Ptr->AgvMSLocation > 0)
+						{
+							debugInfoShow("gs", 331);
+							lreco++;
+						}
+						
+					}
+					
+					//printf("lreco = %d\r\n", lreco);
+	
+					//lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + FLG[0][gearRecod];
+					lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation];
+					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+				else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3))
+				{
+					debugInfoShow("gs", 32);
+					flag = 1;
+					
+					lmSpeed = 0;
+					rmSpeed = 0;
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					CHANGE_TO_GO_STRAIGHT_MODE();
+					
+					//lmSpeed = AgvGear[2] + FLG[0][2] + FLG[2][gearRecod];
+					lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]] + FLG[2][gearRecod];
+					rmSpeed = AgvGear[2] + FRightCompDuty[AgvGear[2]];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+					
+					if(ctrlParasPtr->changeModeFlag)
+					{
+						ctrlParasPtr->changeModeFlag = 0;
+					}
+					else
+					{
+						lreco = rreco + 3;
+					}
+					
+				}
+
+				
+				#if 0
+				
+				/****************/
+				printf("1MSLN = %d, MSLR = %d,\t", FMSDS_Ptr->AgvMSLocation, MSLRecode);
+
+				if(FMSDS_Ptr->AgvMSLocation <= MSLRecode)
+				{
+					MSLRecode = FMSDS_Ptr->AgvMSLocation;
+				}
+				printf("2MSLN = %d, MSLR = %d,\t", FMSDS_Ptr->AgvMSLocation, MSLRecode);
+				if(FMSDS_Ptr->AgvMSLocation > MSLRecode)
+				{
+					printf("1bit: lht %d\r\n", ctrlParasPtr->leftHallIntervalTime);
+					printf("1bit: s %d %d\r\n", lmSpeed, getLTM_Tim(lmSpeed));
+				}
+				else if(ctrlParasPtr->leftHallIntervalTime >= (getLTM_Tim(lmSpeed) -ctrlParasPtr->leftHallIntervalTime) / 2)
+				{
+					printf("1tim: %d\r\n", ctrlParasPtr->leftHallIntervalTime);
+				}
+
+				#endif	
+				
+			}
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{		
+				debugInfoShow("gs", 4);
+				ctrlParasPtr->comflag = 13;
+
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_3))
+				{
+					debugInfoShow("gs", 41);
+					
+					if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+					{
+						debugInfoShow("gs", 411);
+						
+						//if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Center)
+						if(FMSDS_Ptr->AgvMSLocation - FMSDS_Pre_Ptr->AgvMSLocation > 0)
+						{
+							debugInfoShow("gs", 4111);
+							rreco++;
+						}
+						
+					}
+					
+					
+					lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
+					//rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + FRG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+		
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+					
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+					
+				}
+				else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+				{
+					debugInfoShow("gs", 42);
+					flag = 1;
+					
+					lmSpeed = 0;
+					rmSpeed = 0;
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					CHANGE_TO_GO_STRAIGHT_MODE();
+					
+					lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]];
+					//rmSpeed = AgvGear[2] + FRG[0][2] + FRG[2][2];
+					rmSpeed = AgvGear[2] + FRightCompDuty[AgvGear[2]] + FRG[2][2];
+					
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+
+					if(ctrlParasPtr->changeModeFlag)
+					{
+						ctrlParasPtr->changeModeFlag = 0;
+					}
+					else
+					{
+						rreco = lreco + 3;
+					}
+					
+				}
+
+
+				
+
+				/*
+				if(FMSDS_Ptr->AgvMSLocation <= MSLRecode)
+				{
+					MSLRecode = FMSDS_Ptr->AgvMSLocation;
+				}
+
+				if(FMSDS_Ptr->AgvMSLocation > MSLRecode)
+				{
+					printf("2bit: %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+					printf("2bit: %d\r\n", getRTM_Tim(rmSpeed));
+				}
+				else if(ctrlParasPtr->rightHallIntervalTime >= (getRTM_Tim(rmSpeed) - ctrlParasPtr->rightHallIntervalTime) / 3)
+				{
+					printf("2tim: %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+				}
+
+				*/
+				
+				
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				debugInfoShow("gs", 43);
+				//lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+				lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
+				rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+	
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+				
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+				if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+				{
+					ctrlParasPtr->changeModeFlag = 0;
+				}
+				
+			}
+			
+			
+			
+		}
+
+
+
+
+
+
+
+
+
+
+
+		
+		else
+		{
+			debugInfoShow("gs", 5);
+
+
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+			{
+				debugInfoShow("gs", 51);
+				ctrlParasPtr->comflag = 12;
+	
+				//lmSpeed = AgvGear[2] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + FLG[0][2];
+				lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation];
+				rmSpeed = AgvGear[2] + FRightCompDuty[AgvGear[2]];
+				
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				
+				
+				startCount = 0;
+			}
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{		
+				debugInfoShow("gs", 52);
+				ctrlParasPtr->comflag = 13;
+
+				lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]];
+				rmSpeed = AgvGear[2] + FRightCompDuty[AgvGear[2]] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+	
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+				startCount = 0;
+			}
+			else if((FMSDS_Ptr->AgvMSLocation == Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation == Agv_MS_Center))
+			{
+				if(0 == startCount)
+				{
+					startCount = SystemRunningTime;
+				}
+				else
+				{
+					centCount = SystemRunningTime - startCount;
+				}
+				
+				if(centCount > 5000)
+				{
+					debugInfoShow("gs", 53);
+					flag = 0;
+					
+					//lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+					//rmSpeed = AgvGear[gearRecod] + FRG[0][gearRecod];
+					lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
+					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+		
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+					startCount = 0;
+				}
+				
+			}
+		}
+		
+		
+		
+	}
+	
+}
+
+
+void AGV_Correct_gS_2(void)
+{
+	
+}
+
+
+void AGV_Correct_back_1(void)
+{
+	static u32 counter = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 2, lreco = 0, rreco = 0, flag = 0;
+	static u8 loffset = 0, roffset = 0;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	if(0)
+	{
+		ctrlParasPtr->comflag = 11;
+		
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			
+			counter++;
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 300)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 111;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + BLG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		
+		
+		if(0 == flag)
+		{
+			counter = 0;
+
+			if(lreco > rreco)
+			{
+				if(lreco - rreco >= 3)
+				{
+					if(BRG[0][gearRecod] > 0)
+					{
+						BRG[0][gearRecod]--;
+					}
+					else
+					{
+						BLG[0][gearRecod]++;
+					}
+					
+					printf("loffset = %d, roffset = %d\r\n", BLG[0][gearRecod], BRG[0][gearRecod]);
+					
+					
+					lreco = 0;
+					rreco = 0;
+				}
+			}
+			else if(lreco < rreco)
+			{
+				if(rreco - lreco >= 3)
+				{
+					if(BLG[0][gearRecod] > 0)
+					{
+						BLG[0][gearRecod]--;
+					}
+					else
+					{
+						BRG[0][gearRecod]++;
+					}
+					
+					printf("loffset = %d, roffset = %d\r\n", BLG[0][gearRecod], BRG[0][gearRecod]);
+					lreco = 0;
+					rreco = 0;
+				}
+			}
+			
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+			{
+				ctrlParasPtr->comflag = 12;
+
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))		// 做偏差在三格内
+				{
+					
+				}
+
+				if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+				{
+					if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Center)
+					{
+						lreco++;
+					}
+					
+				}
+				
+				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + BLG[0][gearRecod];
+				rmSpeed = AgvGear[gearRecod];
+				
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				
+			}
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{		
+				ctrlParasPtr->comflag = 13;
+
+				if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+				{
+					if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Center)
+					{
+						rreco++;
+					}
+					
+				}
+
+				/*
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+				{
+					ctrlParasPtr->comflag = 131;
+					
+					//rreco++;
+					//printf("rreco = %d\r\n", rreco);
+					lmSpeed = AgvGear[gearRecod];
+					rmSpeed = AgvGear[gearRecod];
+				}
+				else
+				{
+					//printf("gearRecod = %d\r\n", gearRecod);
+					ctrlParasPtr->comflag = 132;
+					lmSpeed = AgvGear[gearRecod];
+					rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + roffset;
+				}
+				*/
+				
+				lmSpeed = AgvGear[gearRecod];
+				rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + BRG[0][gearRecod];
+
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+				
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				
+			}
+		}
+		else
+		{
+			
+		}
+		
+		
+		
+	}
+	
+}
+
+
+
+
+void AGV_Correct_back_2(void)
+{
+	static u32 counter = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 2, lreco = 0, rreco = 0, flag = 0;
+	static u8 loffset = 0, roffset = 5;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	if(0)
+	{
+		ctrlParasPtr->comflag = 11;
+		
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			
+			counter++;
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 300)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 111;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + BLG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		counter = 0;
+		
+		
+		if(lreco > rreco)
+		{
+			debugInfoShow("b2", 1);
+			if(lreco - rreco >= 3)
+			{
+				debugInfoShow("b2", 11);
+				if(BRG[0][gearRecod] > 0)
+				{
+					debugInfoShow("b2", 111);
+					BRG[0][gearRecod]--;
+				}
+				else
+				{
+					debugInfoShow("b2", 112);
+					BLG[0][gearRecod]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", BLG[0][gearRecod], BRG[0][gearRecod]);
+				
+				
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+		else if(lreco < rreco)
+		{
+			debugInfoShow("b2", 2);
+			if(rreco - lreco >= 3)
+			{
+				debugInfoShow("b2", 21);
+				if(BLG[0][gearRecod] > 0)
+				{
+					debugInfoShow("b2", 211);
+					BLG[0][gearRecod]--;
+				}
+				else
+				{
+					debugInfoShow("b2", 212);
+					BRG[0][gearRecod]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", BLG[0][gearRecod], BRG[0][gearRecod]);
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+		
+		if(0 == flag)
+		{
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+			{
+				debugInfoShow("b2", 3);
+				ctrlParasPtr->comflag = 12;
+	
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+				{
+					debugInfoShow("b2", 31);
+					if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+					{
+						//if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Center)
+						if(FMSDS_Pre_Ptr->AgvMSLocation - FMSDS_Ptr->AgvMSLocation > 0)
+						{
+							debugInfoShow("b2", 311);
+							lreco++;
+						}
+						
+					}
+					
+					//printf("lreco = %d\r\n", lreco);
+	
+					lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + BLG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+				}
+				else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_3))
+				{
+					debugInfoShow("b2", 32);
+					flag = 1;
+					
+					lmSpeed = 0;
+					rmSpeed = 0;
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					CHANGE_TO_BACK_MODE();
+					
+					lmSpeed = AgvGear[2] + BLG[0][2] + BLG[2][gearRecod];
+					rmSpeed = AgvGear[2];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+				}
+	
+				
+				
+			}
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{		
+				debugInfoShow("b2", 4);
+				ctrlParasPtr->comflag = 13;
+
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_3))
+				{
+					debugInfoShow("b2", 41);
+					if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+					{
+						debugInfoShow("b2", 411);
+						//if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Center)
+						if(FMSDS_Ptr->AgvMSLocation - FMSDS_Pre_Ptr->AgvMSLocation > 0)
+						{
+							debugInfoShow("b2", 4111);
+							rreco++;
+						}
+						
+					}
+					
+					
+					lmSpeed = AgvGear[gearRecod];
+					rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + BRG[0][gearRecod];
+		
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+					
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+				}
+				else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+				{
+					debugInfoShow("b2", 42);
+					flag = 1;
+					
+					lmSpeed = 0;
+					rmSpeed = 0;
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					CHANGE_TO_BACK_MODE();
+					
+					lmSpeed = AgvGear[2];
+					rmSpeed = AgvGear[2] + BRG[0][2] + BRG[2][gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+				}
+				
+				
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				debugInfoShow("b2", 43);
+				lmSpeed = AgvGear[gearRecod] + BLG[0][gearRecod];
+				rmSpeed = AgvGear[gearRecod] + BRG[0][gearRecod];
+	
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+				
+				MOTOR_LEFT_DUTY_SET(rmSpeed);
+				MOTOR_RIGHT_DUTY_SET(lmSpeed);
+			}
+
+		}
+
+		
+
+
+
+
+
+
+		
+		else
+		{
+			debugInfoShow("b2", 5);
+			if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				debugInfoShow("b2", 51);
+				flag = 0;
+				
+				lmSpeed = AgvGear[gearRecod] + BLG[0][gearRecod];
+				rmSpeed = AgvGear[gearRecod] + BRG[0][gearRecod];
+	
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+				
+				MOTOR_LEFT_DUTY_SET(rmSpeed);
+				MOTOR_RIGHT_DUTY_SET(lmSpeed);
+			}
+		}
+		
+		
+		
+	}
+	
+}
+
+
+void AGV_Correct_back_3(u8 gear)
+{
+	static u32 counter = 0, startCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0;
+	static u8 loffset = 0, roffset = 5;
+	static Agv_MS_Location MSLRecode = AgvInits;
+	u8 LTM_flag = 0;
+	u32 centCount = 0;
+
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 6;
+	
+	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	if(0)
+	{
+		ctrlParasPtr->comflag = 11;
+		
+		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			
+			counter++;
+			//printf("counter = %d\r\n", counter);
+			if(counter >= 300)
+			{
+				counter = 0;
+				// 加速操作
+				if(gearRecod < 4)
+				{
+					ctrlParasPtr->comflag = 111;
+					gearRecod++;
+					
+					lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				}
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+		
+	}
+	else
+	{
+		counter = 0;
+		
+		
+		if(lreco > rreco)
+		{
+			debugInfoShow("gs", 1);
+			
+			if(lreco - rreco >= 3)
+			{
+				debugInfoShow("gs", 11);
+				
+				if(BLeftCompDuty[AgvGear[gearRecod]] > 0)
+				{
+					debugInfoShow("gs", 111);
+					
+					BLeftCompDuty[AgvGear[gearRecod]]--;
+				}
+				else
+				{
+					debugInfoShow("gs", 112);
+					
+					BRightCompDuty[AgvGear[gearRecod]]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", BLeftCompDuty[AgvGear[gearRecod]], BRightCompDuty[AgvGear[gearRecod]]);
+				
+				
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+		else if(lreco < rreco)
+		{
+			debugInfoShow("gs", 2);
+			
+			if(rreco - lreco >= 3)
+			{
+				debugInfoShow("gs", 21);
+				
+				if(BRightCompDuty[AgvGear[gearRecod]] > 0)
+				{
+					debugInfoShow("gs", 211);
+					
+					BRightCompDuty[AgvGear[gearRecod]]--;
+				}
+				else
+				{
+					debugInfoShow("gs", 212);
+					
+					BLeftCompDuty[AgvGear[gearRecod]]++;
+				}
+				
+				printf("loffset = %d, roffset = %d\r\n", BLeftCompDuty[AgvGear[gearRecod]], BRightCompDuty[AgvGear[gearRecod]]);
+				
+				lreco = 0;
+				rreco = 0;
+			}
+		}
+
+
+
+		
+		if(0 == flag)
+		{
+				
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+			{
+				debugInfoShow("gs", 3);
+				
+				ctrlParasPtr->comflag = 12;
+	
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+				{
+					debugInfoShow("gs", 31);
+					
+					if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+					{
+						//if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Center)
+						if(FMSDS_Pre_Ptr->AgvMSLocation - FMSDS_Ptr->AgvMSLocation > 0)
+						{
+							debugInfoShow("gs", 331);
+							lreco++;
+						}
+						
+					}
+					
+					//printf("lreco = %d\r\n", lreco);
+	
+					//lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + FLG[0][gearRecod];
+					lmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation];
+					rmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+				}
+				else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3))
+				{
+					debugInfoShow("gs", 32);
+					flag = 1;
+					
+					lmSpeed = 0;
+					rmSpeed = 0;
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					CHANGE_TO_BACK_MODE();
+					
+					//lmSpeed = AgvGear[2] + FLG[0][2] + FLG[2][gearRecod];
+					lmSpeed = AgvGear[2] + BRightCompDuty[AgvGear[2]] + FLG[2][gearRecod];
+					rmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]];
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					if(ctrlParasPtr->changeModeFlag)
+					{
+						ctrlParasPtr->changeModeFlag = 0;
+					}
+					else
+					{
+						lreco = rreco + 3;
+					}
+					
+				}
+
+				
+				
+
+
+
+
+				
+			#if 0
+				
+				/****************/
+				printf("1MSLN = %d, MSLR = %d,\t", FMSDS_Ptr->AgvMSLocation, MSLRecode);
+
+				if(FMSDS_Ptr->AgvMSLocation <= MSLRecode)
+				{
+					MSLRecode = FMSDS_Ptr->AgvMSLocation;
+				}
+				printf("2MSLN = %d, MSLR = %d,\t", FMSDS_Ptr->AgvMSLocation, MSLRecode);
+				if(FMSDS_Ptr->AgvMSLocation > MSLRecode)
+				{
+					printf("1bit: lht %d\r\n", ctrlParasPtr->leftHallIntervalTime);
+					printf("1bit: s %d %d\r\n", lmSpeed, getLTM_Tim(lmSpeed));
+				}
+				else if(ctrlParasPtr->leftHallIntervalTime >= (getLTM_Tim(lmSpeed) -ctrlParasPtr->leftHallIntervalTime) / 2)
+				{
+					printf("1tim: %d\r\n", ctrlParasPtr->leftHallIntervalTime);
+				}
+
+			#endif
+
+
+
+				
+				
+			}
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{		
+				debugInfoShow("gs", 4);
+				ctrlParasPtr->comflag = 13;
+
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_3))
+				{
+					debugInfoShow("gs", 41);
+					
+					if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
+					{
+						debugInfoShow("gs", 411);
+						
+						//if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Center)
+						if(FMSDS_Ptr->AgvMSLocation - FMSDS_Pre_Ptr->AgvMSLocation > 0)
+						{
+							debugInfoShow("gs", 4111);
+							rreco++;
+						}
+						
+					}
+					
+					
+					lmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
+					//rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1] + FRG[0][gearRecod];
+					rmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+		
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+					
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					
+				}
+				else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+				{
+					debugInfoShow("gs", 42);
+					flag = 1;
+					
+					lmSpeed = 0;
+					rmSpeed = 0;
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(lmSpeed);
+					MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					CHANGE_TO_BACK_MODE();
+					
+					lmSpeed = AgvGear[2] + BRightCompDuty[AgvGear[2]];
+					//rmSpeed = AgvGear[2] + FRG[0][2] + FRG[2][2];
+					rmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]] + FRG[2][2];
+					
+					
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					if(ctrlParasPtr->changeModeFlag)
+					{
+						ctrlParasPtr->changeModeFlag = 0;
+					}
+					else
+					{
+						rreco = lreco + 3;
+					}
+					
+				}
+
+
+				
+
+				/*
+				if(FMSDS_Ptr->AgvMSLocation <= MSLRecode)
+				{
+					MSLRecode = FMSDS_Ptr->AgvMSLocation;
+				}
+
+				if(FMSDS_Ptr->AgvMSLocation > MSLRecode)
+				{
+					printf("2bit: %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+					printf("2bit: %d\r\n", getRTM_Tim(rmSpeed));
+				}
+				else if(ctrlParasPtr->rightHallIntervalTime >= (getRTM_Tim(rmSpeed) - ctrlParasPtr->rightHallIntervalTime) / 3)
+				{
+					printf("2tim: %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+				}
+
+				*/
+				
+				
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				debugInfoShow("gs", 43);
+				//lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+				lmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
+				rmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
+	
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+				
+				MOTOR_LEFT_DUTY_SET(rmSpeed);
+				MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+
+				if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+				{
+					ctrlParasPtr->changeModeFlag = 0;
+				}
+			}
+			
+			
+			
+		}
+
+
+
+
+
+
+
+
+
+
+
+		
+		else
+		{
+			debugInfoShow("gs", 5);
+
+
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+			{
+				debugInfoShow("gs", 51);
+				ctrlParasPtr->comflag = 12;
+	
+				//lmSpeed = AgvGear[2] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + FLG[0][2];
+				lmSpeed = AgvGear[2] + BRightCompDuty[AgvGear[2]] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation];
+				rmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]];
+				
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(rmSpeed);
+				MOTOR_RIGHT_DUTY_SET(lmSpeed);
+				
+				
+				startCount = 0;
+			}
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			{		
+				debugInfoShow("gs", 52);
+				ctrlParasPtr->comflag = 13;
+
+				lmSpeed = AgvGear[2] + BRightCompDuty[AgvGear[2]];
+				rmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+	
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(rmSpeed);
+				MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+				startCount = 0;
+			}
+			else if((FMSDS_Ptr->AgvMSLocation == Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation == Agv_MS_Center))
+			{
+				
+				if(0 == startCount)
+				{
+					startCount = SystemRunningTime;
+				}
+				else
+				{
+					centCount = SystemRunningTime - startCount;
+				}
+				
+				if(centCount > 5000)
+				{
+					debugInfoShow("gs", 53);
+					flag = 0;
+				
+					//lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+					//rmSpeed = AgvGear[gearRecod] + FRG[0][gearRecod];
+					lmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
+					rmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
+		
+					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+					ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+					MOTOR_LEFT_DUTY_SET(rmSpeed);
+					MOTOR_RIGHT_DUTY_SET(lmSpeed);
+
+					startCount = 0;
+				}
+				
+			}
+		}
+		
+		
+		
+	}
+	
+}
+
+
+
+
+
+void AVG_Calu_Program(void)
+{
+	static u32 HLavg = 0, HRavg = 0, TLpre = 0, TLnow = 0, TRpre = 0, TRnow = 0;
+	
+	//TLpre = TLnow;
+	TLnow = ctrlParasPtr->leftHallIntervalTime;
+	HLavg = (ctrlParasPtr->HLavg + TLnow) / 2;
+	if(HLavg > 100)
+	{
+		ctrlParasPtr->HLavg = HLavg;
+	}
+	else
+	{
+		//printf("HLavg = %d, TLnow = %d\r\n", ctrlParasPtr->HLavg, TLnow);
+	}
+
+	//TRpre = TRnow;
+	TRnow = ctrlParasPtr->rightHallIntervalTime;
+	HRavg = (ctrlParasPtr->HRavg + TRnow) / 2;
+	if(HRavg > 100)
+	{
+		ctrlParasPtr->HRavg = HRavg;
+	}
+	else
+	{
+		//printf("HRavg = %d, TRnow = %d\r\n", ctrlParasPtr->HRavg, TRnow);
+	}
+	
+	//printf("LHT = %d, HLavg = %d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->HLavg);
+	//printf("RHT = %d, HRavg = %d\r\n\r\n", ctrlParasPtr->rightHallIntervalTime, ctrlParasPtr->HRavg);
+	
+	
+}
+
+void AGV_Correct(void)
+{
+	u32 result = 0;
+	u8 range = 3, lmSpeed = 0, rmSpeed = 0;
+	static u8 gearRecod = 4, lreco = 0, rreco = 0, flag = 0, duty = 100;
+	static u8 lcompduty = 0, rcompduty = 0;
+
+
+	// 延时一秒, 重新检测速度
+	if(ctrlParasPtr->avgFlag)
+	{
+		#if 0
+		
+		result = ctrlParasPtr->leftHallIntervalTime - ctrlParasPtr->rightHallIntervalTime;
+
+		// 目前设定的范围值为 ±5, 如果左右两边时间在这个范围内, 则认定两边速度是相等的
+		if(result > range)			// 左边速度比右变速度大的时候
+		{
+			if(lcompduty > 0)
+			{
+				lcompduty--;
+			}
+			else
+			{
+				rcompduty++;
+			}
+			
+		}
+		else if(result < -range)	// 左边的速度比右边速度小的时候
+		{
+			if(rcompduty > 0)
+			{
+				rcompduty--;
+			}
+			else
+			{
+				lcompduty++;
+			}
+			
+		}
+		else					// 	在误差范围内, 则打印数据, 然后换挡		
+		{
+			
+			
+			printf("d = %d, lcd = %d, rcd = %d\r\n", duty, lcompduty, rcompduty);
+			
+			lcompduty = 0;
+			rcompduty = 0;
+			
+			duty++;
+			
+		}
+
+		lmSpeed = duty + lcompduty;
+		rmSpeed = duty + rcompduty;
+		
+		if((lmSpeed > 100) || (rmSpeed > 100))
+		{
+			CHANGE_TO_STOP_MODE();
+			MOTOR_LEFT_DUTY_SET(0);
+			MOTOR_RIGHT_DUTY_SET(0);
+			printf("ok!!!!!!!!\r\n");
+		}
+		else
+		{
+			MOTOR_LEFT_DUTY_SET(duty + lcompduty);
+			MOTOR_RIGHT_DUTY_SET(duty + rcompduty);
+		}
+		
+		#else
+
+		//result = ctrlParasPtr->leftHallIntervalTime - ctrlParasPtr->rightHallIntervalTime;
+		result = SubAbsV(ctrlParasPtr->HLavg, ctrlParasPtr->HRavg);
+		
+		//printf("res = %d, HLavg = %d, HRavg = %d\r\n", result, ctrlParasPtr->HLavg, ctrlParasPtr->HRavg);
+
+		// 目前设定的范围值为 ±5, 如果左右两边时间在这个范围内, 则认定两边速度是相等的
+		if(result > range)			// 如果两个时间大于偏差范围
+		{
+			if(ctrlParasPtr->HLavg > ctrlParasPtr->HRavg)	// 如果是左边时间大于右边时间, 则左边转速比右边慢, 则需要左边加速/右边减速
+			{
+				if(rcompduty > 0)
+				{
+					rcompduty--;
+				}
+				else
+				{
+					lcompduty++;
+				}
+			}
+			else											// 如果是左边时间小于右边时间, 否则是左边转速比右边快, 则需要左边减速/右边加速
+			{
+				if(lcompduty > 0)
+				{
+					lcompduty--;
+				}
+				else
+				{
+					rcompduty++;
+				}
+			}
+			
+		}
+		else	// 如果速度在偏差范围内
+		{
+			//printf("d = %d, lcd = %d, rcd = %d\r\n", duty, lcompduty, rcompduty);
+			printf("%d,%d,%d\r\n", duty, lcompduty, rcompduty);
+			lcompduty = 0;
+			rcompduty = 0;
+			
+			duty--;
+			
+		}
+
+		lmSpeed = duty + lcompduty;
+		rmSpeed = duty + rcompduty;
+		//printf("ls = %d, rs = %d\r\n\r\n", lmSpeed, rmSpeed);
+		//printf("\r\n");
+		
+
+		
+		if((lmSpeed > 100) || (rmSpeed > 100))
+		{
+			CHANGE_TO_STOP_MODE();
+			MOTOR_LEFT_DUTY_SET(0);
+			MOTOR_RIGHT_DUTY_SET(0);
+			printf("ok!!!!!!!!\r\n");
+		}
+		else
+		{
+			MOTOR_LEFT_DUTY_SET(duty + lcompduty);
+			MOTOR_RIGHT_DUTY_SET(duty + rcompduty);
+		}
+
+		#endif
+		
+		
+		ctrlParasPtr->avgFlag = 0;
+	}
+	
+	
+	
+}
+
+
+
 void AGV_Walking(void)
 {
-	//static u32 responseTime = 0;
-	static AgvStatus recoder = stopStatus;
 	
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 	{
-		// 1. 扫描并且计算磁传感器相关数据
-		
-		MSDF_Opts_Ptr->MS_Scan();
-
-		// 2. 根据处理到的数据, 对电机做相应的调速(P Control)(此处要预留一定的响应时间)
 		
 		agv_walking_func[ctrlParasPtr->agvStatus]();
 		
-		
-		if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+	}
+	
+}
+
+void LeftOrRight_Counter(void)
+{
+	static u8 leftCounter = 0, rightCounter = 0;
+	static Agv_MS_Location recoder = AgvInits;
+	
+	if(recoder != FMSDS_Ptr->AgvMSLocation)
+	{
+		recoder = FMSDS_Ptr->AgvMSLocation;
+
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
 		{
-			MSDF_Opts_Ptr->Show_Infomation();
+			leftCounter++;
+		}
+		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+		{
+			rightCounter++;
+		}
+
+		printf("LC = %d,\tRC = %d\r\n", leftCounter, rightCounter);
+		
+	}
+	
+}
+
+void AGV_Change_Mode(void)
+{
+	static u8 flag = 1;
+	
+	if((goStraightStatus == ctrlParasPtr->agvStatus) || (backStatus == ctrlParasPtr->agvStatus))
+	{
+		#if 0
+		if(1 == flag)
+		{
+			if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+			{
+				flag = 0;
+				FMSDS_Ptr->zflag = 1;
+			}
+		}
+		else
+		{
+			if(FMSDS_Ptr->zeropointfive >= 500)
+			{
+				if(0x0000 == FMSDS_Ptr->MSD_Hex)
+				{
+					
+					if(goStraightStatus == ctrlParasPtr->agvStatus)
+					{
+						backStatus_change();
+						printf("backStatus_change\r\n");
+					}
+					else if(backStatus == ctrlParasPtr->agvStatus)
+					{
+						goStraight_change();
+						printf("goStraight_change\r\n");
+					}
+				}
+
+				flag = 1;
+				
+				FMSDS_Ptr->zflag = 0;
+			}
+			
+		}
+		#else
+
+		if(0x0000 == FMSDS_Ptr->MSD_Hex)
+		{
+			
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->changeModeFlag = 1;
+				backStatus_change();
+				printf("backStatus_change\r\n");
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->changeModeFlag = 1;
+				goStraight_change();
+				printf("goStraight_change\r\n");
+			}
 		}
 		
-		// 3. 监测电机转速, 并且结合传感器数据, 对电机的PWM做相应的调整(D Control)
-		
-		
+		#endif
 	}
-	else if(ManualMode == ctrlParasPtr->agvWalkingMode)
-	{
-		
-	}
+
 }
 
 void AGV_Walking_Test(void)
 {
 	MOTOR_POWER = 0;
-
+	
 	#if 1
 	CHANGE_TO_GO_STRAIGHT_MODE();
+	//CHANGE_TO_TEST_MODE();
 	//CHANGE_TO_CIR_LEFT_MODE();
 	#else
 	CHANGE_TO_BACK_MODE();
 	#endif
 	//MOTOR_LEFT_STOP_PIN_SET();
-	ctrlParasPtr->settedSpeed = 10;
-	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed + 3;
+	#if 1
+	ctrlParasPtr->settedSpeed = AgvGear[3];
+	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
 	MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
 	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
+	#endif
+	//CHANGE_TO_BACK_MODE();
 }
 
 void AGV_Walking_Test2(void)
@@ -1699,18 +3853,6 @@ void AGV_Walking_Test2(void)
 	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->settedSpeed);
 }
 
-void AGV_Motor_Speed_Calu(ControlerParaStruct_P ptr, u8 flag)
-{
-	if(0 == flag)
-	{
-		//ptr->leftHallIntervalTime = ;
-		
-	}
-	else
-	{
-		//ptr->rightHallIntervalTime = ;
-	}
-}
 
 void AGV_Walking_Stop(void)
 {	
@@ -1808,50 +3950,59 @@ void Motion_Ctrl_GPIO_Init(void)
 #endif
 }
 
-void goStraight_change(void)
+void PG_EXTI_CFG(void)
 {
-	MOTOR_RIGHT_DUTY_SET(0);
-	MOTOR_LEFT_DUTY_SET(0);
+	/* 定义EXIT初始化结构体 EXTI_InitStructure */
+	EXTI_InitTypeDef EXTI_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	//GPIO_InitTypeDef GPIO_InitStructure;
 	
-	Delay_ms(1000);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
-	CHANGE_TO_GO_STRAIGHT_MODE();
 	
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOE, GPIO_PinSource12);
+	
+	
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line = EXTI_Line12;
+  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+	
+	
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOE, GPIO_PinSource14);
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
 }
-
-void backStatus_change(void)
-{
-	ctrlParasPtr->settedSpeed = 0;
-	ctrlParasPtr->leftMotorSettedSpeed = 0;
-	ctrlParasPtr->rightMotorSettedSpeed = 0;
-	ctrlParasPtr->leftMotorSpeedOffset = 0;
-	ctrlParasPtr->rightMotorSpeedOffset = 0;
-	MOTOR_RIGHT_DUTY_SET(0);
-	MOTOR_LEFT_DUTY_SET(0);
-	
-	Delay_ms(1000);
-
-	ctrlParasPtr->settedSpeed = 10;
-	MOTOR_RIGHT_DUTY_SET(10);
-	MOTOR_LEFT_DUTY_SET(10);
-	
-	CHANGE_TO_BACK_MODE();
-
-	/*
-	ctrlParasPtr->leftMotorSpeedOffset_p = &(ctrlParasPtr->rightMotorSpeedOffset);
-	ctrlParasPtr->rightMotorSpeedOffset_p = &(ctrlParasPtr->leftMotorSpeedOffset);
-	ctrlParasPtr->leftMotorSettedSpeed_p = &(ctrlParasPtr->rightMotorSettedSpeed);
-	ctrlParasPtr->rightMotorSettedSpeed_p = &(ctrlParasPtr->leftMotorSettedSpeed);
-	motionOptsPtr->motor_left_duty_offset = motor_right_duty_offset;
-	motionOptsPtr->motor_right_duty_offset = motor_left_duty_offset;
-	*/
-}
-
 
 void Motion_Ctrl_Init(void)
 {
 	
 	Motion_Ctrl_GPIO_Init();
+	
+	PG_EXTI_CFG();
 	
 	CHANGE_TO_STOP_MODE();
 	
@@ -1868,6 +4019,16 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->speedModeValue_Right = 0x00;
 	ctrlParasPtr->speedModeValue_Left = 0x00;
 	ctrlParasPtr->agvWalkingMode = AutomaticMode;
+	ctrlParasPtr->leftMotorSpeedOffset = 0;
+	ctrlParasPtr->rightMotorSpeedOffset = 0;
+	ctrlParasPtr->leftHallIntervalTime = 0x00;
+	ctrlParasPtr->rightHallIntervalTime = 0x00;
+	ctrlParasPtr->HLavg = 0x00;
+	ctrlParasPtr->HRavg = 0x00;
+	ctrlParasPtr->avgFlag = 0;
+	ctrlParasPtr->avgFlagCount = 0;
+	ctrlParasPtr->gear = 0;
+	ctrlParasPtr->changeModeFlag = 0;
 	
 	x3x2x1_left_setting();
 	x3x2x1_right_setting();
@@ -1877,13 +4038,8 @@ void Motion_Ctrl_Init(void)
 	motionOptsPtr->motor_left = motion_left;
 	motionOptsPtr->motor_right = motion_right;
 	motionOptsPtr->motor_stop = motion_stop;
-	motionOptsPtr->agv_walk = AGV_Walking;
-	motionOptsPtr->agv_walk_test = AGV_Walking_Test;
 	motionOptsPtr->agv_walk_stop = AGV_Walking_Stop;
 	motionOptsPtr->agv_walk_test2 = AGV_Walking_Test2;
-	motionOptsPtr->agv_motor_speed_calu = AGV_Motor_Speed_Calu;
-	motionOptsPtr->goStraight_change = goStraight_change;
-	motionOptsPtr->backStatus_change = backStatus_change;
 
 	agv_walking_func[stopStatus] = walking_stopStatus;
 	agv_walking_func[goStraightStatus] = walking_goStraight;

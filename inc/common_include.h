@@ -10,6 +10,11 @@
 #define xBitOn(data, x)		(data |= (0x01 << x))
 #define xBitOff(data, x)	(data &= ~(0x01 << x))
 
+#define SubAbsV(valu1, valu2)		((valu1 > valu2) ? (valu1 - valu2) : (valu2 - valu1))
+#define MaxValu(valu1, valu2)		((valu1 > valu2) ? valu1 : valu2)
+#define MinValu(valu1, valu2)		((valu1 < valu2) ? valu1 : valu2)
+
+
 extern int fputc(int ch, FILE *f);
 
 extern vu32 SystemRunningTime;
