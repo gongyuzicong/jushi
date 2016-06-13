@@ -173,13 +173,14 @@ void AGV_Correct_back_1(void);
 void AGV_Correct_back_2(void);
 void AGV_Correct_gS(void);
 void AGV_Correct_gS_1(u8);
-void AGV_Correct_gS_2(void);
+void AGV_Correct_gS_2(u8);
 void AGV_Correct_gS_3(u8);
 void AGV_Correct(void);
 void AGV_Correct_back_3(u8);
 void AVG_Calu_Program(void);
 void CleanAllSpeed(void);
 void AGV_Correct_1(void);
+void AGV_Correct_gS_4(u8 gear);
 
 
 

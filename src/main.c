@@ -75,17 +75,17 @@ int main(void)
 					ctrlParasPtr->gear++;
 				}
 
-				if(ctrlParasPtr->gear > 10)
+				if(ctrlParasPtr->gear > 5)
 				{
 					CleanAllSpeed();
 					CHANGE_TO_STOP_MODE();
 				}
 				
-				AGV_Correct_gS_1(ctrlParasPtr->gear);
+				AGV_Correct_gS_2(ctrlParasPtr->gear);
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
-				addGearFlag = 0;
+				addGearFlag = 1;
 				AGV_Correct_back_3(ctrlParasPtr->gear);
 			}
 			
