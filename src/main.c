@@ -49,7 +49,7 @@ int main(void)
 	
 	AGV_Walking_Test();
 	
-	ctrlParasPtr->gear = 3;
+	ctrlParasPtr->gear = 6;
 	
 	while(1)
 	{
@@ -87,7 +87,7 @@ int main(void)
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
 				addGearFlag = 1;
-				AGV_Correct_back_3(ctrlParasPtr->gear);
+				AGV_Correct_back_4(ctrlParasPtr->gear);
 			}
 			
 			AGV_Change_Mode();
