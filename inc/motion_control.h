@@ -114,6 +114,13 @@ typedef enum
 	ManualMode,
 }AgvWalkMode;
 
+typedef enum
+{
+	DampingNone = 0,
+	DampingLeft,
+	DampingRight,
+}Damper;
+
 typedef struct
 {
 	u8 settedSpeed;
@@ -150,6 +157,9 @@ typedef struct
 
 	u8 FSflag;
 	u8 BSflag;
+
+	Damper dampingFlag;
+	Damper dampingTimeRec;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -181,6 +191,7 @@ void AVG_Calu_Program(void);
 void CleanAllSpeed(void);
 void AGV_Correct_1(void);
 void AGV_Correct_gS_4(u8 gear);
+void AGV_Correct_gS_5(u8 gear);
 
 
 

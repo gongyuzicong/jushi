@@ -62,6 +62,7 @@ int main(void)
 		}
 		else
 		{
+			
 			Magn_Sensor_Scan();
 			
 			//AGV_Walking();
@@ -75,13 +76,13 @@ int main(void)
 					ctrlParasPtr->gear++;
 				}
 
-				if(ctrlParasPtr->gear > 5)
+				if(ctrlParasPtr->gear > 10)
 				{
 					CleanAllSpeed();
 					CHANGE_TO_STOP_MODE();
 				}
 				
-				AGV_Correct_gS_2(ctrlParasPtr->gear);
+				AGV_Correct_gS_5(ctrlParasPtr->gear);
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{

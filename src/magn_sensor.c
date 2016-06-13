@@ -438,20 +438,24 @@ void Check_Magn_Direction(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct
 		{
 			if(now->AgvMSLocation > pre->AgvMSLocation)
 			{
-				now->agvDirection = AgvCent2Left;
+				now->agvDirection = AgvLeft2Cent;
 			}
 			else if(now->AgvMSLocation < pre->AgvMSLocation)
 			{
-				now->agvDirection = AgvLeft2Cent;
+				now->agvDirection = AgvCent2Left;
 			}
 			else
 			{
-				now->agvDirection = AgvNone;
+				//now->agvDirection = AgvNone;
 			}
 		}
 		else if((pre->AgvMSLocation > Agv_MS_Center) && (pre->AgvMSLocation < Agv_MS_Right_End))
 		{
 			now->agvDirection = AgvRight2Left;
+		}
+		else if(Agv_MS_Center == pre->AgvMSLocation)
+		{
+			now->agvDirection = AgvCent2Left;
 		}
 	}
 	else if((now->AgvMSLocation > Agv_MS_Center) && (now->AgvMSLocation < Agv_MS_Right_End))
@@ -468,23 +472,27 @@ void Check_Magn_Direction(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct
 			}
 			else
 			{
-				now->agvDirection = AgvNone;
+				//now->agvDirection = AgvNone;
 			}
 		}
 		else if((pre->AgvMSLocation > Agv_MS_Left_End) && (pre->AgvMSLocation < Agv_MS_Left_End))
 		{
 			now->agvDirection = AgvLeft2Right;
 		}
+		else if(Agv_MS_Center == pre->AgvMSLocation)
+		{
+			now->agvDirection = AgvCent2Right;
+		}
 	}
 	else if(Agv_MS_Center == now->AgvMSLocation)
 	{
 		if((pre->AgvMSLocation > Agv_MS_Center) && (pre->AgvMSLocation < Agv_MS_Right_End))
 		{
-			now->agvDirection = AgvCent2Right;
+			now->agvDirection = AgvRight2Cent;
 		}
 		else if((pre->AgvMSLocation > Agv_MS_Left_End) && (pre->AgvMSLocation < Agv_MS_Center))
 		{
-			now->agvDirection = AgvCent2Left;
+			now->agvDirection = AgvLeft2Cent;
 		}
 	}
 	else if((Agv_MS_Left_Outside == now->AgvMSLocation) || (Agv_MS_Right_Outside == now->AgvMSLocation))
@@ -748,8 +756,10 @@ void Show_Infomation(void)
 											   AgvGear[ctrlParasPtr->gear], BLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], BRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
 	
-	
-	
+	Show_Check_Magn_Direction(FMSDS_Ptr);
+	printf("\r\n");
+	Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
+	printf("\r\n");
 	/*
 	Show_Check_MSD_Category(RMSDS_Ptr);
 	//Show_My_MSD_Opt(RMSDS_Ptr);
@@ -777,6 +787,8 @@ u16 hex_reload(u16 hex)
 
 	return temp;
 }
+
+
 
 
 #if 0
@@ -935,11 +947,31 @@ void Magn_Sensor_Scan(void)
 		MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
 		printf("\r\n");
 		#endif
+		
+		if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+		{
+			FMSDS_Ptr->TimeRecoder = SystemRunningTime;
+			
+			MSD_Analy(FMSDS_Ptr);
 
-		MSD_Analy(FMSDS_Ptr);
-		MSD_Analy(RMSDS_Ptr);
+			Check_Magn_Direction(FMSDS_Ptr, FMSDS_Pre_Ptr);
+
+			Magn_VelocityXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
+		}
+
+		if(RMSDS_Pre_Ptr->MSD_Hex != RMSDS_Ptr->MSD_Hex)
+		{
+			RMSDS_Ptr->TimeRecoder = SystemRunningTime;
+			
+			MSD_Analy(RMSDS_Ptr);
+			
+			Check_Magn_Direction(RMSDS_Ptr, RMSDS_Pre_Ptr);
+
+			Magn_VelocityXt_Clau(RMSDS_Ptr, RMSDS_Pre_Ptr);
+		}
 
 		Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
+
 		
 #else
 
