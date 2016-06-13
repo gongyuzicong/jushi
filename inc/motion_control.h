@@ -138,7 +138,7 @@ typedef struct
 	
 	u32 rightHallIntervalTime;
 	u32 leftHallIntervalTime;
-	u8 comflag;
+	u32 comflag;
 
 	u32 HLavg;
 	u32 HRavg;
@@ -147,6 +147,9 @@ typedef struct
 	u8 gear;
 
 	u8 changeModeFlag;
+
+	u8 FSflag;
+	u8 BSflag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -168,12 +171,15 @@ void LeftOrRight_Counter(void);
 void AGV_Walking_Test(void);
 void AGV_Correct_back_1(void);
 void AGV_Correct_back_2(void);
-void AGV_Correct_gS_1(u8);
 void AGV_Correct_gS(void);
+void AGV_Correct_gS_1(u8);
+void AGV_Correct_gS_2(void);
+void AGV_Correct_gS_3(u8);
 void AGV_Correct(void);
 void AGV_Correct_back_3(u8);
 void AVG_Calu_Program(void);
 void CleanAllSpeed(void);
+void AGV_Correct_1(void);
 
 
 

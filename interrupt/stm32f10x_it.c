@@ -528,6 +528,7 @@ void TIM2_IRQHandler(void)
 		{
 			ctrlParasPtr->avgFlag = 1;
 			ctrlParasPtr->avgFlagCount = 0;
+			//printf("sysT = %d\r\n", SystemRunningTime);
 		}
 		else
 		{

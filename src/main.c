@@ -49,15 +49,16 @@ int main(void)
 	
 	AGV_Walking_Test();
 	
-	ctrlParasPtr->gear = 9;
+	ctrlParasPtr->gear = 3;
 	
 	while(1)
 	{
-		//printf("l=%d,r=%d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->rightHallIntervalTime);
+		
 		if(testStatus == ctrlParasPtr->agvStatus)
 		{
+			//printf("l=%d,r=%d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->rightHallIntervalTime);
 			AVG_Calu_Program();
-			AGV_Correct();
+			AGV_Correct_1();
 		}
 		else
 		{
@@ -84,7 +85,7 @@ int main(void)
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
-				addGearFlag = 1;
+				addGearFlag = 0;
 				AGV_Correct_back_3(ctrlParasPtr->gear);
 			}
 			

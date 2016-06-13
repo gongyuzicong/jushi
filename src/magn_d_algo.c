@@ -11,6 +11,12 @@ Magn_Sensor_Data_Sturct_P RMSDS_Ptr = &RMSDS;
 Magn_Sensor_Data_Sturct_P FMSDS_Pre_Ptr = &FMSDS_Pre;
 Magn_Sensor_Data_Sturct_P RMSDS_Pre_Ptr = &RMSDS_Pre;
 
+Pattern_Num_Para AGV_Pattern;
+Pattern_Num_Para_P AGV_Pat_Ptr = &AGV_Pattern;
+Pattern_Num_Para AGV_Pattern_Pre;
+Pattern_Num_Para_P AGV_Pat_Pre_Ptr = &AGV_Pattern_Pre;
+
+
 u8 Check_Zero_Bit_Special(Magn_Sensor_Data_Sturct_P ptr)
 {
 	u8 flag = 0;
@@ -732,6 +738,425 @@ void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P ptr)
 	
 }
 
+
+void Midpoint_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
+{
+	
+	PTR->Midpoint = (FMS->AgvMSLocation - Agv_MS_Center) + (RMS->AgvMSLocation - Agv_MS_Center);
+	
+}
+
+void Angle_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
+{
+	
+	PTR->Angle = (FMS->AgvMSLocation - Agv_MS_Center) - (RMS->AgvMSLocation - Agv_MS_Center);
+	
+}
+
+void Get_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
+{
+	Midpoint_Pattern_Num(FMS, RMS, PTR);
+	Angle_Pattern_Num(FMS, RMS, PTR);
+}
+
+void Midpoint_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Scale_Para_P PTR)
+{
+	Pattern_Num_Para ptr;
+	
+	Midpoint_Pattern_Num(FMS, RMS, &ptr);
+
+	if(ptr.Midpoint < 0)
+	{
+		switch(ptr.Midpoint)
+		{
+			case -20:
+				PTR->Midpoint = Midpoint_Level_L_20;
+				break;
+
+			case -19:
+				PTR->Midpoint = Midpoint_Level_L_19;
+				break;
+
+			case -18:
+				PTR->Midpoint = Midpoint_Level_L_18;
+				break;
+
+			case -17:
+				PTR->Midpoint = Midpoint_Level_L_17;
+				break;
+
+			case -16:
+				PTR->Midpoint = Midpoint_Level_L_16;
+				break;
+
+			case -15:
+				PTR->Midpoint = Midpoint_Level_L_15;
+				break;
+
+			case -14:
+				PTR->Midpoint = Midpoint_Level_L_14;
+				break;
+
+			case -13:
+				PTR->Midpoint = Midpoint_Level_L_13;
+				break;
+
+			case -12:
+				PTR->Midpoint = Midpoint_Level_L_12;
+				break;
+
+			case -11:
+				PTR->Midpoint = Midpoint_Level_L_11;
+				break;
+
+			case -10:
+				PTR->Midpoint = Midpoint_Level_L_10;
+				break;
+
+			case -9:
+				PTR->Midpoint = Midpoint_Level_L_9;
+				break;
+
+			case -8:
+				PTR->Midpoint = Midpoint_Level_L_8;
+				break;
+
+			case -7:
+				PTR->Midpoint = Midpoint_Level_L_7;
+				break;
+
+			case -6:
+				PTR->Midpoint = Midpoint_Level_L_6;
+				break;
+
+			case -5:
+				PTR->Midpoint = Midpoint_Level_L_5;
+				break;
+
+			case -4:
+				PTR->Midpoint = Midpoint_Level_L_4;
+				break;
+
+			case -3:
+				PTR->Midpoint = Midpoint_Level_L_3;
+				break;
+
+			case -2:
+				PTR->Midpoint = Midpoint_Level_L_2;
+				break;
+
+			case -1:
+				PTR->Midpoint = Midpoint_Level_L_1;
+				break;
+			
+			default:
+				PTR->Midpoint = Midpoint_Level_Error;
+				break;
+		}
+	}
+	else if(ptr.Midpoint > 0)
+	{
+		switch(ptr.Midpoint)
+		{
+			case 1:
+				PTR->Midpoint = Midpoint_Level_R_1;
+				break;
+
+			case 2:
+				PTR->Midpoint = Midpoint_Level_R_2;
+				break;
+
+			case 3:
+				PTR->Midpoint = Midpoint_Level_R_3;
+				break;
+
+			case 4:
+				PTR->Midpoint = Midpoint_Level_R_4;
+				break;
+
+			case 5:
+				PTR->Midpoint = Midpoint_Level_R_5;
+				break;
+
+			case 6:
+				PTR->Midpoint = Midpoint_Level_R_6;
+				break;
+
+			case 7:
+				PTR->Midpoint = Midpoint_Level_R_7;
+				break;
+
+			case 8:
+				PTR->Midpoint = Midpoint_Level_R_8;
+				break;
+
+			case 9:
+				PTR->Midpoint = Midpoint_Level_R_9;
+				break;
+
+			case 10:
+				PTR->Midpoint = Midpoint_Level_R_10;
+				break;
+
+			case 11:
+				PTR->Midpoint = Midpoint_Level_R_11;
+				break;
+
+			case 12:
+				PTR->Midpoint = Midpoint_Level_R_12;
+				break;
+
+			case 13:
+				PTR->Midpoint = Midpoint_Level_R_13;
+				break;
+
+			case 14:
+				PTR->Midpoint = Midpoint_Level_R_14;
+				break;
+
+			case 15:
+				PTR->Midpoint = Midpoint_Level_R_15;
+				break;
+
+			case 16:
+				PTR->Midpoint = Midpoint_Level_R_16;
+				break;
+
+			case 17:
+				PTR->Midpoint = Midpoint_Level_R_17;
+				break;
+
+			case 18:
+				PTR->Midpoint = Midpoint_Level_R_18;
+				break;
+
+			case 19:
+				PTR->Midpoint = Midpoint_Level_R_19;
+				break;
+
+			case 20:
+				PTR->Midpoint = Midpoint_Level_R_20;
+				break;
+
+			default:
+				PTR->Midpoint = Midpoint_Level_Error;
+				break;
+		}
+	}
+	else if(0 == ptr.Midpoint)
+	{
+		PTR->Midpoint = Midpoint_Level_0;
+	}
+	else
+	{
+		PTR->Midpoint = Midpoint_Level_Unknow;
+	}
+	
+	
+}
+
+void Angle_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Scale_Para_P PTR)
+{
+	Pattern_Num_Para ptr;
+	
+	Angle_Pattern_Num(FMS, RMS, &ptr);
+
+	if(ptr.Angle < 0)
+	{
+		switch(ptr.Angle)
+		{
+			case -20:
+				PTR->Angle = Angle_Level_L_20;
+				break;
+
+			case -19:
+				PTR->Angle = Angle_Level_L_19;
+				break;
+
+			case -18:
+				PTR->Angle = Angle_Level_L_18;
+				break;
+
+			case -17:
+				PTR->Angle = Angle_Level_L_17;
+				break;
+
+			case -16:
+				PTR->Angle = Angle_Level_L_16;
+				break;
+
+			case -15:
+				PTR->Angle = Angle_Level_L_15;
+				break;
+
+			case -14:
+				PTR->Angle = Angle_Level_L_14;
+				break;
+
+			case -13:
+				PTR->Angle = Angle_Level_L_13;
+				break;
+
+			case -12:
+				PTR->Angle = Angle_Level_L_12;
+				break;
+
+			case -11:
+				PTR->Angle = Angle_Level_L_11;
+				break;
+
+			case -10:
+				PTR->Angle = Angle_Level_L_10;
+				break;
+
+			case -9:
+				PTR->Angle = Angle_Level_L_9;
+				break;
+
+			case -8:
+				PTR->Angle = Angle_Level_L_8;
+				break;
+
+			case -7:
+				PTR->Angle = Angle_Level_L_7;
+				break;
+
+			case -6:
+				PTR->Angle = Angle_Level_L_6;
+				break;
+
+			case -5:
+				PTR->Angle = Angle_Level_L_5;
+				break;
+
+			case -4:
+				PTR->Angle = Angle_Level_L_4;
+				break;
+
+			case -3:
+				PTR->Angle = Angle_Level_L_3;
+				break;
+
+			case -2:
+				PTR->Angle = Angle_Level_L_2;
+				break;
+
+			case -1:
+				PTR->Angle = Angle_Level_L_1;
+				break;
+			
+			default:
+				PTR->Angle = Angle_Level_Error;
+				break;
+		}
+	}
+	else if(ptr.Angle > 0)
+	{
+		switch(ptr.Angle)
+		{
+			case 1:
+				PTR->Angle = Angle_Level_R_1;
+				break;
+
+			case 2:
+				PTR->Angle = Angle_Level_R_2;
+				break;
+
+			case 3:
+				PTR->Angle = Angle_Level_R_3;
+				break;
+
+			case 4:
+				PTR->Angle = Angle_Level_R_4;
+				break;
+
+			case 5:
+				PTR->Angle = Angle_Level_R_5;
+				break;
+
+			case 6:
+				PTR->Angle = Angle_Level_R_6;
+				break;
+
+			case 7:
+				PTR->Angle = Angle_Level_R_7;
+				break;
+
+			case 8:
+				PTR->Angle = Angle_Level_R_8;
+				break;
+
+			case 9:
+				PTR->Angle = Angle_Level_R_9;
+				break;
+
+			case 10:
+				PTR->Angle = Angle_Level_R_10;
+				break;
+
+			case 11:
+				PTR->Angle = Angle_Level_R_11;
+				break;
+
+			case 12:
+				PTR->Angle = Angle_Level_R_12;
+				break;
+
+			case 13:
+				PTR->Angle = Angle_Level_R_13;
+				break;
+
+			case 14:
+				PTR->Angle = Angle_Level_R_14;
+				break;
+
+			case 15:
+				PTR->Angle = Angle_Level_R_15;
+				break;
+
+			case 16:
+				PTR->Angle = Angle_Level_R_16;
+				break;
+
+			case 17:
+				PTR->Angle = Angle_Level_R_17;
+				break;
+
+			case 18:
+				PTR->Angle = Angle_Level_R_18;
+				break;
+
+			case 19:
+				PTR->Angle = Angle_Level_R_19;
+				break;
+
+			case 20:
+				PTR->Angle = Angle_Level_R_20;
+				break;
+
+			default:
+				PTR->Angle = Angle_Level_Error;
+				break;
+		}
+	}
+	else if(0 == ptr.Angle)
+	{
+		PTR->Angle = Angle_Level_0;
+	}
+	else
+	{
+		PTR->Angle = Angle_Level_Unknow;
+	}
+	
+}
+
+void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Scale_Para_P PTR)
+{
+	Midpoint_Pattern_Scale(FMS, RMS, PTR);
+	Angle_Pattern_Scale(FMS, RMS, PTR);
+}
+
+
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {
 	if(1 == Check_Zero_Bit_LeftOrRight(ptr))
@@ -827,6 +1252,10 @@ void MSDS_Init(void)
 	
 	*RMSDS_Ptr = *FMSDS_Ptr;
 	*RMSDS_Pre_Ptr = *FMSDS_Pre_Ptr;
+
+
+	AGV_Pat_Ptr->Angle = 0;
+	AGV_Pat_Ptr->Midpoint = 0;
 }
 
 

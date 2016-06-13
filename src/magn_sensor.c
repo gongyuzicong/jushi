@@ -719,9 +719,6 @@ void Show_Infomation(void)
 	printf("F: ");
 	MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
 	printf(",\t");
-	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
-	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
-	printf("f = %d,\t", ctrlParasPtr->comflag);
 	Show_Resualt_Analy(FMSDS_Ptr);
 	
 	/*
@@ -734,15 +731,24 @@ void Show_Infomation(void)
 	*/
 	
 	printf("\r\n");
-	printf("FLCD[%d] = %d, FRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], BLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], BRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
+	
 	printf("R: ");
 	MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
 	printf(",\t");
 	Show_Resualt_Analy(RMSDS_Ptr);
-
+	printf("\r\n");
+	
+	printf("Angle = %d, Mp = %d,\t", AGV_Pat_Ptr->Angle, AGV_Pat_Ptr->Midpoint);
+	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
+	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
+	printf("f = %d, \t", ctrlParasPtr->comflag);
+	
+	printf("FLCD[%d] = %d, FRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
+											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]],\
+											   AgvGear[ctrlParasPtr->gear], BLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
+											   AgvGear[ctrlParasPtr->gear], BRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
+	
+	
 	
 	/*
 	Show_Check_MSD_Category(RMSDS_Ptr);
@@ -756,7 +762,7 @@ void Show_Infomation(void)
 	//Show_Check_Agv_Location_S(AGV_MPLS_Ptr);
 	*/
 	
-	printf("\r\n\r\n");
+	printf("\r\n");
 }
 
 u16 hex_reload(u16 hex)
@@ -897,6 +903,7 @@ void Magn_Sensor_Scan(void)
 
 		*FMSDS_Pre_Ptr = *FMSDS_Ptr;
 		*RMSDS_Pre_Ptr = *RMSDS_Ptr;
+		*AGV_Pat_Pre_Ptr = *AGV_Pat_Ptr;
 
 		#if 1
 		if(backStatus == ctrlParasPtr->agvStatus)
@@ -931,6 +938,8 @@ void Magn_Sensor_Scan(void)
 
 		MSD_Analy(FMSDS_Ptr);
 		MSD_Analy(RMSDS_Ptr);
+
+		Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
 		
 #else
 
