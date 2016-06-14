@@ -238,6 +238,8 @@ typedef struct
 
 	u16 zeropointfive;
 	u8 zflag;
+
+	Agv_MS_Location MaxRecoder;
 }Magn_Sensor_Data_Sturct, *Magn_Sensor_Data_Sturct_P;
 
 

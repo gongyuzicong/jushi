@@ -13,7 +13,7 @@
 #define SubAbsV(valu1, valu2)		((valu1 > valu2) ? (valu1 - valu2) : (valu2 - valu1))
 #define MaxValu(valu1, valu2)		((valu1 > valu2) ? valu1 : valu2)
 #define MinValu(valu1, valu2)		((valu1 < valu2) ? valu1 : valu2)
-
+#define LocValu(valu)				((valu > Agv_MS_Center) ? (valu - Agv_MS_Center) : (Agv_MS_Center - valu))
 
 extern int fputc(int ch, FILE *f);
 

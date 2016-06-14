@@ -9,6 +9,8 @@ MSD_Functions_Struct_P MSDF_Opts_Ptr = &MSDF_Opts;
 Agv_Midpoint_Location_Struct AGV_MPLS;
 Agv_Midpoint_Location_Struct_P AGV_MPLS_Ptr = &AGV_MPLS;
 
+RFID_Struct RIFD_Info;
+RFID_Struct_P RFID_Info_Ptr = &RIFD_Info;
 
 u8 station = 0x00;
 
@@ -1029,6 +1031,9 @@ void Magn_Sensor_Init(void)
 	MSDF_Opts_Ptr->MSD_Show_Bin = MSD_Show_Bin;
 	MSDF_Opts_Ptr->Show_Opt_MSD = Show_My_MSD_Opt;
 	MSDF_Opts_Ptr->magn_show = magn_show;
+
+	RFID_Info_Ptr->rfidData = 0;
+	RFID_Info_Ptr->updateFlag = 0;
 }
 
 

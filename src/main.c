@@ -12,6 +12,7 @@
 #include "nrf24l01_opts.h"
 #include "spi_opts.h"
 #include "magn_sensor.h"
+#include "zigbee.h"
 
 void SystemInit(void)
 {	
@@ -27,6 +28,7 @@ void SystemInit(void)
 	//NFR24L01_Init();
 	//ExtiInit();
 	Magn_Sensor_Init();
+	Zigbee_Init();
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -49,10 +51,61 @@ int main(void)
 	
 	AGV_Walking_Test();
 	
-	ctrlParasPtr->gear = 6;
+	ctrlParasPtr->gear = 5;
+	
 	
 	while(1)
 	{
+		
+		Zigbee_Data_Scan();
+		
+		if(1 == Zigbee_Ptr->recvValidData)
+		{
+			Zigbee_Ptr->recvValidData = 0;
+
+			if((0x0001 == Zigbee_Ptr->recvValidData) || (0x0002 == Zigbee_Ptr->recvValidData))
+			{
+				ctrlParasPtr->goalStation = STATION_1AND2_RFID;
+			}
+			else if((0x0003 == Zigbee_Ptr->recvValidData) || (0x0004 == Zigbee_Ptr->recvValidData))
+			{
+				ctrlParasPtr->goalStation = STATION_3AND4_RFID;
+			}
+			else if((0x0005 == Zigbee_Ptr->recvValidData) || (0x0006 == Zigbee_Ptr->recvValidData))
+			{
+				ctrlParasPtr->goalStation = STATION_5AND6_RFID;
+			}
+			else if((0x0007 == Zigbee_Ptr->recvValidData) || (0x0008 == Zigbee_Ptr->recvValidData))
+			{
+				ctrlParasPtr->goalStation = STATION_7AND8_RFID;
+			}
+			else if((0x0009 == Zigbee_Ptr->recvValidData) || (0x000a == Zigbee_Ptr->recvValidData))
+			{
+				ctrlParasPtr->goalStation = STATION_9AND10_RFID;
+			}
+			else
+			{
+				ctrlParasPtr->goalStation = 0x0000;
+			}
+			
+		}
+
+		if(1 == RFID_Info_Ptr->updateFlag)
+		{
+			RFID_Info_Ptr->updateFlag = 0;
+			printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
+
+			if(ctrlParasPtr->goalStation == RFID_Info_Ptr->rfidData)
+			{
+				
+				
+				
+			}
+		}
+
+		//Walking_Mode_Control();
+		
+		#if 1
 		
 		if(testStatus == ctrlParasPtr->agvStatus)
 		{
@@ -67,9 +120,10 @@ int main(void)
 			
 			//AGV_Walking();
 
+			
 			if(goStraightStatus == ctrlParasPtr->agvStatus)
 			{
-				//AGV_Correct_gS();
+				#if 0
 				if(1 == addGearFlag)
 				{
 					addGearFlag = 0;
@@ -81,13 +135,22 @@ int main(void)
 					CleanAllSpeed();
 					CHANGE_TO_STOP_MODE();
 				}
+				#endif
 				
 				AGV_Correct_gS_5(ctrlParasPtr->gear);
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
-				addGearFlag = 1;
+				//addGearFlag = 1;
 				AGV_Correct_back_4(ctrlParasPtr->gear);
+			}
+			else if(cirLeft == ctrlParasPtr->agvStatus)
+			{
+				walking_cirLeft();
+			}
+			else if(cirRight == ctrlParasPtr->agvStatus)
+			{
+				
 			}
 			
 			AGV_Change_Mode();
@@ -100,6 +163,7 @@ int main(void)
 			}
 		}
 		
+		#endif
 		
 	}
 

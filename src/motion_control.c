@@ -3,7 +3,7 @@
 #include "timer_opts.h"
 #include "pwm_opts.h"
 #include "magn_sensor.h"
-
+#include "zigbee.h"
 
 
 u8 AgvGear[MAX_GEAR_NUM] = {0, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100};
@@ -94,6 +94,7 @@ u8 RTM[9] = {132, 86, 63, 49, 41, 34, 30, 27, 24};
 
 u8 DutyTableLow[10] = {2, 4, 6, 8, 10, 14, 14, 14, 14, 14};
 u8 DutyTable[10] = {2, 8, 15, 20, 25, 30, 30, 30, 30, 30};
+
 //u8 DutyTable[10] = {2, 4, 6, 8, 8, 8, 8, 8, 8, 8};
 
 u8 DutyTable_Duty10[10] = {0, 0, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -1749,44 +1750,93 @@ void walking_backStatus(void)
 void walking_cirLeft(void)
 {
 	static u8 lmSpeed = 0, rmSpeed = 0, stepFlag = 0;
-	u8 dutyTable[10] = {1, 5, 5, 5, 5, 5, 5, 6, 7, 8};
+	static u32 startCount = 0;
+	u32 centCount = 0;
 
 	if(0 == stepFlag)
 	{
-		lmSpeed = rmSpeed = 15;
+		printf("%d\r\n", stepFlag);
+		lmSpeed = AgvGear[4] + FLeftCompDuty[AgvGear[4]];
+		rmSpeed = AgvGear[4] + FRightCompDuty[AgvGear[4]];
 		
+		ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+		ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
 		MOTOR_LEFT_DUTY_SET(lmSpeed);
 		MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
-		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
-		{
-			stepFlag = 1;
-		}
+		stepFlag = 1;
+		
+		
 	}
 	else if(1 == stepFlag)
 	{
-		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_End))
+		//printf("%d\r\n", stepFlag);
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
-			lmSpeed = rmSpeed = dutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+			lmSpeed = AgvGear[1] + FLeftCompDuty[AgvGear[1]];
+			rmSpeed = AgvGear[1] + FRightCompDuty[AgvGear[1]];
 			
-			if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
-			{
-				stepFlag = 0;
-				goStraight_change();
-			}
+			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+			MOTOR_LEFT_DUTY_SET(lmSpeed);
+			MOTOR_RIGHT_DUTY_SET(rmSpeed);
 			
-		}
-		else
-		{
-			lmSpeed = rmSpeed = 7;
+			stepFlag = 2;
 		}
 		
-		MOTOR_LEFT_DUTY_SET(lmSpeed);
-		MOTOR_RIGHT_DUTY_SET(rmSpeed);
+		
+	}
+	else if(2 == stepFlag)
+	{
+		//printf("%d\r\n", stepFlag);
+		//printf("%04x, %04x\r\n\r\n", FMSDS_Ptr->MSD_Hex, RMSDS_Ptr->MSD_Hex);
+		
+		if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
+		{
+			
+			if(0xFFFF != FMSDS_Ptr->MSD_Hex)
+			{
+				lmSpeed = 0;
+				rmSpeed = 0;
+				
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				CHANGE_TO_STOP_MODE();
+				Delay_ms(100);
+				ctrlParasPtr->fromCLflag = 1;
+				CHANGE_TO_GO_STRAIGHT_MODE();
+			}
+			else
+			{
+				lmSpeed = 0;
+				rmSpeed = 0;
+				
+				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				MOTOR_RIGHT_DUTY_SET(rmSpeed);
+				CHANGE_TO_STOP_MODE();
+				Delay_ms(100);
+				ctrlParasPtr->fromCLflag = 1;
+				CHANGE_TO_GO_STRAIGHT_MODE();
+			}
+			
+			stepFlag = 0;
+		}
+		
+		
+		
 	}
 	
-	
 }
+
+
 
 void walking_cirRight(void)
 {
@@ -3822,16 +3872,24 @@ void AGV_Correct_gS_5(u8 gear)
 	}
 
 	
-	if(0 == ctrlParasPtr->FSflag)
+	if((0 == ctrlParasPtr->FSflag) && (0 == ctrlParasPtr->fromCLflag))
 	{
 		gearRecod = gear;
+		
 		
 		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
 		{
 			
 			ctrlParasPtr->comflag = 61;
 
-			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_3) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+			if(FMSDS_Ptr->AgvMSLocation < FMSDS_Pre_Ptr->AgvMSLocation)
+			{
+				FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+				printf("MaxRecoder = %d, calu = %d\r\n", FMSDS_Ptr->MaxRecoder, LocValu(FMSDS_Ptr->MaxRecoder));
+			}
+			
+
+			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_4) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
 			{
 				ctrlParasPtr->comflag = 611;
 				if(FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex)
@@ -3856,7 +3914,7 @@ void AGV_Correct_gS_5(u8 gear)
 				MOTOR_LEFT_DUTY_SET(lmSpeed);
 				MOTOR_RIGHT_DUTY_SET(rmSpeed);
 			}
-			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3))
+			else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_4))
 			{
 				ctrlParasPtr->FSflag = 1;
 				ctrlParasPtr->comflag = 612;
@@ -3869,9 +3927,9 @@ void AGV_Correct_gS_5(u8 gear)
 				MOTOR_LEFT_DUTY_SET(rmSpeed);
 				MOTOR_RIGHT_DUTY_SET(lmSpeed);
 
-				CHANGE_TO_STOP_MODE();
+				//CHANGE_TO_STOP_MODE();
 				Delay_ms(1000);
-				CHANGE_TO_GO_STRAIGHT_MODE();
+				//CHANGE_TO_GO_STRAIGHT_MODE();
 				
 				//lmSpeed = AgvGear[2] + FLG[0][2] + FLG[2][gearRecod];
 				lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]] + FLG[2][gearRecod];
@@ -3900,6 +3958,12 @@ void AGV_Correct_gS_5(u8 gear)
 		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 		{		
 			ctrlParasPtr->comflag = 62;
+
+			if(FMSDS_Ptr->AgvMSLocation > FMSDS_Pre_Ptr->AgvMSLocation)
+			{
+				FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+				printf("MaxRecoder = %d, calu = %d\r\n", FMSDS_Ptr->MaxRecoder, LocValu(FMSDS_Ptr->MaxRecoder));
+			}
 
 			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_3))
 			{
@@ -3946,9 +4010,9 @@ void AGV_Correct_gS_5(u8 gear)
 				MOTOR_LEFT_DUTY_SET(lmSpeed);
 				MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
-				CHANGE_TO_STOP_MODE();
+				//CHANGE_TO_STOP_MODE();
 				Delay_ms(1000);
-				CHANGE_TO_GO_STRAIGHT_MODE();
+				//CHANGE_TO_GO_STRAIGHT_MODE();
 				
 				lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]];
 				//rmSpeed = AgvGear[2] + FRG[0][2] + FRG[2][2];
@@ -3987,20 +4051,25 @@ void AGV_Correct_gS_5(u8 gear)
 				ctrlParasPtr->comflag = 631;
 				ctrlParasPtr->dampingFlag = DampingLeft;
 				ctrlParasPtr->dampingTimeRec = SystemRunningTime;
-
-				lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - DutyTable[1];
-
+				
+				//LocValu(FMSDS_Ptr->MaxRecoder);
+				
+				//lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+				lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - DutyTable[LocValu(FMSDS_Ptr->MaxRecoder)];
+	
 				ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
 				
 				MOTOR_LEFT_DUTY_SET(lmSpeed);
+				
 			}
 			else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)			// 如果是左偏之后拉回来的
 			{
 				ctrlParasPtr->comflag = 632;
 				ctrlParasPtr->dampingFlag = DampingRight;
 				ctrlParasPtr->dampingTimeRec = SystemRunningTime;
-				
-				rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+
+				//rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+				rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - DutyTable[LocValu(FMSDS_Ptr->MaxRecoder)];
 				
 				ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
 				
@@ -4022,7 +4091,8 @@ void AGV_Correct_gS_5(u8 gear)
 				MOTOR_RIGHT_DUTY_SET(rmSpeed);
 			}
 			
-
+			FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+			
 			if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 			{
 				ctrlParasPtr->changeModeFlag = 0;
@@ -4047,6 +4117,9 @@ void AGV_Correct_gS_5(u8 gear)
 	
 	else
 	{
+		
+
+		
 		gearRecod = 2;
 		
 		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
@@ -4085,28 +4158,12 @@ void AGV_Correct_gS_5(u8 gear)
 		else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 		{
 			ctrlParasPtr->comflag = 66;
+
+			
 			if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 			{
-				if(0 == startCount)
+				if(1 == ctrlParasPtr->fromCLflag)	//如果上一个状态是匆匆CL过来的, 保持前行
 				{
-					ctrlParasPtr->comflag = 661;
-					startCount = SystemRunningTime;
-				}
-				else
-				{
-					ctrlParasPtr->comflag = 662;
-					centCount = SystemRunningTime - startCount;
-				}
-				
-				if(centCount > 5000)
-				{
-					ctrlParasPtr->FSflag = 0;
-					ctrlParasPtr->comflag = 663;
-					FMSDS_Ptr->agvDirection = AgvNone;
-					gearRecod = gear;
-
-					//lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
-					//rmSpeed = AgvGear[gearRecod] + FRG[0][gearRecod];
 					lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
 					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
 		
@@ -4115,9 +4172,42 @@ void AGV_Correct_gS_5(u8 gear)
 
 					MOTOR_LEFT_DUTY_SET(lmSpeed);
 					MOTOR_RIGHT_DUTY_SET(rmSpeed);
-
-					startCount = 0;
 				}
+				else
+				{
+					if(0 == startCount)
+					{
+						ctrlParasPtr->comflag = 661;
+						startCount = SystemRunningTime;
+					}
+					else
+					{
+						ctrlParasPtr->comflag = 662;
+						centCount = SystemRunningTime - startCount;
+					}
+					
+					if(centCount > 5000)
+					{
+						ctrlParasPtr->FSflag = 0;
+						ctrlParasPtr->comflag = 663;
+						FMSDS_Ptr->agvDirection = AgvNone;
+						gearRecod = gear;
+
+						//lmSpeed = AgvGear[gearRecod] + FLG[0][gearRecod];
+						//rmSpeed = AgvGear[gearRecod] + FRG[0][gearRecod];
+						lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
+						rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+			
+						ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+						ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+
+						MOTOR_LEFT_DUTY_SET(lmSpeed);
+						MOTOR_RIGHT_DUTY_SET(rmSpeed);
+
+						startCount = 0;
+					}
+				}
+				
 			}
 			else
 			{
@@ -5065,9 +5155,9 @@ void AGV_Correct_back_4(u8 gear)
 				MOTOR_LEFT_DUTY_SET(rmSpeed);
 				MOTOR_RIGHT_DUTY_SET(lmSpeed);
 
-				CHANGE_TO_STOP_MODE();
+				//CHANGE_TO_STOP_MODE();
 				Delay_ms(1000);
-				CHANGE_TO_BACK_MODE();
+				//CHANGE_TO_BACK_MODE();
 				
 				//lmSpeed = AgvGear[2] + FLG[0][2] + FLG[2][gearRecod];
 				lmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]] + FLG[2][gearRecod];
@@ -5137,9 +5227,9 @@ void AGV_Correct_back_4(u8 gear)
 				MOTOR_LEFT_DUTY_SET(lmSpeed);
 				MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
-				CHANGE_TO_STOP_MODE();
+				//CHANGE_TO_STOP_MODE();
 				Delay_ms(1000);
-				CHANGE_TO_BACK_MODE();
+				//CHANGE_TO_BACK_MODE();
 				
 				lmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]];
 				//rmSpeed = AgvGear[2] + FRG[0][2] + FRG[2][2];
@@ -5689,6 +5779,71 @@ void AGV_Correct_1(void)
 }
 
 
+void Station_Analy(void)
+{
+	
+	if(1 == Zigbee_Ptr->recvValidData)
+	{
+		Zigbee_Ptr->recvValidData = 0;
+		Zigbee_Ptr->recvId = (Zigbee_Ptr->frm_1.decID1 << 8) | Zigbee_Ptr->frm_1.decID0;
+		
+	}
+}
+
+void Walking_Mode_Control(ControlerParaStruct_P ptr)
+{
+	switch(ptr->goalStation)
+	{
+		case ControlCenter:
+
+			break;
+
+		case SpinStation_1:
+
+			break;
+
+		case SpinStation_2:
+
+			break;
+
+		case SpinStation_3:
+
+			break;
+
+		case SpinStation_4:
+
+			break;
+
+		case SpinStation_5:
+
+			break;
+
+		case SpinStation_6:
+
+			break;
+
+		case SpinStation_7:
+
+			break;
+
+		case SpinStation_8:
+
+			break;
+
+		case SpinStation_9:
+
+			break;
+
+		case SpinStation_10:
+
+			break;
+
+		default:
+			break;
+	}
+	
+	
+}
 
 
 void AGV_Walking(void)
@@ -5778,6 +5933,7 @@ void AGV_Change_Mode(void)
 				ctrlParasPtr->BSflag = 1;
 				backStatus_change();
 				printf("backStatus_change\r\n");
+				
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
@@ -5790,6 +5946,41 @@ void AGV_Change_Mode(void)
 		
 		#endif
 	}
+	else if((cirLeft == ctrlParasPtr->agvStatus) || (cirRight == ctrlParasPtr->agvStatus))
+	{
+		if(0x0000 == FMSDS_Ptr->MSD_Hex)
+		{
+			if(cirLeft == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->changeModeFlag = 1;
+				ctrlParasPtr->BSflag = 1;
+				ctrlParasPtr->settedSpeed = 0;
+				ctrlParasPtr->leftMotorSettedSpeed = 0;
+				ctrlParasPtr->rightMotorSettedSpeed = 0;
+				ctrlParasPtr->leftMotorSpeedOffset = 0;
+				ctrlParasPtr->rightMotorSpeedOffset = 0;
+				MOTOR_RIGHT_DUTY_SET(0);
+				MOTOR_LEFT_DUTY_SET(0);
+				CHANGE_TO_STOP_MODE();
+				printf("cirLeft_change\r\n");
+			}
+			else if(cirRight == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->changeModeFlag = 1;
+				ctrlParasPtr->FSflag = 1;
+				ctrlParasPtr->settedSpeed = 0;
+				ctrlParasPtr->leftMotorSettedSpeed = 0;
+				ctrlParasPtr->rightMotorSettedSpeed = 0;
+				ctrlParasPtr->leftMotorSpeedOffset = 0;
+				ctrlParasPtr->rightMotorSpeedOffset = 0;
+				MOTOR_RIGHT_DUTY_SET(0);
+				MOTOR_LEFT_DUTY_SET(0);
+				CHANGE_TO_STOP_MODE();
+				printf("cirRight_change\r\n");
+			}
+		}
+		
+	}
 
 }
 
@@ -5800,6 +5991,7 @@ void AGV_Walking_Test(void)
 	#if 1
 	CHANGE_TO_GO_STRAIGHT_MODE();
 	//CHANGE_TO_TEST_MODE();
+	//CHANGE_TO_CIR_LEFT_MODE();
 	//CHANGE_TO_CIR_LEFT_MODE();
 	#else
 	CHANGE_TO_BACK_MODE();
@@ -5856,6 +6048,17 @@ void AGV_SpeedCalu(void)
 }
 
 
+void Get_Station(ControlerParaStruct_P ptr, Zigbee_Info_P zigbee)
+{
+	u8 cir = 0;
+	SpinStation stationNum;
+
+	for(cir = 0; cir < 10; cir++)
+	{
+		//ptr->StationMaping[cir][];
+	}
+	
+}
 
 void Motion_Ctrl_GPIO_Init(void)
 {
@@ -6013,6 +6216,7 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->FSflag = 1;
 	ctrlParasPtr->BSflag = 1;
 	ctrlParasPtr->dampingFlag = DampingNone;
+	ctrlParasPtr->goalStation = 0;
 	
 	x3x2x1_left_setting();
 	x3x2x1_right_setting();

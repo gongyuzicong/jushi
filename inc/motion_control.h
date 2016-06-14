@@ -4,6 +4,8 @@
 #include "data_type.h"
 #include "common_include.h"
 
+
+#define Max_Station_Num				11
 #define RESPONSE_TIME_CALU(x)		(1000 - x * 100)
 
 #define MAX_HALL_COUNT		1
@@ -121,6 +123,22 @@ typedef enum
 	DampingRight,
 }Damper;
 
+typedef enum
+{
+	ControlCenter = 0,
+	SpinStation_1,
+	SpinStation_2,
+	SpinStation_3,
+	SpinStation_4,
+	SpinStation_5,
+	SpinStation_6,
+	SpinStation_7,
+	SpinStation_8,
+	SpinStation_9,
+	SpinStation_10,
+}SpinStation;
+
+
 typedef struct
 {
 	u8 settedSpeed;
@@ -160,6 +178,10 @@ typedef struct
 
 	Damper dampingFlag;
 	Damper dampingTimeRec;
+
+	u8 fromCLflag;
+	
+	u32 goalStation;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -193,6 +215,8 @@ void AGV_Correct_1(void);
 void AGV_Correct_gS_4(u8);
 void AGV_Correct_gS_5(u8);
 void AGV_Correct_back_4(u8);
+void walking_cirLeft(void);
+void Walking_Mode_Control(ControlerParaStruct_P);
 
 
 

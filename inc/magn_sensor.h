@@ -10,6 +10,12 @@
 
 #define FIX_SCAN
 
+#define STATION_1AND2_RFID		0x0001
+#define STATION_3AND4_RFID		0x0002
+#define STATION_5AND6_RFID		0x0003
+#define STATION_7AND8_RFID		0x0004
+#define STATION_9AND10_RFID		0x0005
+
 
 typedef enum
 {
@@ -42,6 +48,12 @@ typedef enum
 
 
 
+typedef struct
+{
+	u8 updateFlag;
+	u32 rfidData;
+}RFID_Struct, *RFID_Struct_P;
+
 
 typedef struct
 {
@@ -66,7 +78,7 @@ extern Agv_Midpoint_Location_Struct_P AGV_MPLS_Ptr;
 extern MSD_Functions_Struct_P MSDF_Opts_Ptr;
 
 extern vu8 MagnSensorScanTime;
-
+extern RFID_Struct_P RFID_Info_Ptr;
 
 void Magn_Sensor_Init(void);
 void Magn_Sensor_Scan(void);

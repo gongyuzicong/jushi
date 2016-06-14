@@ -742,6 +742,22 @@ void USART1_IRQHandler(void)
 *******************************************************************************/
 void USART2_IRQHandler(void)
 {
+	
+
+	if(0 != (USART2->SR & (0x01 << 6)))	
+	{
+		xBitOff(USART2->SR, 6);
+		
+	}	
+	else if(0 != (USART2->SR & (0x01 << 5)))	// 判断是否为RXNE中断
+	{
+		u8 recvD = USART2_RECV_DATA;
+		//printf("2recvD = %x\r\n", recvD);
+
+		Protocol_analysis(recvD);
+		
+	}
+	
 }
 
 /*******************************************************************************
@@ -760,9 +776,25 @@ void USART3_IRQHandler(void)
 	}	
 	else if(0 != (USART3->SR & (0x01 << 5)))	// 判断是否为RXNE中断
 	{
+		static u8 counter = 0x00;
 		u8 recvD = USART3_RECV_DATA;
-		printf("3recvD = %x\r\n", recvD);
+		u32 tempData = 0x00;
+		//printf("3recvD = %x\r\n", recvD);
 		
+		if(counter >= 4)
+		{
+			counter = 0;
+			RFID_Info_Ptr->updateFlag = 1;
+			RFID_Info_Ptr->rfidData = tempData;
+			tempData = 0;
+		}
+		else
+		{
+			
+			tempData = (tempData << (counter * 8)) | recvD;
+			counter++;
+			
+		}
 	}
 }
 
