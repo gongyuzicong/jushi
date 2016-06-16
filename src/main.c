@@ -49,8 +49,14 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	MOTOR_POWER = 0;
+	MOTOR_POWER_ON();
+	//ECV_POWER_ON();
+	//FECV_DOWN();
+	//BECV_DOWN();
+	//Delay_ms(5000);
+	ECV_POWER_OFF();
 	//AGV_Walking_Test();
+	
 	
 	while(1)
 	{
@@ -66,38 +72,44 @@ int main(void)
 		else
 		{
 			
-			
-			//ECV1_POWER = 0;
-			//ECV2_POWER = 0;
-			
-			//ECV1_PWM = 1;
-			//ECV1_DIR = 0;
-			//ECV2_PWM = 1;
-			//ECV2_DIR = 0;
 			#if 0
-			if(0 == LMT_IN1)
+			
+			if(step_stop == ctrlParasPtr->walkingstep)
 			{
-				printf("1\r\n");
-			}
+				if(Zigbee_Ptr->recvId < 0x0a)
+				{
+					Zigbee_Ptr->recvValidDataFlag = 1;
+					Zigbee_Ptr->recvId++;
 
-			if(0 == LMT_IN2)
-			{
-				printf("2\r\n");
+					if(0x02 == Zigbee_Ptr->recvId)
+					{
+						Zigbee_Ptr->recvId = 0x03;
+					}
+				}
+				else
+				{
+					Zigbee_Ptr->recvId = 0;
+				}
 			}
-
-			if(1 == LMT_SW)
-			{
-				printf("sw\r\n");
-			}
+			
 			#endif
+			
 			
 			Magn_Sensor_Scan();
 			
 			Zigbee_Data_Scan();
+
+			if(1 == Zigbee_Ptr->recvValidDataFlag)
+			{
+				Zigbee_Ptr->recvValidDataFlag = 0;
+				ctrlParasPtr->gear = 5;
+				ctrlParasPtr->walkingstep = step_gS;
+				CHANGE_TO_GO_STRAIGHT_MODE();
+			}
 			
-			RFID_Node_Analy();
+			//RFID_Node_Analy();
 			
-			Walking_Step_Controler();
+			//Walking_Step_Controler();
 			
 			//AGV_Walking();
 			
@@ -105,6 +117,7 @@ int main(void)
 			if(goStraightStatus == ctrlParasPtr->agvStatus)
 			{
 				#if 0
+				
 				if(1 == addGearFlag)
 				{
 					addGearFlag = 0;
@@ -116,9 +129,11 @@ int main(void)
 					CleanAllSpeed();
 					CHANGE_TO_STOP_MODE();
 				}
+				
 				#endif
 				
 				AGV_Correct_gS_5(ctrlParasPtr->gear);
+				
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
@@ -134,7 +149,7 @@ int main(void)
 				walking_cirRight(ctrlParasPtr->gear);
 			}
 			
-			//AGV_Change_Mode();
+			AGV_Change_Mode();
 			
 			//LeftOrRight_Counter();
 

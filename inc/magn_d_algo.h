@@ -73,6 +73,8 @@ typedef enum
 	Agv_MS_ROut_6,
 	Agv_MS_ROut_7,
 	Agv_MS_ROut_8,		// 42
+
+	Agv_MS_CrossRoad,
 	
 }Agv_MS_Location;
 

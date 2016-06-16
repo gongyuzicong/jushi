@@ -731,7 +731,11 @@ void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P ptr)
 	{
 		printf("Inits,\t");
 	}
-
+	else if(ptr->AgvMSLocation == Agv_MS_CrossRoad)
+	{
+		printf("CR,\t");
+	}
+	
 	//printf("LRe = %d,\t", ptr->LeftRemain);
 	//printf("Zbits = %d,\t", ptr->BitNum);
 	//printf("RRe = %d,\t", ptr->RightRemain);
@@ -952,8 +956,8 @@ void Midpoint_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Stur
 		PTR->Midpoint = Midpoint_Level_Unknow;
 	}
 	
-	
 }
+
 
 void Angle_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Scale_Para_P PTR)
 {
@@ -1159,7 +1163,11 @@ void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P 
 
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {
-	if(1 == Check_Zero_Bit_LeftOrRight(ptr))
+	if(0 == (ptr->MSD_Hex & 0x8001))
+	{
+		ptr->MSDCategory = MSD_LINE;
+	}
+	else if(1 == Check_Zero_Bit_LeftOrRight(ptr))
 	{
 		
 	}

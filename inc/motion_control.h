@@ -88,21 +88,31 @@
 #define MOTOR_LEFT_PG	PEin(12)
 #define MOTOR_LEFT_ALM	PEin(13)
 /****MOTOR IN: END****/
-#define ECV1_POWER		PDout(13)
-#define ECV2_POWER		PDout(14)
-#define MOTOR_POWER		PDout(15)
+#define ECV1_POWER			PDout(13)
+#define ECV2_POWER			PDout(14)
+#define MOTOR_POWER			PDout(15)
+#define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
+#define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
 /***********MOTOR LEFT: END***************/
 
-#define ECV1_PWM		PBout(8)
-#define ECV1_DIR		PCout(14)
+#define ECV1_PWM		PBout(8)		// 前电缸
+#define ECV1_DIR		PCout(14)		// 电缸方向 0: 缩   1: 推
 
-#define ECV2_PWM		PBout(9)
-#define ECV2_DIR		PCout(15)
+#define ECV2_PWM		PBout(9)		// 后电缸
+#define ECV2_DIR		PCout(15)		// 电缸方向 0: 推   1: 缩
 
-#define LMT_IN1			PCin(3)
-#define LMT_IN2			PCin(4)
+#define LMT_IN1			PCin(3)			// 响应为 0
+#define LMT_IN2			PCin(4)			// 响应为 0
 
-#define LMT_SW			PEin(0)
+#define LMT_SW			PEin(0)			// 响应为 1
+
+
+#define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0;}
+#define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1;}
+#define FECV_UP()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }		//
+#define FECV_DOWN()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
+#define BECV_UP()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
+#define BECV_DOWN()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
 /**************ECV**************/
 
 
@@ -160,6 +170,7 @@ typedef enum
 	step_entry,
 	step_catch,
 	step_exit,
+	step_weigh,
 	step_bVeer,
 	step_gB,
 	step_stop,
@@ -206,7 +217,7 @@ typedef struct
 	u8 BSflag;
 
 	Damper dampingFlag;
-	Damper dampingTimeRec;
+	u32 dampingTimeRec;
 
 	u32 goalRFIDnode;
 	
@@ -250,6 +261,8 @@ void walking_cirLeft(u8);
 void RFID_Node_Analy(void);
 void Walking_Step_Controler(void);
 void walking_cirRight(u8);
+void AGV_Correct_gS_6(u8 gear);
+
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

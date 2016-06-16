@@ -456,7 +456,7 @@ void NRF24L01_Read_Buf_Process(u8 *pBuf)
 
 void NRF24L01_IT_Process(void)
 {
-	u8 status, i = 0;
+	u8 status;
 	
 	status = SPI_Read(READ_REG_CMD + STATUS);
 	//printf("status = %x\r\n", status);

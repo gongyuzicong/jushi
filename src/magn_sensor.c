@@ -30,8 +30,8 @@ u8 station = 0x00;
 void My_MSD_Opt(Magn_Sensor_Data_Sturct_P ptr)
 {
 	u16 tempNumHex = 0x00;
-	s16 numDec = 0;
-	u8 cir1 = 0, cir2 = 0, bit0Count = 0, bit1Count = 0, stageThree = 0;
+	//s16 numDec = 0;
+	u8 cir1 = 0, bit0Count = 0, bit1Count = 0, stageThree = 0;
 	
 	tempNumHex = ptr->MSD_Hex;
 
@@ -753,7 +753,7 @@ void Show_Infomation(void)
 	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
 	printf("f = %d, \t", ctrlParasPtr->comflag);
 	
-	printf("FLCD[%d] = %d, FRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
+	printf("FLCD[%d] = %d, FRCD[%d] = %d, BLCD[%d] = %d, BRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], BLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], BRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
@@ -910,9 +910,10 @@ void Magn_Sensor_Scan(void)
 	
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 	{
-		static u16 tempFMS = 0x00, tempRMS = 0x00;
-		u32 TimeNow = 0;
-		static u8 lineCounter = 0x00;
+		//static u16 tempFMS = 0x00, tempRMS = 0x00;
+		//u32 TimeNow = 0;
+		//static u8 lineCounter = 0x00;
+		
 #if 1
 
 		*FMSDS_Pre_Ptr = *FMSDS_Ptr;
@@ -924,7 +925,6 @@ void Magn_Sensor_Scan(void)
 		{
 			FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
 			RMSDS_Ptr->MSD_Hex = FMS_Hex;
-			
 			
 			if((FMSDS_Ptr->MSD_Hex & 0x1F) == 0x17)
 			{
