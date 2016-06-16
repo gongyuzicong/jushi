@@ -88,9 +88,23 @@
 #define MOTOR_LEFT_PG	PEin(12)
 #define MOTOR_LEFT_ALM	PEin(13)
 /****MOTOR IN: END****/
-
+#define ECV1_POWER		PDout(13)
+#define ECV2_POWER		PDout(14)
 #define MOTOR_POWER		PDout(15)
 /***********MOTOR LEFT: END***************/
+
+#define ECV1_PWM		PBout(8)
+#define ECV1_DIR		PCout(14)
+
+#define ECV2_PWM		PBout(9)
+#define ECV2_DIR		PCout(15)
+
+#define LMT_IN1			PCin(3)
+#define LMT_IN2			PCin(4)
+
+#define LMT_SW			PEin(0)
+/**************ECV**************/
+
 
 typedef enum
 {
@@ -139,6 +153,19 @@ typedef enum
 }SpinStation;
 
 
+typedef enum
+{
+	step_gS = 1,
+	step_gVeer,
+	step_entry,
+	step_catch,
+	step_exit,
+	step_bVeer,
+	step_gB,
+	step_stop,
+}WalkStep;
+
+
 typedef struct
 {
 	u8 settedSpeed;
@@ -165,13 +192,15 @@ typedef struct
 	u32 leftHallIntervalTime;
 	u32 comflag;
 
+	u32 rightHallCounter;
+	u32 leftHallCounter;
+	
 	u32 HLavg;
 	u32 HRavg;
 	u8 avgFlag;
 	u8 avgFlagCount;
 	u8 gear;
 
-	u8 changeModeFlag;
 
 	u8 FSflag;
 	u8 BSflag;
@@ -179,9 +208,11 @@ typedef struct
 	Damper dampingFlag;
 	Damper dampingTimeRec;
 
-	u8 fromCLflag;
+	u32 goalRFIDnode;
 	
-	u32 goalStation;
+	SpinStation goalStation;
+
+	WalkStep walkingstep;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
@@ -203,7 +234,7 @@ void LeftOrRight_Counter(void);
 void AGV_Walking_Test(void);
 void AGV_Correct_back_1(void);
 void AGV_Correct_back_2(void);
-void AGV_Correct_gS(void);
+void AGV_Correct_gS(u8);
 void AGV_Correct_gS_1(u8);
 void AGV_Correct_gS_2(u8);
 void AGV_Correct_gS_3(u8);
@@ -215,9 +246,10 @@ void AGV_Correct_1(void);
 void AGV_Correct_gS_4(u8);
 void AGV_Correct_gS_5(u8);
 void AGV_Correct_back_4(u8);
-void walking_cirLeft(void);
-void Walking_Mode_Control(ControlerParaStruct_P);
-
+void walking_cirLeft(u8);
+void RFID_Node_Analy(void);
+void Walking_Step_Controler(void);
+void walking_cirRight(u8);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;
@@ -228,6 +260,7 @@ extern u8 FRightCompDuty[101];
 extern u8 BLeftCompDuty[101];
 extern u8 BRightCompDuty[101];
 extern u8 AgvGear[MAX_GEAR_NUM];
+extern u16 ZBandRFIDmapping[11];
 
 #endif
 

@@ -114,6 +114,38 @@ void Timer4_Init(u16 arr, u16 psc)
 	
 }
 
+
+void Timer5_Init(u16 arr, u16 psc)
+{
+#if 0
+	Nvic_Paramater node;
+	node.Nvic_PreemptionPriority = 1;
+	node.Nvic_SubPriority = 3;
+	node.Nvic_Channel = TIM4_IRQChannel;
+	node.Nvic_Group = 2;
+	My_Nvic_Init(node);
+#else
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);//初始化
+#endif
+	
+	//RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+	TIMx_2_7_ENABLE(5);					// TIM4时钟使能
+	TIM5->ARR = arr;					// 自动装载值
+	TIM5->PSC = psc;					// 分频系数
+	TIM5->DIER |= (1 << 0);				// 允许更新中断
+	TIM5->DIER |= (1 << 6);				// 允许触发中断
+	TIMx_ON(TIM5);
+	
+}
+
+
+
 /*
 	函数参数: 
 	DutyCycle: 占空比,参数数值范围0~100

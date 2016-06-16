@@ -752,7 +752,7 @@ void USART2_IRQHandler(void)
 	else if(0 != (USART2->SR & (0x01 << 5)))	// 判断是否为RXNE中断
 	{
 		u8 recvD = USART2_RECV_DATA;
-		//printf("2recvD = %x\r\n", recvD);
+		//printf("D = %x\r\n", recvD);
 
 		Protocol_analysis(recvD);
 		
@@ -778,14 +778,16 @@ void USART3_IRQHandler(void)
 	{
 		static u8 counter = 0x00;
 		u8 recvD = USART3_RECV_DATA;
-		u32 tempData = 0x00;
+		//u32 tempData = 0x00;
 		//printf("3recvD = %x\r\n", recvD);
 		
+		#if 0
 		if(counter >= 4)
 		{
 			counter = 0;
 			RFID_Info_Ptr->updateFlag = 1;
 			RFID_Info_Ptr->rfidData = tempData;
+			//printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);
 			tempData = 0;
 		}
 		else
@@ -795,6 +797,15 @@ void USART3_IRQHandler(void)
 			counter++;
 			
 		}
+		#endif
+
+		if((recvD >= 0x01) && (recvD <= 0x05))
+		{
+			RFID_Info_Ptr->updateFlag = 1;
+			RFID_Info_Ptr->rfidData = recvD;
+			printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);
+		}
+		
 	}
 }
 
@@ -830,6 +841,7 @@ void EXTI15_10_IRQHandler(void)
 		}
 		#else
 		ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
+		ctrlParasPtr->rightHallCounter++;
 		/*
 		if(0 == ctrlParasPtr->rightHallIntervalTime)
 		{
@@ -859,6 +871,7 @@ void EXTI15_10_IRQHandler(void)
 		#else
 
 		ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
+		ctrlParasPtr->leftHallCounter++;
 		/*
 		if(0 == ctrlParasPtr->leftHallIntervalTime)
 		{
@@ -1027,7 +1040,28 @@ void SDIO_IRQHandler(void)
 *******************************************************************************/
 void TIM5_IRQHandler(void)
 {
+	
+	// 1ms
+	if(TIM5->SR & 0x0001)	// 溢出中断
+	{
+		SystemRunningTime++;
+		PCout(7) = ~(PCin(7));
+		//printf("123\r\n");
+		/*
+		if(FMSDS_Ptr->zflag)
+		{
+			FMSDS_Ptr->zeropointfive++;
+		}
+		else
+		{
+			FMSDS_Ptr->zeropointfive = 0;
+		}
+		*/
+	}
+	//printf("%d\r\n", SystemRunningTime);
+	TIM5->SR &= ~(1 << 0);	// 清除中断标志位
 }
+
 
 /*******************************************************************************
 * Function Name  : SPI3_IRQHandler

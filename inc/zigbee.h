@@ -27,7 +27,7 @@ typedef struct
 {
 	frmFmt frm_1;
 	u8 receive_end;
-	u8 recvValidData;
+	u8 recvValidDataFlag;
 	u16 recvId;
 }Zigbee_Info, *Zigbee_Info_P;
 

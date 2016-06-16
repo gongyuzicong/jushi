@@ -22,6 +22,7 @@ void SystemInit(void)
 	Timer2_Init(10000, 7199);	// 1s
 	TIM3_Init(65535, 35999);		
 	Timer4_Init(9, 719);		// 1ms
+	//Timer5_Init(9, 719);
 	Motion_Ctrl_Init();
 	Pwm_Init();
 	SPI_Initial();
@@ -40,7 +41,7 @@ int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 1, cir2 = 0;
-	static u8 addGearFlag = 0;
+	//static u8 addGearFlag = 0;
 	
 	CB_RCC_Config();	/*配置系统时钟*/
 	CB_GPIO_Config();	/*配置GPIO口*/
@@ -48,62 +49,11 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	
-	AGV_Walking_Test();
-	
-	ctrlParasPtr->gear = 5;
-	
+	MOTOR_POWER = 0;
+	//AGV_Walking_Test();
 	
 	while(1)
 	{
-		
-		Zigbee_Data_Scan();
-		
-		if(1 == Zigbee_Ptr->recvValidData)
-		{
-			Zigbee_Ptr->recvValidData = 0;
-
-			if((0x0001 == Zigbee_Ptr->recvValidData) || (0x0002 == Zigbee_Ptr->recvValidData))
-			{
-				ctrlParasPtr->goalStation = STATION_1AND2_RFID;
-			}
-			else if((0x0003 == Zigbee_Ptr->recvValidData) || (0x0004 == Zigbee_Ptr->recvValidData))
-			{
-				ctrlParasPtr->goalStation = STATION_3AND4_RFID;
-			}
-			else if((0x0005 == Zigbee_Ptr->recvValidData) || (0x0006 == Zigbee_Ptr->recvValidData))
-			{
-				ctrlParasPtr->goalStation = STATION_5AND6_RFID;
-			}
-			else if((0x0007 == Zigbee_Ptr->recvValidData) || (0x0008 == Zigbee_Ptr->recvValidData))
-			{
-				ctrlParasPtr->goalStation = STATION_7AND8_RFID;
-			}
-			else if((0x0009 == Zigbee_Ptr->recvValidData) || (0x000a == Zigbee_Ptr->recvValidData))
-			{
-				ctrlParasPtr->goalStation = STATION_9AND10_RFID;
-			}
-			else
-			{
-				ctrlParasPtr->goalStation = 0x0000;
-			}
-			
-		}
-
-		if(1 == RFID_Info_Ptr->updateFlag)
-		{
-			RFID_Info_Ptr->updateFlag = 0;
-			printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
-
-			if(ctrlParasPtr->goalStation == RFID_Info_Ptr->rfidData)
-			{
-				
-				
-				
-			}
-		}
-
-		//Walking_Mode_Control();
 		
 		#if 1
 		
@@ -116,10 +66,41 @@ int main(void)
 		else
 		{
 			
+			
+			//ECV1_POWER = 0;
+			//ECV2_POWER = 0;
+			
+			//ECV1_PWM = 1;
+			//ECV1_DIR = 0;
+			//ECV2_PWM = 1;
+			//ECV2_DIR = 0;
+			#if 0
+			if(0 == LMT_IN1)
+			{
+				printf("1\r\n");
+			}
+
+			if(0 == LMT_IN2)
+			{
+				printf("2\r\n");
+			}
+
+			if(1 == LMT_SW)
+			{
+				printf("sw\r\n");
+			}
+			#endif
+			
 			Magn_Sensor_Scan();
 			
+			Zigbee_Data_Scan();
+			
+			RFID_Node_Analy();
+			
+			Walking_Step_Controler();
+			
 			//AGV_Walking();
-
+			
 			
 			if(goStraightStatus == ctrlParasPtr->agvStatus)
 			{
@@ -146,14 +127,14 @@ int main(void)
 			}
 			else if(cirLeft == ctrlParasPtr->agvStatus)
 			{
-				walking_cirLeft();
+				walking_cirLeft(ctrlParasPtr->gear);
 			}
 			else if(cirRight == ctrlParasPtr->agvStatus)
 			{
-				
+				walking_cirRight(ctrlParasPtr->gear);
 			}
 			
-			AGV_Change_Mode();
+			//AGV_Change_Mode();
 			
 			//LeftOrRight_Counter();
 

@@ -194,15 +194,19 @@ void Zigbee_Data_Scan(void)
 		if(0x7F == Zigbee_Ptr->frm_1.buf[0])
 		{
 			Zigbee_Ptr->receive_end = 0;
-			//printf("decID0 = %02x, decID1 = %02x\r\n", Zigbee_Ptr->frm_1.decID0, Zigbee_Ptr->frm_1.decID1);
-			//printf("buf[0] = %02x, buf[1] = %02x\r\n\r\n", Zigbee_Ptr->frm_1.buf[0], Zigbee_Ptr->frm_1.buf[1]);
+			
 			Zigbee_Ptr->recvId = (Zigbee_Ptr->frm_1.decID1 << 8) | Zigbee_Ptr->frm_1.decID0;
-			Zigbee_Ptr->recvValidData = 1;
+			printf("decID0 = %02x, decID1 = %02x\r\n", Zigbee_Ptr->frm_1.decID0, Zigbee_Ptr->frm_1.decID1);
+			printf("buf[0] = %02x, buf[1] = %02x\r\n", Zigbee_Ptr->frm_1.buf[0], Zigbee_Ptr->frm_1.buf[1]);
+			printf("recvId = %04x\r\n", Zigbee_Ptr->recvId);
+			printf("\r\n");
+			
+			Zigbee_Ptr->recvValidDataFlag = 1;
 			
 		}
 		else
 		{
-			printf("error\r\n");
+			printf("7ferror\r\n");
 		}
 		
 	}
@@ -215,7 +219,7 @@ void Zigbee_Init(void)
 	Zigbee_Usart_Init();
 	
 	Zigbee_Ptr->receive_end = 0;
-	Zigbee_Ptr->recvValidData = 0;
+	Zigbee_Ptr->recvValidDataFlag = 0;
 	Zigbee_Ptr->recvId = 0x0000;
 }
 
