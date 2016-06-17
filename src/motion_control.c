@@ -69,6 +69,7 @@ u8 FRightCompDuty[101] = {0,\
  						  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
  						  0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+
 u8 BLeftCompDuty[101] = {0,\
  						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
  						 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\
@@ -92,6 +93,7 @@ u8 BRightCompDuty[101] = {0,\
 						  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
 						  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
 						  0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+						  
 
 
 
@@ -7202,7 +7204,7 @@ void AGV_Correct_back_5(u8 gear)
 					
 				}
 
-			#if 0
+		#if 0
 				if(AgvCent2Left == FMSDS_Ptr->agvDirection) 			// 如果是简谐运动从中线往左偏移, 应该拉低右边电机duty, 以抵消往左偏的力量
 				{
 					if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将右边电机的duty恢复, 放开回拉的力量
@@ -7234,9 +7236,9 @@ void AGV_Correct_back_5(u8 gear)
 						printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 					}
 				}
-			#endif
+		#endif
 
-			#if 0
+		#if 0
 				if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将右边电机的duty恢复, 放开回拉的力量
 				{
 					lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
@@ -7267,14 +7269,14 @@ void AGV_Correct_back_5(u8 gear)
 						printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 					}
 				}
-			#else
+		#else
 
-				lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
-				rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+				lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
+				rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
 
 				if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将右边电机的duty恢复, 放开回拉的力量
 				{
-					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
+					rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
 					printf("1: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 				}
 
@@ -7283,12 +7285,12 @@ void AGV_Correct_back_5(u8 gear)
 					
 					if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将左边的电机的duty恢复, 放开回拉的力量
 					{
-						lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
+						lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
 						printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 					}
 				}
 				
-			#endif
+		#endif
 				if((CHECK_MOTOR_SET_DUTY(lmSpeed)) && (CHECK_MOTOR_SET_DUTY(rmSpeed)))
 				{
 					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
@@ -7331,7 +7333,7 @@ void AGV_Correct_back_5(u8 gear)
 						
 					}
 
-				#if 0
+			#if 0
 					if(AgvCent2Right == FMSDS_Ptr->agvDirection)			// 如果是简谐运动从中线往右偏移, 应该拉低左边电机duty, 以抵消往右偏的力量
 					{
 						if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1)		// 如果已经回到1格了, 那么应该将左边电机的duty恢复, 放开回拉的力量
@@ -7350,7 +7352,7 @@ void AGV_Correct_back_5(u8 gear)
 					
 					else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 如果是简谐运动从右往中线回, 应该拉低右边电机的duty以达到减少回冲的速度
 					{
-					#if 1
+				#if 1
 						if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1)		// 如果已经回到1格了, 那么应该将右边的电机的duty恢复, 放开回拉的力量
 						{
 							lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
@@ -7362,13 +7364,13 @@ void AGV_Correct_back_5(u8 gear)
 							rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
 							printf("4: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 						}
-					#else
+				#else
 						
-					#endif
-					}
 				#endif
+					}
+			#endif
 
-				#if 0
+			#if 0
 					if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1)		// 如果已经回到1格了, 那么应该将左边电机的duty恢复, 放开回拉的力量
 					{
 						lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
@@ -7400,14 +7402,14 @@ void AGV_Correct_back_5(u8 gear)
 						}
 					}
 
-				#else
+			#else
 
-					lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
-					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+					lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
+					rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
 
 					if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1)
 					{
-						lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
+						lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
 						printf("3: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 					}
 
@@ -7415,12 +7417,12 @@ void AGV_Correct_back_5(u8 gear)
 					{
 						if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1)		// 如果已经回到1格了, 那么应该将右边的电机的duty恢复, 放开回拉的力量
 						{
-							rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
+							rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
 							printf("4: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 						}
 					}
 					
-				#endif
+			#endif
 					
 					if((CHECK_MOTOR_SET_DUTY(lmSpeed)) && (CHECK_MOTOR_SET_DUTY(rmSpeed)))
 					{
@@ -7452,7 +7454,7 @@ void AGV_Correct_back_5(u8 gear)
 					ctrlParasPtr->FSflag = 1;
 					
 					ctrlParasPtr->comflag = 622;
-			#if 1
+		#if 1
 					lmSpeed = 0;
 					rmSpeed = 0;
 					
@@ -7466,9 +7468,9 @@ void AGV_Correct_back_5(u8 gear)
 					Delay_ms(1000);
 					CHANGE_TO_GO_STRAIGHT_MODE();
 					
-					lmSpeed = AgvGear[2] + FLeftCompDuty[AgvGear[2]];
+					lmSpeed = AgvGear[2] + BLeftCompDuty[AgvGear[2]];
 					//rmSpeed = AgvGear[2] + FRG[0][2] + FRG[2][2];
-					rmSpeed = AgvGear[2] + FRightCompDuty[AgvGear[2]] + FRG[2][2];
+					rmSpeed = AgvGear[2] + BRightCompDuty[AgvGear[2]] + FRG[2][2];
 					
 					
 					ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
@@ -7486,7 +7488,7 @@ void AGV_Correct_back_5(u8 gear)
 					{
 						
 					}
-			#endif
+		#endif
 					rreco = lreco + 3;
 				}
 
@@ -7499,8 +7501,8 @@ void AGV_Correct_back_5(u8 gear)
 				// 加入阻尼模块
 				// 阻尼begin
 				
-				lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
-				rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+				lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
+				rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
 							
 				if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 				{
@@ -7519,6 +7521,8 @@ void AGV_Correct_back_5(u8 gear)
 	
 	
 }
+
+
 
 
 
