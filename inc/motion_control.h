@@ -262,7 +262,8 @@ void RFID_Node_Analy(void);
 void Walking_Step_Controler(void);
 void walking_cirRight(u8);
 void AGV_Correct_gS_6(u8 gear);
-
+void AGV_Correct_back_5(u8 gear)
+;
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

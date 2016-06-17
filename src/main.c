@@ -21,7 +21,7 @@ void SystemInit(void)
 	Delay_Init(72);
 	Timer2_Init(10000, 7199);	// 1s
 	TIM3_Init(65535, 35999);		
-	Timer4_Init(9, 719);		// 1ms
+	Timer4_Init(9, 719);		// 0.1ms
 	//Timer5_Init(9, 719);
 	Motion_Ctrl_Init();
 	Pwm_Init();
@@ -91,6 +91,18 @@ int main(void)
 					Zigbee_Ptr->recvId = 0;
 				}
 			}
+
+			#else
+			
+			if(1 == Zigbee_Ptr->recvValidDataFlag)
+			{
+				Zigbee_Ptr->recvValidDataFlag = 0;
+				
+				ctrlParasPtr->gear = 5;
+				ctrlParasPtr->walkingstep = step_gS;
+				CHANGE_TO_GO_STRAIGHT_MODE();
+				
+			}
 			
 			#endif
 			
@@ -98,14 +110,6 @@ int main(void)
 			Magn_Sensor_Scan();
 			
 			Zigbee_Data_Scan();
-
-			if(1 == Zigbee_Ptr->recvValidDataFlag)
-			{
-				Zigbee_Ptr->recvValidDataFlag = 0;
-				ctrlParasPtr->gear = 5;
-				ctrlParasPtr->walkingstep = step_gS;
-				CHANGE_TO_GO_STRAIGHT_MODE();
-			}
 			
 			//RFID_Node_Analy();
 			

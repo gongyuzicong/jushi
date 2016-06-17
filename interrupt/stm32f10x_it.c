@@ -29,6 +29,7 @@
 #include "nrf24l01_opts.h"
 #include "motion_control.h"
 #include "magn_sensor.h"
+#include "zigbee.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -512,7 +513,6 @@ void TIM1_CC_IRQHandler(void)
 *******************************************************************************/
 void TIM2_IRQHandler(void)
 {
-	static u16 walkingTime = 0;
 	
 	if(TIM2->SR & 0x0001)	// 溢出中断
 	{
@@ -776,7 +776,7 @@ void USART3_IRQHandler(void)
 	}	
 	else if(0 != (USART3->SR & (0x01 << 5)))	// 判断是否为RXNE中断
 	{
-		static u8 counter = 0x00;
+		//static u8 counter = 0x00;
 		u8 recvD = USART3_RECV_DATA;
 		//u32 tempData = 0x00;
 		//printf("3recvD = %x\r\n", recvD);
@@ -818,7 +818,7 @@ void USART3_IRQHandler(void)
 *******************************************************************************/
 void EXTI15_10_IRQHandler(void)
 {
-	static u8 lMotorCount = 0x00, rMotorCount = 0x00;
+	//static u8 lMotorCount = 0x00, rMotorCount = 0x00;
 	static u32 lTimeRecode = 0x00, rTimeRecode = 0x00;
 	u32 ltempTime = 0x00, rtempTime = 0x00;
 

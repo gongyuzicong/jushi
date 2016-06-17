@@ -206,7 +206,7 @@ void Zigbee_Data_Scan(void)
 		}
 		else
 		{
-			printf("7ferror\r\n");
+			//printf("7ferror\r\n");
 		}
 		
 	}

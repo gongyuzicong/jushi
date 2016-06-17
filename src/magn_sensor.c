@@ -773,7 +773,7 @@ void Show_Infomation(void)
 	//Check_Agv_Location_S(AGV_MPLS_Ptr, FMSDS_Ptr, RMSDS_Ptr);
 	//Show_Check_Agv_Location_S(AGV_MPLS_Ptr);
 	*/
-	
+	printf("MaxRecoder = %d, calu = %d\r\n", FMSDS_Ptr->MaxRecoder, LocValu(FMSDS_Ptr->MaxRecoder));
 	printf("\r\n");
 }
 
