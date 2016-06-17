@@ -204,9 +204,11 @@ typedef struct
 
 	u32 goalRFIDnode;
 	
-	SpinStation goalStation;
+	//SpinStation goalStation;
 
 	WalkStep walkingstep;
+
+	u8 changeModeFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct

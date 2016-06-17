@@ -7314,7 +7314,7 @@ void AGV_Walking_Test(void)
 {
 	MOTOR_POWER = 0;
 	
-	#if 1
+	#if 0
 	CHANGE_TO_GO_STRAIGHT_MODE();
 	//CHANGE_TO_TEST_MODE();
 	//CHANGE_TO_CIR_LEFT_MODE();

@@ -51,11 +51,11 @@ int main(void)
 	//FECV_DOWN();
 	//BECV_DOWN();
 	//Delay_ms(5000);
-	ECV_POWER_OFF();
+	//ECV_POWER_OFF();
 	
-	//AGV_Walking_Test();
+	AGV_Walking_Test();
 	
-	//ctrlParasPtr->gear = 7;
+	ctrlParasPtr->gear = 7;
 
 	if(1 == Zigbee_Ptr->recvValidDataFlag)
 	{
