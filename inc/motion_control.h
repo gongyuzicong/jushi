@@ -8,11 +8,13 @@
 
 #define MAX_HALL_COUNT		1
 
-#define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
-#define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
+#define MOTOR_RIGHT_CCR_DEF(X) 			Motor_Right_CR(X)
+#define MOTOR_LEFT_CCR_DEF(X) 			Motor_Left_CCR(X)
 
-#define MOTOR_RIGHT_CR_DEF(X) 	Motor_Right_CCR(X)
-#define MOTOR_LEFT_CR_DEF(X) 	Motor_Left_CR(X)
+#define MOTOR_RIGHT_CR_DEF(X) 			Motor_Right_CCR(X)
+#define MOTOR_LEFT_CR_DEF(X) 			Motor_Left_CR(X)
+
+#define CHECK_MOTOR_SET_DUTY(duty)		(((duty >= 0) && (duty <= 100)) ? 1 : 0)
 
 #define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
 #define MAX_STEP_SPEED_INC	1
@@ -194,6 +196,9 @@ void AGV_Correct_gS_4(u8);
 void AGV_Correct_gS_5(u8);
 void AGV_Correct_back_4(u8);
 void AGV_Correct_gS_6(u8 gear);
+void AGV_Correct_gS_test(u8 gear);
+void AGV_Correct_2(u8 gear);
+void AGV_Correct_gS_7(u8 gear);
 
 
 

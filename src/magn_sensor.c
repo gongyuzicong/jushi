@@ -727,8 +727,10 @@ void Show_Infomation(void)
 	printf("F: ");
 	MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
 	printf(",\t");
+	//Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
+	//printf(",\t");
 	Show_Resualt_Analy(FMSDS_Ptr);
-	
+	printf(",\t");
 	/*
 	Show_Check_MSD_Category(FMSDS_Ptr);
 	//Show_My_MSD_Opt(FMSDS_Ptr);
@@ -737,7 +739,7 @@ void Show_Infomation(void)
 	//Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
 	//Show_Magn_AcceleratedXt_Clau(FMSDS_Ptr);
 	*/
-	
+	#if 0
 	printf("\r\n");
 	
 	printf("R: ");
@@ -747,18 +749,18 @@ void Show_Infomation(void)
 	printf("\r\n");
 	
 	printf("Angle = %d, Mp = %d,\t", AGV_Pat_Ptr->Angle, AGV_Pat_Ptr->Midpoint);
-	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
-	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
+	
 	printf("f = %d, \t", ctrlParasPtr->comflag);
 	
 	printf("FLCD[%d] = %d, FRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], BLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
 											   AgvGear[ctrlParasPtr->gear], BRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
-	
+	#endif
 	Show_Check_Magn_Direction(FMSDS_Ptr);
-	printf("\r\n");
-	Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
+	printf(",\t");
+	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
+	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
 	printf("\r\n");
 	/*
 	Show_Check_MSD_Category(RMSDS_Ptr);
@@ -772,7 +774,7 @@ void Show_Infomation(void)
 	//Show_Check_Agv_Location_S(AGV_MPLS_Ptr);
 	*/
 	
-	printf("\r\n");
+	//printf("\r\n");
 }
 
 u16 hex_reload(u16 hex)
