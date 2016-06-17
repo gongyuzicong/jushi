@@ -13,6 +13,7 @@
 #include "spi_opts.h"
 #include "magn_sensor.h"
 #include "zigbee.h"
+#include "rfid.h"
 
 void SystemInit(void)
 {	
@@ -40,7 +41,7 @@ void SystemInit(void)
 int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
-	//int cir = 1, cir2 = 0;
+	int cir = 1, cir2 = 0;
 	//static u8 addGearFlag = 0;
 	
 	CB_RCC_Config();	/*ÅäÖÃÏµÍ³Ê±ÖÓ*/
@@ -50,10 +51,10 @@ int main(void)
 	
 	printf("Start\r\n");
 	MOTOR_POWER_ON();
-	//ECV_POWER_ON();
-	//FECV_DOWN();
-	//BECV_DOWN();
-	//Delay_ms(5000);
+	ECV_POWER_ON();
+	FECV_DOWN();
+	BECV_DOWN();
+	Delay_ns(5);
 	ECV_POWER_OFF();
 	//AGV_Walking_Test();
 	
@@ -72,7 +73,7 @@ int main(void)
 		else
 		{
 			
-			#if 0
+			#if 1
 			
 			if(step_stop == ctrlParasPtr->walkingstep)
 			{
@@ -85,6 +86,8 @@ int main(void)
 					{
 						Zigbee_Ptr->recvId = 0x03;
 					}
+					ctrlParasPtr->walkingstep = step_gS;
+					CHANGE_TO_GO_STRAIGHT_MODE();
 				}
 				else
 				{
@@ -109,11 +112,11 @@ int main(void)
 			
 			Magn_Sensor_Scan();
 			
-			Zigbee_Data_Scan();
+			//Zigbee_Data_Scan();
 			
-			//RFID_Node_Analy();
+			RFID_Node_Analy();
 			
-			//Walking_Step_Controler();
+			Walking_Step_Controler();
 			
 			//AGV_Walking();
 			
@@ -136,13 +139,13 @@ int main(void)
 				
 				#endif
 				
-				AGV_Correct_gS_5(ctrlParasPtr->gear);
+				AGV_Correct_gS_7(ctrlParasPtr->gear);
 				
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
 				//addGearFlag = 1;
-				AGV_Correct_back_4(ctrlParasPtr->gear);
+				AGV_Correct_back_5(ctrlParasPtr->gear);
 			}
 			else if(cirLeft == ctrlParasPtr->agvStatus)
 			{
@@ -153,7 +156,7 @@ int main(void)
 				walking_cirRight(ctrlParasPtr->gear);
 			}
 			
-			AGV_Change_Mode();
+			//AGV_Change_Mode();
 			
 			//LeftOrRight_Counter();
 

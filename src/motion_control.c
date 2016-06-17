@@ -12,6 +12,7 @@ u8 AgvGearCompDutyLF[MAX_GEAR_NUM] = {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
 u8 AgvGearCompDutyRF[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 u8 AgvGearCompDutyLB[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 u8 AgvGearCompDutyRB[MAX_GEAR_NUM] = {0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+u8 AgvGearK[MAX_GEAR_NUM] = {1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 16, 17, 18, 19, 20, 21, 22};
 
 
 u8 FLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},\
@@ -5186,16 +5187,15 @@ void AGV_Correct_gS_7(u8 gear)
 	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
 	counter = 0;
-	
-	
+	gearRecod = gear;
+	//printf("************\r\n");
 	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
 		(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3))
 	{
 		//printf("AgvMSLocation %d, %d\r\n",FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation);
 		if(0 == ctrlParasPtr->FSflag)
 		{
-			gearRecod = gear;
-
+			
 			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
 			{
 				
@@ -5284,7 +5284,7 @@ void AGV_Correct_gS_7(u8 gear)
 				if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将右边电机的duty恢复, 放开回拉的力量
 				{
 					rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
-					printf("1: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
+					//printf("1: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 				}
 
 				if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)		// 如果是简谐运动从左往中线回, 应该拉低左边电机的duty以达到减少回冲的速度
@@ -5293,7 +5293,7 @@ void AGV_Correct_gS_7(u8 gear)
 					if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将左边的电机的duty恢复, 放开回拉的力量
 					{
 						lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
-						printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
+						//printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 					}
 				}
 				
@@ -5417,7 +5417,7 @@ void AGV_Correct_gS_7(u8 gear)
 					if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1)
 					{
 						lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
-						printf("3: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
+						//printf("3: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 					}
 
 					if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 如果是简谐运动从右往中线回, 应该拉低右边电机的duty以达到减少回冲的速度
@@ -5425,7 +5425,7 @@ void AGV_Correct_gS_7(u8 gear)
 						if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1)		// 如果已经回到1格了, 那么应该将右边的电机的duty恢复, 放开回拉的力量
 						{
 							rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
-							printf("4: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
+							//printf("4: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 						}
 					}
 					
@@ -5487,14 +5487,6 @@ void AGV_Correct_gS_7(u8 gear)
 					MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
 					
-					if(ctrlParasPtr->changeModeFlag)
-					{
-						ctrlParasPtr->changeModeFlag = 0;
-					}
-					else
-					{
-						
-					}
 				#endif
 					rreco = lreco + 3;
 				}
@@ -5510,11 +5502,7 @@ void AGV_Correct_gS_7(u8 gear)
 				
 				lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
 				rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
-							
-				if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
-				{
-					ctrlParasPtr->changeModeFlag = 0;
-				}
+				
 				
 			}
 		
@@ -7180,14 +7168,14 @@ void AGV_Correct_back_5(u8 gear)
 
 	counter = 0;
 	
-	
+	gearRecod = gear;
 	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
 		(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3))
 	{
 		//printf("AgvMSLocation %d, %d\r\n",FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation);
 		if(0 == ctrlParasPtr->FSflag)
 		{
-			gearRecod = gear;
+			
 
 			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
 			{
@@ -7277,7 +7265,7 @@ void AGV_Correct_back_5(u8 gear)
 				if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将右边电机的duty恢复, 放开回拉的力量
 				{
 					rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
-					printf("1: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
+					//printf("1: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod]* (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 				}
 
 				if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 	// 如果是简谐运动从左往中线回, 应该拉低左边电机的duty以达到减少回冲的速度
@@ -7286,7 +7274,7 @@ void AGV_Correct_back_5(u8 gear)
 					if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1)		// 如果已经回到1格了, 那么应该将左边的电机的duty恢复, 放开回拉的力量
 					{
 						lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation));
-						printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
+						//printf("2: %d, %d\r\n", (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation), (AgvGearK[gearRecod] * (Agv_MS_Center - FMSDS_Ptr->AgvMSLocation)));
 					}
 				}
 				
@@ -7410,7 +7398,7 @@ void AGV_Correct_back_5(u8 gear)
 					if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1)
 					{
 						lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
-						printf("3: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
+						//printf("3: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 					}
 
 					if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 如果是简谐运动从右往中线回, 应该拉低右边电机的duty以达到减少回冲的速度
@@ -7418,7 +7406,7 @@ void AGV_Correct_back_5(u8 gear)
 						if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1)		// 如果已经回到1格了, 那么应该将右边的电机的duty恢复, 放开回拉的力量
 						{
 							rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]] - (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
-							printf("4: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
+							//printf("4: %d, %d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (AgvGearK[gearRecod] * (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center)));
 						}
 					}
 					
@@ -7480,14 +7468,7 @@ void AGV_Correct_back_5(u8 gear)
 					MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
 					
-					if(ctrlParasPtr->changeModeFlag)
-					{
-						ctrlParasPtr->changeModeFlag = 0;
-					}
-					else
-					{
-						
-					}
+					
 		#endif
 					rreco = lreco + 3;
 				}
@@ -7504,10 +7485,7 @@ void AGV_Correct_back_5(u8 gear)
 				lmSpeed = AgvGear[gearRecod] + BLeftCompDuty[AgvGear[gearRecod]];
 				rmSpeed = AgvGear[gearRecod] + BRightCompDuty[AgvGear[gearRecod]];
 							
-				if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
-				{
-					ctrlParasPtr->changeModeFlag = 0;
-				}
+				
 				
 			}
 		
@@ -8140,7 +8118,7 @@ void STATION_1AND2_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8159,7 +8137,7 @@ void STATION_1AND2_WalkControl(void)
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 		
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8178,7 +8156,7 @@ void STATION_3AND4_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8197,7 +8175,7 @@ void STATION_3AND4_WalkControl(void)
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8214,7 +8192,7 @@ void STATION_5AND6_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8233,7 +8211,7 @@ void STATION_5AND6_WalkControl(void)
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8251,7 +8229,7 @@ void STATION_7AND8_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8270,7 +8248,7 @@ void STATION_7AND8_WalkControl(void)
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8288,7 +8266,7 @@ void STATION_9AND10_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8307,7 +8285,7 @@ void STATION_9AND10_WalkControl(void)
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 7;
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8412,7 +8390,7 @@ void Walking_Step_Controler(void)
 	else if(step_entry == ctrlParasPtr->walkingstep)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
-		ctrlParasPtr->gear = 3;
+		ctrlParasPtr->gear = 4;
 
 		#if 1
 		
@@ -8420,6 +8398,7 @@ void Walking_Step_Controler(void)
 		{
 			CHANGE_TO_STOP_MODE();
 			Delay_ms(500);
+			
 			ctrlParasPtr->walkingstep = step_catch;
 		}
 		
@@ -8438,6 +8417,7 @@ void Walking_Step_Controler(void)
 	}
 	else if(step_catch == ctrlParasPtr->walkingstep)
 	{
+		#if 0
 		if(0 == LMT_SW)		// 已经抓到货物了
 		{
 			Delay_ms(3000);
@@ -8452,12 +8432,22 @@ void Walking_Step_Controler(void)
 			BECV_UP();
 			ECV_POWER_ON();
 		}
+		#else
+		FECV_UP();
+		BECV_UP();
+		ECV_POWER_ON();
+		Delay_ns(3);
+		ECV_POWER_OFF();
+		RFID_Info_Ptr->updateFlag = 0;
+		ctrlParasPtr->walkingstep = step_exit;
+		#endif
 		
 	}
 	else if(step_exit == ctrlParasPtr->walkingstep)
 	{
 		CHANGE_TO_BACK_MODE();
-		ctrlParasPtr->gear = 3;
+		ctrlParasPtr->gear = 4;
+		
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
 			RFID_Info_Ptr->updateFlag = 0;
@@ -8478,7 +8468,8 @@ void Walking_Step_Controler(void)
 		
 		ECV_POWER_ON();
 		
-		Delay_ms(3000);
+		Delay_ns(2);
+		ECV_POWER_OFF();
 		ctrlParasPtr->walkingstep = step_bVeer;
 	}
 	else if(step_bVeer == ctrlParasPtr->walkingstep)
@@ -8545,11 +8536,15 @@ void Walking_Step_Controler(void)
 	{
 		CHANGE_TO_BACK_MODE();
 		
-
 		if(0x0000 == FMSDS_Ptr->MSD_Hex)
 		{
 			CHANGE_TO_STOP_MODE();
-			Delay_ms(500);
+			FECV_DOWN();
+			BECV_DOWN();
+			ECV_POWER_ON();
+			Delay_ns(5);
+			ECV_POWER_OFF();
+			
 			ctrlParasPtr->walkingstep = step_stop;
 
 			ctrlParasPtr->goalStation = ControlCenter;
@@ -8786,8 +8781,8 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->avgFlag = 0;
 	ctrlParasPtr->avgFlagCount = 0;
 	ctrlParasPtr->gear = 0;
-	ctrlParasPtr->FSflag = 1;
-	ctrlParasPtr->BSflag = 1;
+	ctrlParasPtr->FSflag = 0;
+	ctrlParasPtr->BSflag = 0;
 	ctrlParasPtr->dampingFlag = DampingNone;
 	ctrlParasPtr->goalRFIDnode = 0;
 	ctrlParasPtr->goalStation = ControlCenter;

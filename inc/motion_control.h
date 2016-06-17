@@ -15,6 +15,8 @@
 
 #define MOTOR_RIGHT_CR_DEF(X) 	Motor_Right_CCR(X)
 #define MOTOR_LEFT_CR_DEF(X) 	Motor_Left_CR(X)
+#define CHECK_MOTOR_SET_DUTY(duty)		(((duty >= 0) && (duty <= 100)) ? 1 : 0)
+
 
 #define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
 #define MAX_STEP_SPEED_INC	1
@@ -262,8 +264,8 @@ void RFID_Node_Analy(void);
 void Walking_Step_Controler(void);
 void walking_cirRight(u8);
 void AGV_Correct_gS_6(u8 gear);
-void AGV_Correct_back_5(u8 gear)
-;
+void AGV_Correct_back_5(u8 gear);
+void AGV_Correct_gS_7(u8 gear);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

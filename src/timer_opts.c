@@ -64,6 +64,16 @@ u8 Delay_ms(u32 nms)
 	return 0;
 }
 
+void Delay_ns(u32 ns)
+{
+	u32 cir = 0;
+	
+	for(cir = 0; cir < ns; cir++)
+	{
+		Delay_ms(1000);
+	}
+}
+
 
 void Timer2_Init(u16 arr, u16 psc)
 {
