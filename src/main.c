@@ -49,7 +49,7 @@ int main(void)
 	
 	AGV_Walking_Test();
 	
-	ctrlParasPtr->gear = 5;
+	ctrlParasPtr->gear = 10;
 	
 	while(1)
 	{

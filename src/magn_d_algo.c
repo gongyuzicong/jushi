@@ -731,7 +731,10 @@ void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P ptr)
 	{
 		printf("Inits,\t");
 	}
-
+	else if(ptr->AgvMSLocation == Agv_MS_CrossRoad)
+	{
+		printf("CR,\t");
+	}
 	//printf("LRe = %d,\t", ptr->LeftRemain);
 	//printf("Zbits = %d,\t", ptr->BitNum);
 	//printf("RRe = %d,\t", ptr->RightRemain);
