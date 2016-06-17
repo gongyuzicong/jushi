@@ -46,10 +46,26 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
+	MOTOR_POWER_ON();
+	//ECV_POWER_ON();
+	//FECV_DOWN();
+	//BECV_DOWN();
+	//Delay_ms(5000);
+	ECV_POWER_OFF();
 	
-	AGV_Walking_Test();
+	//AGV_Walking_Test();
 	
-	ctrlParasPtr->gear = 7;
+	//ctrlParasPtr->gear = 7;
+
+	if(1 == Zigbee_Ptr->recvValidDataFlag)
+	{
+		Zigbee_Ptr->recvValidDataFlag = 0;
+		
+		ctrlParasPtr->gear = 7;
+		ctrlParasPtr->walkingstep = step_gS;
+		CHANGE_TO_GO_STRAIGHT_MODE();
+		
+	}
 	
 	while(1)
 	{
@@ -68,27 +84,15 @@ int main(void)
 			//AGV_Walking();
 
 			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				//AGV_Correct_gS();
-				if(1 == addGearFlag)
-				{
-					addGearFlag = 0;
-					ctrlParasPtr->gear++;
-				}
-
-				if(ctrlParasPtr->gear > 10)
-				{
-					CleanAllSpeed();
-					CHANGE_TO_STOP_MODE();
-				}
+			{	
 				
 				AGV_Correct_gS_7(ctrlParasPtr->gear);
 				//AGV_Correct_gS_test(ctrlParasPtr->gear);
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{
-				addGearFlag = 1;
-				AGV_Correct_back_4(ctrlParasPtr->gear);
+				
+				AGV_Correct_back_5(ctrlParasPtr->gear);
 			}
 			
 			//AGV_Change_Mode();

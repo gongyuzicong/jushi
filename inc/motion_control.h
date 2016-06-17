@@ -88,9 +88,32 @@
 #define MOTOR_LEFT_PG	PEin(12)
 #define MOTOR_LEFT_ALM	PEin(13)
 /****MOTOR IN: END****/
-
+#define ECV1_POWER			PDout(13)
+#define ECV2_POWER			PDout(14)
 #define MOTOR_POWER		PDout(15)
+#define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
+#define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
 /***********MOTOR LEFT: END***************/
+
+#define ECV1_PWM		PBout(8)		// 前电缸
+#define ECV1_DIR		PCout(14)		// 电缸方向 0: 缩   1: 推
+
+#define ECV2_PWM		PBout(9)		// 后电缸
+#define ECV2_DIR		PCout(15)		// 电缸方向 0: 推   1: 缩
+
+#define LMT_IN1			PCin(3)			// 响应为 0
+#define LMT_IN2			PCin(4)			// 响应为 0
+
+#define LMT_SW			PEin(0)			// 响应为 1
+
+
+#define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0;}
+#define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1;}
+#define FECV_UP()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }		//
+#define FECV_DOWN()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
+#define BECV_UP()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
+#define BECV_DOWN()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
+
 
 typedef enum
 {
@@ -123,6 +146,20 @@ typedef enum
 	DampingRight,
 }Damper;
 
+typedef enum
+{
+	step_gS = 1,
+	step_gVeer,
+	step_entry,
+	step_catch,
+	step_exit,
+	step_weigh,
+	step_bVeer,
+	step_gB,
+	step_stop,
+}WalkStep;
+
+
 typedef struct
 {
 	u8 settedSpeed;
@@ -149,19 +186,27 @@ typedef struct
 	u32 leftHallIntervalTime;
 	u32 comflag;
 
+	u32 rightHallCounter;
+	u32 leftHallCounter;
+	
 	u32 HLavg;
 	u32 HRavg;
 	u8 avgFlag;
 	u8 avgFlagCount;
 	u8 gear;
 
-	u8 changeModeFlag;
 
 	u8 FSflag;
 	u8 BSflag;
 
 	Damper dampingFlag;
-	Damper dampingTimeRec;
+	u32 dampingTimeRec;
+
+	u32 goalRFIDnode;
+	
+	SpinStation goalStation;
+
+	WalkStep walkingstep;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 typedef struct
