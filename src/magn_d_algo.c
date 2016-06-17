@@ -1159,7 +1159,12 @@ void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P 
 
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {
-	if(1 == Check_Zero_Bit_LeftOrRight(ptr))
+	if(0x00 == (0x8001 & ptr->MSD_Hex))
+	{
+		ptr->MSDCategory = MSD_LINE;
+		ptr->AgvMSLocation = Agv_MS_CrossRoad;
+	}
+	else if(1 == Check_Zero_Bit_LeftOrRight(ptr))
 	{
 		
 	}

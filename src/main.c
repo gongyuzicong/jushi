@@ -49,7 +49,7 @@ int main(void)
 	
 	AGV_Walking_Test();
 	
-	ctrlParasPtr->gear = 6;
+	ctrlParasPtr->gear = 5;
 	
 	while(1)
 	{
@@ -82,7 +82,7 @@ int main(void)
 					CHANGE_TO_STOP_MODE();
 				}
 				
-				AGV_Correct_gS_5(ctrlParasPtr->gear);
+				AGV_Correct_gS_6(ctrlParasPtr->gear);
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
 			{

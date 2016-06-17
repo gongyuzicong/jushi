@@ -193,6 +193,7 @@ void AGV_Correct_1(void);
 void AGV_Correct_gS_4(u8);
 void AGV_Correct_gS_5(u8);
 void AGV_Correct_back_4(u8);
+void AGV_Correct_gS_6(u8 gear);
 
 
 
