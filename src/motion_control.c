@@ -12,7 +12,7 @@ u8 AgvGearCompDutyLF[MAX_GEAR_NUM] = {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
 u8 AgvGearCompDutyRF[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 u8 AgvGearCompDutyLB[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 u8 AgvGearCompDutyRB[MAX_GEAR_NUM] = {0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-u8 AgvGearK[MAX_GEAR_NUM] = {1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 16, 17, 18, 19, 20, 21, 22};
+u8 AgvGearK[MAX_GEAR_NUM] = {1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 2, 2, 2, 16, 17, 18, 19, 20, 21, 22};
 
 
 u8 FLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},\
@@ -49,10 +49,10 @@ u8 BRG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 u8 FLeftCompDuty[101] = {0,\
 						 0, 0, 0, 0, 0, 0, 4, 4, 4, 4,\
 						 4, 4, 4, 4, 4, 2, 2, 2, 2, 2,\
-						 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
-						 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
-						 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
-						 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\
+						 2, 2, 2, 2, 3, 2, 2, 2, 2, 3,\
+						 2, 2, 2, 2, 3, 2, 2, 2, 2, 3,\
+						 2, 2, 2, 2, 3, 2, 2, 2, 2, 3,\
+						 2, 2, 2, 2, 3, 2, 2, 2, 2, 3,\
 						 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
 						 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
 						 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
@@ -8357,7 +8357,7 @@ void Walking_Step_Controler(void)
 		{
 			if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 			{
-				ctrlParasPtr->gear = 2;
+				ctrlParasPtr->gear = 1;
 				stepFlag = 2;
 			}
 		}
@@ -8365,34 +8365,38 @@ void Walking_Step_Controler(void)
 		{	
 			if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
 			{
-				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
+				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
 				{
 					CleanAllSpeed();
 					
 					CHANGE_TO_STOP_MODE();
-					Delay_ms(500);
+					Delay_ms(1000);
 					stepFlag = 0;
 					ctrlParasPtr->walkingstep = step_entry;
 				}
-				else if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
+				#if 1
+				else if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
 				{
 					CleanAllSpeed();
 					
 					CHANGE_TO_STOP_MODE();
-					Delay_ms(500);
+					Delay_ns(1);
 					stepFlag = 0;
 					ctrlParasPtr->walkingstep = step_entry;
 				}
+				#endif
 			}
 		}
 		
 	}
 	else if(step_entry == ctrlParasPtr->walkingstep)
 	{
+		static u8 flag = 0;
+		
 		CHANGE_TO_GO_STRAIGHT_MODE();
-		ctrlParasPtr->gear = 4;
+		
 
-		#if 1
+		#if 0
 		
 		if(0x0000 == FMSDS_Ptr->MSD_Hex)
 		{
@@ -8404,23 +8408,39 @@ void Walking_Step_Controler(void)
 		
 		#else
 
-		if((0 == LMT_IN1) || (0 == LMT_IN2) || (0x0000 == FMSDS_Ptr->MSD_Hex))		// 接近开关响应或者是超过磁条了
+		if(0x0000 == FMSDS_Ptr->MSD_Hex)
+		{
+			flag = 1;
+		}
+		
+		if(0 == flag)
+		{
+			ctrlParasPtr->gear = 4;
+		}
+		else
+		{
+			ctrlParasPtr->gear = 2;
+		}
+		
+		if((0 == LMT_IN1) || (0 == LMT_IN2))		// 接近开关响应或者是超过磁条了
 		{
 			CHANGE_TO_STOP_MODE();
-			Delay_ms(500);
+			Delay_ns(1);
 			
 			RFID_Info_Ptr->rfidData = 0;
+			flag = 0;
 			ctrlParasPtr->walkingstep = step_catch;
 		}
 
-		#endif		
+		#endif	
 	}
 	else if(step_catch == ctrlParasPtr->walkingstep)
 	{
-		#if 0
-		if(0 == LMT_SW)		// 已经抓到货物了
+		#if 1
+		
+		if(1 == LMT_SW)		// 已经抓到货物了
 		{
-			Delay_ms(3000);
+			//Delay_ns(3);
 			
 			ECV_POWER_OFF();
 
@@ -8429,23 +8449,28 @@ void Walking_Step_Controler(void)
 		else
 		{
 			FECV_UP();
-			BECV_UP();
+			//BECV_UP();
 			ECV_POWER_ON();
 		}
+		
 		#else
+		
 		FECV_UP();
 		BECV_UP();
 		ECV_POWER_ON();
 		Delay_ns(3);
 		ECV_POWER_OFF();
 		RFID_Info_Ptr->updateFlag = 0;
+		printf("change to back\r\n");
 		ctrlParasPtr->walkingstep = step_exit;
+		
 		#endif
 		
 	}
 	else if(step_exit == ctrlParasPtr->walkingstep)
 	{
 		CHANGE_TO_BACK_MODE();
+		
 		ctrlParasPtr->gear = 4;
 		
 		if(1 == RFID_Info_Ptr->updateFlag)
@@ -8456,7 +8481,7 @@ void Walking_Step_Controler(void)
 			if(ctrlParasPtr->goalRFIDnode == RFID_Info_Ptr->rfidData)
 			{
 				CHANGE_TO_STOP_MODE();
-				Delay_ms(500);
+				Delay_ns(1);
 				ctrlParasPtr->walkingstep = step_weigh;
 			}
 		}
@@ -8510,7 +8535,17 @@ void Walking_Step_Controler(void)
 		{	
 			if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
 			{
-				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
+				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
+				{
+					CleanAllSpeed();
+					
+					CHANGE_TO_STOP_MODE();
+					Delay_ms(1000);
+					stepFlag = 0;
+					ctrlParasPtr->walkingstep = step_gB;
+				}
+				#if 1
+				else if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
 				{
 					CleanAllSpeed();
 					
@@ -8519,15 +8554,7 @@ void Walking_Step_Controler(void)
 					stepFlag = 0;
 					ctrlParasPtr->walkingstep = step_gB;
 				}
-				else if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
-				{
-					CleanAllSpeed();
-					
-					CHANGE_TO_STOP_MODE();
-					Delay_ms(500);
-					stepFlag = 0;
-					ctrlParasPtr->walkingstep = step_gB;
-				}
+				#endif
 			}
 		}
 		

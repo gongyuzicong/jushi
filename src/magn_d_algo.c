@@ -1166,6 +1166,7 @@ void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 	if(0 == (ptr->MSD_Hex & 0x8001))
 	{
 		ptr->MSDCategory = MSD_LINE;
+		ptr->AgvMSLocation = Agv_MS_CrossRoad;
 	}
 	else if(1 == Check_Zero_Bit_LeftOrRight(ptr))
 	{

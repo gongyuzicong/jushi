@@ -50,12 +50,13 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	MOTOR_POWER_ON();
-	ECV_POWER_ON();
-	FECV_DOWN();
-	BECV_DOWN();
-	Delay_ns(5);
+	
+	//ECV_POWER_ON();
+	//FECV_DOWN();
+	//BECV_DOWN();
+	//Delay_ns(3);
 	ECV_POWER_OFF();
+	MOTOR_POWER_ON();
 	//AGV_Walking_Test();
 	
 	
@@ -91,7 +92,7 @@ int main(void)
 				}
 				else
 				{
-					Zigbee_Ptr->recvId = 0;
+					Zigbee_Ptr->recvId = 0x03;
 				}
 			}
 
@@ -164,6 +165,9 @@ int main(void)
 			{
 				Show_Infomation();
 			}
+
+			
+			
 		}
 		
 		#endif

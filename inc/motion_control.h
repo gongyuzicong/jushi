@@ -92,6 +92,7 @@
 /****MOTOR IN: END****/
 #define ECV1_POWER			PDout(13)
 #define ECV2_POWER			PDout(14)
+#define ECV3_POWER			PDout(16)	//
 #define MOTOR_POWER			PDout(15)
 #define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
 #define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
@@ -103,18 +104,26 @@
 #define ECV2_PWM		PBout(9)		// 后电缸
 #define ECV2_DIR		PCout(15)		// 电缸方向 0: 推   1: 缩
 
+#define ECV3_PWM		PBout(10)		// 
+#define ECV3_DIR		PCout(16)		// 
+
 #define LMT_IN1			PCin(3)			// 响应为 0
 #define LMT_IN2			PCin(4)			// 响应为 0
 
 #define LMT_SW			PEin(0)			// 响应为 1
 
 
-#define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0;}
-#define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1;}
+#define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0; ECV3_POWER = 0;}
+#define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1; ECV3_POWER = 1;}
+
 #define FECV_UP()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }		//
 #define FECV_DOWN()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
+
 #define BECV_UP()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
 #define BECV_DOWN()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
+
+#define WECV_UP()		{ECV3_DIR = 0;   ECV3_PWM = 1;  }
+#define WECV_DOWN()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
 /**************ECV**************/
 
 
