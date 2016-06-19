@@ -59,7 +59,7 @@ int main(void)
 	MOTOR_POWER_ON();
 	AGV_Walking_Test();
 
-	ctrlParasPtr->gear = 5;
+	ctrlParasPtr->gear = 7;
 	
 	while(1)
 	{

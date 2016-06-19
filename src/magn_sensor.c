@@ -681,6 +681,28 @@ void Show_Check_Agv_Location(Agv_Midpoint_Location_Struct_P amls)
 	}
 }
 
+
+void Check_Max_MSLocation(void)
+{
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// ÍùÍâÆ«ÒÆ,¼ÓËÙ
+	{		
+		
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{		
+		
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+	}
+
+}
+
 void Check_Agv_Location_S(Agv_Midpoint_Location_Struct_P amls, Magn_Sensor_Data_Sturct_P front, Magn_Sensor_Data_Sturct_P rear)
 {
 	amls->AgvMPLocation_s = front->AgvMSLocation_s - rear->AgvMSLocation_s;
@@ -773,7 +795,7 @@ void Show_Infomation(void)
 	//Check_Agv_Location_S(AGV_MPLS_Ptr, FMSDS_Ptr, RMSDS_Ptr);
 	//Show_Check_Agv_Location_S(AGV_MPLS_Ptr);
 	*/
-	printf("MaxRecoder = %d, calu = %d\r\n", FMSDS_Ptr->MaxRecoder, LocValu(FMSDS_Ptr->MaxRecoder));
+	//printf("MaxRecoder = %d, calu = %d\r\n", FMSDS_Ptr->MaxRecoder, LocValu(FMSDS_Ptr->MaxRecoder));
 	printf("\r\n");
 }
 
