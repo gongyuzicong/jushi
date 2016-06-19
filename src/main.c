@@ -57,8 +57,9 @@ int main(void)
 	//Delay_ns(3);
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
-	//AGV_Walking_Test();
-	
+	AGV_Walking_Test();
+
+	ctrlParasPtr->gear = 5;
 	
 	while(1)
 	{
@@ -115,9 +116,9 @@ int main(void)
 			
 			//Zigbee_Data_Scan();
 			
-			RFID_Node_Analy();
+			//RFID_Node_Analy();
 			
-			Walking_Step_Controler();
+			//Walking_Step_Controler();
 			
 			//AGV_Walking();
 			
@@ -140,7 +141,7 @@ int main(void)
 				
 				#endif
 				
-				AGV_Correct_gS_7(ctrlParasPtr->gear);
+				AGV_Correct_gS_8(ctrlParasPtr->gear);
 				
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)

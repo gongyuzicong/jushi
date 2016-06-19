@@ -275,6 +275,7 @@ void walking_cirRight(u8);
 void AGV_Correct_gS_6(u8 gear);
 void AGV_Correct_back_5(u8 gear);
 void AGV_Correct_gS_7(u8 gear);
+void AGV_Correct_gS_8(u8 gear);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;
