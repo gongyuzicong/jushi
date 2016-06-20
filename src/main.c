@@ -59,7 +59,7 @@ int main(void)
 	MOTOR_POWER_ON();
 	AGV_Walking_Test();
 
-	ctrlParasPtr->gear = 7;
+	ctrlParasPtr->gear = 8;
 	
 	while(1)
 	{
@@ -141,7 +141,7 @@ int main(void)
 				
 				#endif
 				
-				AGV_Correct_gS_8(ctrlParasPtr->gear);
+				AGV_Correct_gS_8ug(ctrlParasPtr->gear);
 				
 			}
 			else if(backStatus == ctrlParasPtr->agvStatus)
