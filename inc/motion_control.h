@@ -279,6 +279,8 @@ void AGV_Correct_gS_8(u8 gear);
 void AGV_Correct_gS_7_ug(u8 gear);
 void AGV_Correct_gS_7_ug2(u8 gear);
 void AGV_Correct_gS_8ug(u8 gear);
+void gS_back_mode(void);
+void gS_startup_mode(void);
 
 
 
