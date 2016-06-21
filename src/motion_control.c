@@ -369,7 +369,7 @@ void set_duty(u8 lmSpeed, u8 rmSpeed)
 	}
 	else
 	{
-		printf("dutyErr2! lms = %d, rms = %d\r\n\r\n", lmSpeed, rmSpeed);
+		printf("dutyErr! lms = %d, rms = %d\r\n\r\n", lmSpeed, rmSpeed);
 	}
 }
 
@@ -3450,7 +3450,7 @@ void AGV_Correct_gS_3(u8 gear)
 
 void AGV_Correct_gS_4(u8 gear)
 {
-	static u32 startCount = 0;
+	//static u32 startCount = 0;
 	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0;
 	//static u8 loffset = 0, roffset = 5;
 	//static Agv_MS_Location MSLRecode = AgvInits;
@@ -6161,7 +6161,7 @@ void gS_startup_mode(void)
 			
 			if(centCount > 5000)
 			{
-				//ctrlParasPtr->FSflag = 2;
+				ctrlParasPtr->FSflag = 2;
 				ctrlParasPtr->comflag = 6331;
 				
 				startCount = 0;
@@ -6217,10 +6217,14 @@ void gS_urgency_mode(void)
 void scale_1_mode(u8 gearRecod)
 {
 	static u8 lmSpeed = 0, rmSpeed = 0;
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 7, 8, 10, 12, 14, 16, 18, 20, 20};
+	
 	// 普通模式,偏差在1格之内调整
 
-	lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
-	rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+	lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+	rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
 	
 	ctrlParasPtr->comflag = 64;
 	
@@ -6236,8 +6240,9 @@ void scale_1_mode(u8 gearRecod)
 		}
 		
 		//printf("1gearRecod = %d\r\n", gearRecod);
-		lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]];
-		rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - AgvGear7CDLF[Agv_MS_Center - FMSDS_Ptr->AgvMSLocation]; 		
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[Agv_MS_Center - FMSDS_Ptr->AgvMSLocation]; 		
+
+		#if 0
 		
 		if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)
 		{
@@ -6245,18 +6250,23 @@ void scale_1_mode(u8 gearRecod)
 			if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_5))
 			{
 				ctrlParasPtr->comflag = 64111;
-				lmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - AgvGear7CDLF[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation]; 		
+				lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation]; 		
 				//rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
 			
 			}
 			else if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_5)
 			{
 				ctrlParasPtr->comflag = 64112;	
-				lmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - AgvGear7CDLF[Agv_MS_Left_1 - Agv_MS_Left_5];		
+				lmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - AgvGearS1CDLF[Agv_MS_Left_1 - Agv_MS_Left_5];		
 				//rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
 			}
 		}
+
+		#else
+
 		
+		
+		#endif
 		
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
@@ -6269,14 +6279,13 @@ void scale_1_mode(u8 gearRecod)
 		}
 		
 		//printf("** 621 622 623  %d\r\n", FMSDS_Ptr->AgvMSLocation);
-
-		
 		
 		//printf("2gearRecod = %d\r\n", gearRecod);
 		
-		lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - AgvGear7CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Center];
-		rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]];
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Center];
 
+		#if 0
+		
 		if(AgvRight2Cent == FMSDS_Ptr->agvDirection)
 		{
 			ctrlParasPtr->comflag = 6421;
@@ -6284,19 +6293,512 @@ void scale_1_mode(u8 gearRecod)
 			{
 
 				ctrlParasPtr->comflag = 64211;
-				rmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - AgvGear7CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
+				rmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
 			}
 			else if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_5)
 			{
 				ctrlParasPtr->comflag = 64212;
-				rmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - AgvGear7CDLF[Agv_MS_Right_5 - Agv_MS_Right_1];
+				rmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - AgvGearS1CDLF[Agv_MS_Right_5 - Agv_MS_Right_1];
 			}
 		}
+		
+		#else
+
+		
+		
+		#endif
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+
+	#if 1
+		// 加入阻尼模块
+		// 阻尼begin	
+		if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 		// 如果是左偏之后拉回来的
+		{
+			ctrlParasPtr->comflag = 6341;
+			ctrlParasPtr->dampingFlag = DampingLeft;
+			ctrlParasPtr->dampingTimeRec = SystemRunningTime;
+			
+			//LocValu(FMSDS_Ptr->MaxRecoder);
+			
+			//lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+			
+			lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[1];
+			rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+			
+			//printf("lmSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+		}
+		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)			// 如果是左偏之后拉回来的
+		{
+			ctrlParasPtr->comflag = 6342;
+			ctrlParasPtr->dampingFlag = DampingRight;
+			ctrlParasPtr->dampingTimeRec = SystemRunningTime;
+
+			//rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+			lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+			rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[1];
+			
+
+			//printf("rmSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+		}
+		// 阻尼end
+		//else if(AgvNone == FMSDS_Ptr->agvDirection)
+	#endif
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+
+	
+	damping_func(1000, gearRecod, lmSpeed, rmSpeed);
+	//set_duty(lmSpeed, rmSpeed);
+	
+	
+}
+
+
+void scale_1_mode1(u8 gear)
+{
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0;
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 6, 9, 11, 11, 11, 11, 11, 11, 11};
+	static u8 sub = 0, flag1 = 0, flag2 = 0;
+	// 普通模式,偏差在1格之内调整
+	
+	ctrlParasPtr->comflag = 64;
+
+	gearRecod = gear;
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+		
+		if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_2)
+		{
+			if(0 == flag1)
+			{
+				if(gear - 1 > sub)
+				{
+					sub++;
+					printf("gearRecvd = %d\r\n", gearRecod - sub);
+				}
+				flag1 = 1;
+			}
+			
+			if(1 == flag2)
+			{
+				flag2 = 0;
+			}
+			
+		}
+		
+		//printf("1gearRecod = %d\r\n", gearRecod);
+		lmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyLF[gearRecod];
+		rmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[Agv_MS_Center - FMSDS_Ptr->AgvMSLocation];
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{	
+		ctrlParasPtr->comflag = 642;
+
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+
+		if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_2)
+		{
+			if(0 == flag2)
+			{
+				if(gear - 1 > sub)
+				{
+					sub++;
+					printf("gearRecvd = %d\r\n", gearRecod - sub);
+				}
+				flag2 = 1;
+			}
+
+			if(1 == flag1)
+			{
+				flag1 = 0;	
+			}
+			
+		}
+		
+		//printf("** 621 622 623  %d\r\n", FMSDS_Ptr->AgvMSLocation);
+		//printf("2gearRecod = %d\r\n", gearRecod);
+		
+		
+		lmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Center];
+		rmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyRF[gearRecod];
+		
+				
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+
+	#if 1
+		// 加入阻尼模块
+		// 阻尼begin	
+		if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 		// 如果是左偏之后拉回来的
+		{
+			ctrlParasPtr->comflag = 6341;
+			ctrlParasPtr->dampingFlag = DampingLeft;
+			ctrlParasPtr->dampingTimeRec = SystemRunningTime;
+			
+			//LocValu(FMSDS_Ptr->MaxRecoder);
+			
+			//lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+			
+			lmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[3];
+			rmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyRF[gearRecod];
+			
+			//printf("lmSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
+		}
+		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)			// 如果是左偏之后拉回来的
+		{
+			ctrlParasPtr->comflag = 6342;
+			ctrlParasPtr->dampingFlag = DampingRight;
+			ctrlParasPtr->dampingTimeRec = SystemRunningTime;
+
+			//rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - DutyTable[1];
+			lmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyLF[gearRecod];
+			rmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[3];
+			
+
+			//printf("rmSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
+		}
+		// 阻尼end
+		//else if(AgvNone == FMSDS_Ptr->agvDirection)
+	#endif
+
+		if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+		{
+			ctrlParasPtr->comflag = 633;
+			
+			if(0 == startCount)
+			{
+				startCount = SystemRunningTime;
+			}
+			else
+			{
+				centCount = SystemRunningTime - startCount;
+			}
+			
+			if(centCount > 5000)
+			{
+				sub = 0;
+				ctrlParasPtr->comflag = 6331;
+				
+				startCount = 0;
+				
+			}
+			
+		}
+
+		
+		lmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyLF[gearRecod];
+		rmSpeed = AgvGear[gearRecod - sub] + AgvGearCompDutyRF[gearRecod];
+	
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
 		
 		
 	}
 	
-	set_duty(lmSpeed, rmSpeed);
+	
+	damping_func(1000, gearRecod, lmSpeed, rmSpeed);
+	//set_duty(lmSpeed, rmSpeed);
+	
+	
+}
+
+void scale_1_mode2(u8 gear)
+{
+	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeedR = 0, rmSpeedR = 0, modeFlag1 = 0, modeFlag2 = 0;
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 6, 9, 11, 11, 11, 11, 11, 11, 11};
+	u8 gearRecod = 0, gain = 3;
+	static Agv_MS_Location locRec = AgvInits;
+	// 普通模式,偏差在1格之内调整
+
+	gearRecod = gear;
+
+	lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+	rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+	
+	ctrlParasPtr->comflag = 64;
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+
+		if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_2)
+		{
+			//modeFlag1 = 1;
+			lmSpeedR = gain;
+		}
+
+		if((AgvLeft2Cent == FMSDS_Ptr->agvDirection) && (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1))
+		{
+			lmSpeedR = 0;
+		}
+		
+		//printf("1gearRecod = %d\r\n", gearRecod);
+		
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[Agv_MS_Center - FMSDS_Ptr->AgvMSLocation] - rmSpeedR;		
+		//printf("rmSpeedR = %d\r\n", rmSpeedR);
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+		//rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[Agv_MS_Center - FMSDS_Ptr->AgvMSLocation];
+		rmSpeedR = 0;
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{	
+		ctrlParasPtr->comflag = 642;
+
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+		
+		if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_2)
+		{
+			
+			//modeFlag2 = 1;
+			rmSpeedR = gain;
+		}
+
+		if((AgvRight2Cent == FMSDS_Ptr->agvDirection) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+		{
+			lmSpeedR = 0;
+		}
+		
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Center] - lmSpeedR;		
+		//printf("lmSpeedR = %d\r\n", lmSpeedR);
+		//lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Center];
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+
+		lmSpeedR = 0;
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+		
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+
+	
+	damping_func(1000, gearRecod, lmSpeed, rmSpeed);
+	//set_duty(lmSpeed, rmSpeed);
+	
+	
+}
+
+
+void scale_1_mode3(u8 gear)
+{
+	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeedR = 0, rmSpeedR = 0, modeFlag1 = 0, modeFlag2 = 0;
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 6, 9, 11, 11, 11, 11, 11, 11, 11};
+	u8 gearRecod = 0, gain = 3;
+	static Agv_MS_Location locRec = AgvInits;
+	// 普通模式,偏差在1格之内调整
+
+	gearRecod = gear;
+
+	lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+	rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+	
+	ctrlParasPtr->comflag = 64;
+
+
+	if(AGV_Pat_Ptr->Midpoint > 0)
+	{
+		if((AGV_Pat_Ptr->Angle >= -1) && (AGV_Pat_Ptr->Angle <= 1))			// 如果角度在 ±1内
+		{
+			if(-1 == AGV_Pat_Ptr->Angle)
+			{
+				rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - 1;
+			}
+			else if(1 == AGV_Pat_Ptr->Angle)
+			{
+				rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - 2;
+			}
+		}
+		else
+		{
+			
+		}
+	}
+	else if(0 == AGV_Pat_Ptr->Midpoint)
+	{
+		if((AGV_Pat_Ptr->Angle >= -1) && (AGV_Pat_Ptr->Angle <= 1))			// 如果角度在 ±1内
+		{
+			if(-2 == AGV_Pat_Ptr->Angle)
+			{
+				rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - 3;
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)
+			{
+				lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+				rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+			}
+			else if(2 == AGV_Pat_Ptr->Angle)
+			{
+				lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - 3;
+			}
+			
+		}
+		else
+		{
+			
+		}
+	}
+	else if(AGV_Pat_Ptr->Midpoint < 0)
+	{
+		if((AGV_Pat_Ptr->Angle >= -1) && (AGV_Pat_Ptr->Angle <= 1))			// 如果角度在 ±1内
+		{
+			if(-1 == AGV_Pat_Ptr->Angle)
+			{
+				lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - 2;
+			}
+			else if(1 == AGV_Pat_Ptr->Angle)
+			{
+				lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - 1;
+			}
+			
+		}
+		else
+		{
+			
+		}
+	}
+
+	
+	damping_func(1000, gearRecod, lmSpeed, rmSpeed);
+	//set_duty(lmSpeed, rmSpeed);
+	
+	
+}
+
+
+void scale_1_mode4(u8 gear)
+{
+	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeed_pat = 0, rmSpeed_pat = 0;
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 6, 9, 11, 11, 11, 11, 11, 11, 11};
+	u8 gearRecod = 0, gain = 3;
+	static Agv_MS_Location locRec = AgvInits;
+	// 普通模式,偏差在1格之内调整
+
+	gearRecod = gear;
+
+	lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+	rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+	
+	ctrlParasPtr->comflag = 64;
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+
+		if((-2 == AGV_Pat_Ptr->Angle) && (0 == AGV_Pat_Ptr->Midpoint))
+		{
+			lmSpeed_pat = 1;
+		}
+		
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - AgvGearS1CDLF[Agv_MS_Center - FMSDS_Ptr->AgvMSLocation];		
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{	
+		ctrlParasPtr->comflag = 642;
+
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+		}
+
+		if((-2 == AGV_Pat_Ptr->Angle) && (0 == AGV_Pat_Ptr->Midpoint))
+		{
+			rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - 1;
+		}
+
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Center];		
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+
+		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
+		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
+
+		if(AGV_Pat_Ptr->Midpoint > 0)
+		{
+			if(-1 == AGV_Pat_Ptr->Angle)
+			{
+				rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - 1;
+			}
+			
+		}
+		else if(AGV_Pat_Ptr->Midpoint > 0)
+		{
+			if(1 == AGV_Pat_Ptr->Angle)
+			{
+				rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - 1;
+			}
+		}
+		
+		
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+
+	
+	
+	damping_func(1000, gearRecod, lmSpeed, rmSpeed);
+	//set_duty(lmSpeed, rmSpeed);
 	
 	
 }
@@ -6352,15 +6854,36 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		{
 			ctrlParasPtr->comflag = 62;
 			
-			if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
+			if(((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End)) ||\
+				((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End)))
 			{
 				// 超过5格, 跑失控修正模式
-				ctrlParasPtr->FSflag = 2;
+				//ctrlParasPtr->FSflag = 1;
 				ctrlParasPtr->comflag = 621;
 			}
-			else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+			else if((Agv_MS_Left_4 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_4 == FMSDS_Ptr->AgvMSLocation))
 			{
-				// 超过5格, 跑失控修正模式
+				// ±4格, 跑4格模式
+				//ctrlParasPtr->FSflag = 5;
+				ctrlParasPtr->comflag = 622;
+			}
+			else if((Agv_MS_Left_3 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_3 == FMSDS_Ptr->AgvMSLocation))
+			{
+				// ±3格, 跑3格模式
+				//ctrlParasPtr->FSflag = 4;
+				ctrlParasPtr->comflag = 622;
+			}
+			#if 0
+			else if((Agv_MS_Left_2 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_2 == FMSDS_Ptr->AgvMSLocation))
+			{
+				// ±2格, 跑2格模式
+				//ctrlParasPtr->FSflag = 3;
+				ctrlParasPtr->comflag = 622;
+			}
+			#endif
+			else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) || (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
+			{
+				// ±1格, 跑1格模式
 				ctrlParasPtr->FSflag = 2;
 				ctrlParasPtr->comflag = 622;
 			}
@@ -6388,7 +6911,7 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		else if(2 == ctrlParasPtr->FSflag)
 		{
 			// 偏差达到1格模式
-			scale_1_mode(gearRecod);
+			scale_1_mode3(gearRecod);
 			
 		}
 		else if(3 == ctrlParasPtr->FSflag)
@@ -8055,10 +8578,7 @@ void AGV_Correct_back_4(u8 gear)
 void AGV_Correct_back_5(u8 gear)
 {
 	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0;
-	static u8 loffset = 0, roffset = 5;
-	static Agv_MS_Location MSLRecode = AgvInits;
-	u8 LTM_flag = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0;
 	u32 centCount = 0;
 	
 	
