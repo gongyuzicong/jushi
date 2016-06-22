@@ -474,7 +474,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 	switch(ptr->MSD_Hex)
 	{
 		case 0x83FF:
-			ptr->AgvMSLocation = Agv_MS_Right_5;
+			ptr->AgvMSLocation = Agv_MS_Right_4_5;
 			ptr->LeftRemain = 1;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 10;
@@ -482,7 +482,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xC1FF:
-			ptr->AgvMSLocation = Agv_MS_Right_4;
+			ptr->AgvMSLocation = Agv_MS_Right_3_5;
 			ptr->LeftRemain = 2;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 9;
@@ -490,7 +490,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xE0FF:
-			ptr->AgvMSLocation = Agv_MS_Right_3;
+			ptr->AgvMSLocation = Agv_MS_Right_2_5;
 			ptr->LeftRemain = 3;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 8;
@@ -498,7 +498,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xF07F:
-			ptr->AgvMSLocation = Agv_MS_Right_2;
+			ptr->AgvMSLocation = Agv_MS_Right_1_5;
 			ptr->LeftRemain =4 ;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 7;
@@ -506,7 +506,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xF83F:
-			ptr->AgvMSLocation = Agv_MS_Right_1;
+			ptr->AgvMSLocation = Agv_MS_Right_0_5;
 			ptr->LeftRemain = 5;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 6;
@@ -514,7 +514,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xFC1F:
-			ptr->AgvMSLocation = Agv_MS_Left_1;
+			ptr->AgvMSLocation = Agv_MS_Left_0_5;
 			ptr->LeftRemain = 6;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 5;
@@ -522,7 +522,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xFE0F:
-			ptr->AgvMSLocation = Agv_MS_Left_2;
+			ptr->AgvMSLocation = Agv_MS_Left_1_5;
 			ptr->LeftRemain = 7;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 4;
@@ -530,7 +530,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xFF07:
-			ptr->AgvMSLocation = Agv_MS_Left_3;
+			ptr->AgvMSLocation = Agv_MS_Left_2_5;
 			ptr->LeftRemain = 8;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 3;
@@ -538,7 +538,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xFF83:
-			ptr->AgvMSLocation = Agv_MS_Left_4;
+			ptr->AgvMSLocation = Agv_MS_Left_3_5;
 			ptr->LeftRemain = 9;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 2;
@@ -546,7 +546,7 @@ u8 Check_5_Zero_Bit(Magn_Sensor_Data_Sturct_P ptr)		// check
 			break;
 
 		case 0xFFC1:
-			ptr->AgvMSLocation = Agv_MS_Left_5;
+			ptr->AgvMSLocation = Agv_MS_Left_4_5;
 			ptr->LeftRemain = 10;
 			ptr->BitNum = 5;
 			ptr->RightRemain = 1;
@@ -690,12 +690,46 @@ void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P ptr)
 	if((ptr->AgvMSLocation > Agv_MS_Left_End) && (ptr->AgvMSLocation < Agv_MS_Center))
 	{
 		printf("L_");
-		printf("%d,\t", Agv_MS_Center - ptr->AgvMSLocation);
+		if((ptr->AgvMSLocation > Agv_MS_Left_5) && (ptr->AgvMSLocation < Agv_MS_Center))
+		{
+			if(0 == (ptr->AgvMSLocation % 2))
+			{
+				printf("%d.5,\t", (Agv_MS_Center - ptr->AgvMSLocation) / 2);
+			}
+			else
+			{
+				printf("%d,\t", (Agv_MS_Center - ptr->AgvMSLocation) / 2);
+			}
+			
+		}
+		else
+		{
+			printf("%d,\t", Agv_MS_Center - ptr->AgvMSLocation - 5);
+		}
+		
 	}
 	else if((ptr->AgvMSLocation > Agv_MS_Center) && (ptr->AgvMSLocation < Agv_MS_Right_End))
 	{
 		printf("R_");
-		printf("%d,\t", ptr->AgvMSLocation - Agv_MS_Center);
+		//printf("%d,\t", ptr->AgvMSLocation - Agv_MS_Center);
+		
+		if((ptr->AgvMSLocation > Agv_MS_Center) && (ptr->AgvMSLocation < Agv_MS_Right_5))
+		{
+			if(0 == (ptr->AgvMSLocation % 2))
+			{
+				printf("%d.5,\t", (ptr->AgvMSLocation - Agv_MS_Center) / 2);
+			}
+			else
+			{
+				printf("%d,\t", (ptr->AgvMSLocation - Agv_MS_Center) / 2);
+			}
+			
+		}
+		else
+		{
+			printf("%d,\t", ptr->AgvMSLocation - Agv_MS_Center - 5);
+		}
+		
 	}
 	else if((ptr->AgvMSLocation >= Agv_MS_LOut_1) && (ptr->AgvMSLocation <= Agv_MS_LOut_8))
 	{

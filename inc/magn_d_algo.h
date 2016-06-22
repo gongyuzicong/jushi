@@ -6,6 +6,10 @@
 #include "common_include.h"
 #include "data_type.h"
 
+#define CHECK_LEFT_H(value)				((0 == value % 2) ? 1 : 0)
+#define CHECK_RIGHT_H(value)			((0 == value % 2) ? 1 : 0)
+
+
 typedef enum
 {
 	AgvInitS = 0,
@@ -21,34 +25,45 @@ typedef enum
 typedef enum
 {
 	AgvInits = 0,
-	
+
+
 	Agv_MS_Left_End,		// 1
 	Agv_MS_Left_10,			// 2
-	Agv_MS_Left_9,
-	Agv_MS_Left_8,
-	Agv_MS_Left_7,
-	Agv_MS_Left_6,
-	Agv_MS_Left_5,
-	Agv_MS_Left_4,
-	Agv_MS_Left_3,
-	Agv_MS_Left_2,
-	Agv_MS_Left_1,			// 11
+	Agv_MS_Left_9,			// 3
+	Agv_MS_Left_8,			// 4
+	Agv_MS_Left_7,			// 5
+	Agv_MS_Left_6,			// 6
+	Agv_MS_Left_5,			// 7
+	Agv_MS_Left_4_5,		// 8
+	Agv_MS_Left_4,			// 9
+	Agv_MS_Left_3_5,		// 10
+	Agv_MS_Left_3,			// 11
+	Agv_MS_Left_2_5,		// 12
+	Agv_MS_Left_2,			// 13
+	Agv_MS_Left_1_5,		// 14
+	Agv_MS_Left_1,			// 15
+	Agv_MS_Left_0_5,		// 16
 	//Agv_MS_Left_Begin,
 
-	Agv_MS_Center,		//12
+	Agv_MS_Center,			// 17
 	
 	//Agv_MS_Right_Begin,
-	Agv_MS_Right_1,
-	Agv_MS_Right_2,
-	Agv_MS_Right_3,
-	Agv_MS_Right_4,
-	Agv_MS_Right_5,
-	Agv_MS_Right_6,
-	Agv_MS_Right_7,
-	Agv_MS_Right_8,
-	Agv_MS_Right_9,
-	Agv_MS_Right_10,	
-	Agv_MS_Right_End,	// 23
+	Agv_MS_Right_0_5,		// 18
+	Agv_MS_Right_1,			// 19
+	Agv_MS_Right_1_5,		// 20
+	Agv_MS_Right_2,			// 21
+	Agv_MS_Right_2_5,		// 22
+	Agv_MS_Right_3,			// 23
+	Agv_MS_Right_3_5,		// 24
+	Agv_MS_Right_4,			// 25
+	Agv_MS_Right_4_5,		// 26
+	Agv_MS_Right_5,			// 27
+	Agv_MS_Right_6,			// 28
+	Agv_MS_Right_7,			// 29
+	Agv_MS_Right_8,			// 30
+	Agv_MS_Right_9,			// 31
+	Agv_MS_Right_10,		// 32
+	Agv_MS_Right_End,		// 33
 	
 	Agv_MS_Right_Outside,
 	Agv_MS_Left_Outside,
@@ -56,23 +71,23 @@ typedef enum
 	Agv_MS_Undefine,
 	Agv_MS_Overline,
 	
-	Agv_MS_LOut_1,		// 27
+	Agv_MS_LOut_1,			// 40
 	Agv_MS_LOut_2,
 	Agv_MS_LOut_3,
 	Agv_MS_LOut_4,
 	Agv_MS_LOut_5,
 	Agv_MS_LOut_6,
 	Agv_MS_LOut_7,
-	Agv_MS_LOut_8,		// 34
+	Agv_MS_LOut_8,			// 47
 
-	Agv_MS_ROut_1,		// 35
+	Agv_MS_ROut_1,			// 48
 	Agv_MS_ROut_2,
 	Agv_MS_ROut_3,
 	Agv_MS_ROut_4,
 	Agv_MS_ROut_5,
 	Agv_MS_ROut_6,
 	Agv_MS_ROut_7,
-	Agv_MS_ROut_8,		// 42
+	Agv_MS_ROut_8,			// 55
 
 	Agv_MS_CrossRoad,
 	

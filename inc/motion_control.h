@@ -10,6 +10,8 @@
 
 #define MAX_HALL_COUNT		1
 
+
+
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
 
