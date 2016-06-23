@@ -3,6 +3,7 @@
 
 #include "data_type.h"
 #include "common_include.h"
+#include "magn_d_algo.h"
 
 
 #define Max_Station_Num				11
@@ -238,6 +239,14 @@ typedef struct
 
 	WalkStep walkingstep;
 }ControlerParaStruct, *ControlerParaStruct_P;
+
+
+typedef struct
+{
+	u32 trec[3];
+	Agv_MS_Location amlrec[100];
+	u8 amlH;
+}TimRec, *TimRec_P;
 
 typedef struct
 {
