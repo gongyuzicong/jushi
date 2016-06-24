@@ -250,6 +250,17 @@ typedef struct
 
 typedef struct
 {
+	u32 T1;
+	u32 T2;
+	u32 T3;
+	u8 T1_update;
+	u8 T2_update;
+	u8 T3_update;
+	u8 All_update;
+}Trec, *Trec_P;
+
+typedef struct
+{
 	void (*motor_up)(void);
 	void (*motor_down)(void);
 	void (*motor_left)(void);

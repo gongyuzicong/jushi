@@ -6232,7 +6232,7 @@ void gS_startup_mode(void)
 		
 		startCount = 0;
 	}
-	else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_0_5) || (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_0_5))
+	else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_0_5) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_0_5))
 	{
 		ctrlParasPtr->comflag = 634;
 
@@ -6271,7 +6271,7 @@ void gS_startup_mode(void)
 		//else if(AgvNone == FMSDS_Ptr->agvDirection)
 	#endif
 	
-		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_0_5) || (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_0_5))
+		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_0_5) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_0_5))
 		{
 			ctrlParasPtr->comflag = 633;
 			
@@ -8915,36 +8915,27 @@ void scale_1_mode6(u8 gear)
 		
 }
 
-u8 t1_monitor(void)
+void T_monitor(Trec *now)
 {
 	static u8 flaga = 0, flagt1 = 0, flagt2 = 0, acFlag = 0, t2flag = 0;
 	static u32 T1 = 0, T2 = 0, T3 = 0, centerTT = 0, ET1 = 0, countFlag = 0, ET0_5 = 0, T1pre = 0, T2pre = 0, T3pre = 0, acTST = 0;
 	static Agv_MS_Location locRec = AgvInits, locRec2 = AgvInits;
-
-	
-#if 1
-
 	
 	
 	if(locRec != FMSDS_Ptr->AgvMSLocation)
 	{
 		locRec = FMSDS_Ptr->AgvMSLocation;
 		//printf("countFlag = %d, locRec = %d\r\n", countFlag, locRec);
+		
 		if(0 == countFlag)
 		{
 			if((Agv_MS_Left_1 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_1 == FMSDS_Ptr->AgvMSLocation))
 			{
-				
-				//T1 = FMSDS_Ptr->TimeRecoder - centerTT;
-				//T1 = FMSDS_Ptr->VelocityXt;
-				//ET1 = SystemRunningTime;
-				//T1 = ET1 - centerTT;
-				//T1pre = T1;
-				//T1 = FMSDS_Ptr->VelocityXt + FMSDS_Pre_Ptr->VelocityXt;
 				T1 = FMSDS_Ptr->VelocityXt;
 				
 				flagt1 = 1;
 				flaga = 1;
+				now->T1_update = 1;
 				
 				countFlag = 1;
 				rec[recH].trec[0] = T1;
@@ -8956,14 +8947,9 @@ u8 t1_monitor(void)
 		{
 			if((Agv_MS_Left_0_5 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_0_5 == FMSDS_Ptr->AgvMSLocation))
 			{
-				//ET0_5 = SystemRunningTime;
-				//T2pre = T2;
-				//T2 = ET0_5 - ET1;
-				//T2 = FMSDS_Ptr->TimeRecoder - ET1;
-				//ET0_5 = FMSDS_Ptr->TimeRecoder;
-				//flagt2 = 1;
 				T2 += FMSDS_Ptr->VelocityXt;
 				countFlag = 2;
+				now->T2_update = 1;
 				rec[recH].trec[1] = T2;
 				printf("T2 = %d\r\n", T2);
 			}
@@ -8977,10 +8963,7 @@ u8 t1_monitor(void)
 		{
 			if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 			{
-				//T3 = FMSDS_Ptr->TimeRecoder - ET0_5;
-				//T3pre = T3;
 				T3 = FMSDS_Ptr->VelocityXt;
-				//ET0_5 = FMSDS_Ptr->TimeRecoder;
 				countFlag = 0;
 				rec[recH].trec[2] = T3;
 				printf("T3 = %d\r\n", T3);
@@ -8994,9 +8977,11 @@ u8 t1_monitor(void)
 				rec[recH].amlH = 0;
 				flaga = 0;
 
-
 				centerTT = SystemRunningTime;
 
+				now->T3_update = 1;
+				now->All_update = 1;
+				
 				T1pre = T1;
 				T2pre = T2;
 				T3pre = T3;
@@ -9033,8 +9018,8 @@ u8 t1_monitor(void)
 		}
 		
 	}
+
 	
-#endif	
 
 }
 
@@ -9055,7 +9040,6 @@ void scale_1_mode7(u8 gear)
 	
 	ctrlParasPtr->comflag = 64;
 
-	t1_monitor();
 	
 	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
 	{
@@ -9456,7 +9440,6 @@ void scale_1_mode8(u8 gear)
 	
 	ctrlParasPtr->comflag = 64;
 
-	t1_monitor();
 	
 	if(AGV_Pat_Ptr->Midpoint > 0)
 	{
@@ -9503,8 +9486,6 @@ void scale_1_mode8(u8 gear)
 				rmSpeed = maxLimt;
 			}
 		}
-		
-		
 		
 		
 	}
@@ -9708,6 +9689,260 @@ void scale_1_mode8(u8 gear)
 	
 }
 
+void scale_1_mode9(u8 gear)
+{
+	u8 AgvGearPatAngl[50] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+	u8 gearRecod = 0, gain = 3;
+	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
+	u8 maxLimt = 4;
+	u32 T1 = 0, T2 = 0, T3 = 0;
+	u8 T1Speed = 0, T2Speed = 0, T3Speed = 0;
+	static u8 T1LSpeed = 0, T2LSpeed = 0, T3LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0, T3RSpeed = 0;
+	// 普通模式,偏差在1格之内调整
+	static Trec Tnow, Tpre;
+	
+	gearRecod = gear;	
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if(AGV_Pat_Ptr->Midpoint > 0)
+	{
+		ctrlParasPtr->comflag = 641;
+
+		if((AGV_Pat_Ptr->Angle >= -maxLimt) && (AGV_Pat_Ptr->Angle <= maxLimt))
+		{
+			ctrlParasPtr->comflag = 6411;
+			
+			if(AGV_Pat_Ptr->Angle > 0)
+			{
+				ctrlParasPtr->comflag = 64111;
+				lmSpeed = AGV_Pat_Ptr->Angle;
+				
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)
+			{
+				ctrlParasPtr->comflag = 64112;
+				lmSpeed = 1;
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)
+			{
+				ctrlParasPtr->comflag = 64113;
+				
+				if((AGV_Pat_Ptr->Angle <= -2) && (AGV_Pat_Ptr->Midpoint <= 2))
+				{
+					rmSpeed = -AGV_Pat_Ptr->Angle;
+				}
+				
+			}
+		}
+		else
+		{
+			ctrlParasPtr->comflag = 6411;
+			if(AGV_Pat_Ptr->Angle > 0)
+			{
+				ctrlParasPtr->comflag = 64111;
+				lmSpeed = maxLimt;
+				
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)
+			{
+				ctrlParasPtr->comflag = 64112;
+				
+				rmSpeed = maxLimt;
+			}
+		}
+		
+		
+	}
+	else if(0 == AGV_Pat_Ptr->Midpoint)
+	{
+		ctrlParasPtr->comflag = 6412;
+		if(AGV_Pat_Ptr->Angle > 0)		
+		{
+			ctrlParasPtr->comflag = 64121;
+			//rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];		
+			lmSpeed = AGV_Pat_Ptr->Angle;
+		}
+		else if(0 == AGV_Pat_Ptr->Angle)
+		{
+			ctrlParasPtr->comflag = 64122;
+		}
+		else if(AGV_Pat_Ptr->Angle < 0)
+		{
+			ctrlParasPtr->comflag = 64123;
+			rmSpeed = -AGV_Pat_Ptr->Angle;
+		}
+		
+	}
+	else if(AGV_Pat_Ptr->Midpoint < 0)
+	{
+		ctrlParasPtr->comflag = 6413;
+
+		if((AGV_Pat_Ptr->Angle >= -maxLimt) && (AGV_Pat_Ptr->Angle <= maxLimt))
+		{
+			ctrlParasPtr->comflag = 64131;
+			if(AGV_Pat_Ptr->Angle > 0)
+			{
+				ctrlParasPtr->comflag = 641311;
+				if((AGV_Pat_Ptr->Angle >= 2) && (AGV_Pat_Ptr->Midpoint >= -2))
+				{
+					ctrlParasPtr->comflag = 6413111;
+					lmSpeed = AGV_Pat_Ptr->Angle;
+				}
+				
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)
+			{
+				ctrlParasPtr->comflag = 641312;
+				rmSpeed = 1;
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)
+			{
+				ctrlParasPtr->comflag = 641313;
+				rmSpeed = -AGV_Pat_Ptr->Angle;
+			}
+		}
+		else
+		{
+			ctrlParasPtr->comflag = 64132;
+			if(AGV_Pat_Ptr->Angle > 0)
+			{
+				ctrlParasPtr->comflag = 641321;
+				lmSpeed = maxLimt;
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)
+			{
+				ctrlParasPtr->comflag = 641322;
+				rmSpeed = maxLimt;
+			}
+		}
+		
+		
+	}
+	
+	T_monitor(&Tnow);
+
+	
+	if(1 == Tnow.T1_update)
+	{
+		Tnow.T1_update = 2;
+		if(Tpre.T1 > Tnow.T1)
+		{
+			if((Tpre.T1 - Tnow.T1) <= 0.2 * Tpre.T1)			// 80%以上
+			{
+				if(0 != lmSpeed)
+				{
+					T1LSpeed = 1;
+				}
+				else
+				{
+					T1RSpeed = 1;
+				}
+				locRec3 = FMSDS_Ptr->AgvMSLocation;
+			}
+			else if((Tpre.T1 - Tnow.T1) <= 0.4 * Tpre.T1)	// 60%以上
+			{
+				if(0 != lmSpeed)
+				{
+					T1LSpeed = 2;
+				}
+				else
+				{
+					T1RSpeed = 2;
+				}
+				locRec3 = FMSDS_Ptr->AgvMSLocation;
+			}
+			else if((Tpre.T1 - Tnow.T1) <= 0.6 * Tpre.T1)	// 40%以上
+			{
+				if(0 != lmSpeed)
+				{
+					T1LSpeed = 3;
+				}
+				else
+				{
+					T1RSpeed = 3;
+				}
+				locRec3 = FMSDS_Ptr->AgvMSLocation;
+			}
+			
+			
+		}
+	}
+
+	if(2 == Tnow.T1_update)
+	{
+		if(locRec3 != FMSDS_Ptr->AgvMSLocation)
+		{
+			locRec3 = FMSDS_Ptr->AgvMSLocation;
+			
+			if(AGV_Pat_Ptr->AngleDirection < 0)
+			{
+				Tnow.T1_update = 0;
+				T1LSpeed = 0;
+				T1RSpeed = 0;
+			}
+		}
+	}
+
+	if(1 == Tnow.T2_update)
+	{
+		if(Tnow.T2 > 5000)
+		{
+			if(0 != lmSpeed)
+			{
+				T2LSpeed = 3;
+				Tnow.T2_update = 2;
+			}
+			else
+			{
+				T2RSpeed = 3;
+				Tnow.T2_update = 2;
+			}
+			locRec4 = FMSDS_Ptr->AgvMSLocation;
+		}
+		
+	}
+
+	if(2 == Tnow.T2_update)
+	{
+		if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+		{
+			if(AGV_Pat_Ptr->AngleDirection < 0)
+			{
+				Tnow.T2_update = 0;
+				T2LSpeed = 0;
+				T2RSpeed = 0;
+			}
+		}
+	}
+	
+
+	if(1 == Tnow.All_update)
+	{
+		Tpre = Tnow;
+
+		Tnow.All_update = 0;
+		Tnow.T1 = 0;
+		Tnow.T1_update = 0;
+		Tnow.T2 = 0;
+		Tnow.T2_update = 0;
+		Tnow.T3 = 0;
+		Tnow.T3_update = 0;
+	}
+	
+			
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - T1LSpeed - T2LSpeed;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - T1RSpeed - T2RSpeed;
+	
+	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
+	
+	
+}
+
+
 
 void scale_2_mode(u8 gearRecod)
 {
@@ -9816,7 +10051,7 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		else if(2 == ctrlParasPtr->FSflag)
 		{
 			// 偏差达到1格模式
-			scale_1_mode8(gearRecod);
+			scale_1_mode9(gearRecod);
 			
 		}
 		else if(3 == ctrlParasPtr->FSflag)
