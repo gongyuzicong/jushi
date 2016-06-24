@@ -1194,6 +1194,15 @@ void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P 
 	Angle_Pattern_Scale(FMS, RMS, PTR);
 }
 
+void Get_AngleDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
+{
+	now->AngleDirection = (now->AngleDirection - pre->AngleDirection) * now->AngleDirection;
+}
+
+void Get_MidpointDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
+{
+	now->MidpointDirection = (now->Midpoint - pre->Midpoint) * now->Midpoint;
+}
 
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {

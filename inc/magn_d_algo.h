@@ -106,6 +106,8 @@ typedef struct
 {
 	s16 Angle;
 	s16 Midpoint;
+	s16 AngleDirection;
+	s16 MidpointDirection;
 }Pattern_Num_Para, *Pattern_Num_Para_P;
 
 
@@ -274,6 +276,8 @@ void MSD_Show_Bin(u32);
 void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P);
 void Get_Pattern_Num(Magn_Sensor_Data_Sturct_P, Magn_Sensor_Data_Sturct_P, Pattern_Num_Para_P);
 void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P, Magn_Sensor_Data_Sturct_P, Pattern_Scale_Para_P);
+void Get_AngleDirection(Pattern_Num_Para_P, Pattern_Num_Para_P);
+void Get_MidpointDirection(Pattern_Num_Para_P, Pattern_Num_Para_P);
 
 
 

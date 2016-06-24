@@ -59,7 +59,7 @@ int main(void)
 	MOTOR_POWER_ON();
 	//AGV_Walking_Test();
 
-	ctrlParasPtr->gear = 7;
+	ctrlParasPtr->gear = 9;
 	
 	while(1)
 	{
@@ -124,51 +124,56 @@ int main(void)
 			
 			//AGV_Walking();
 			
-			
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			//if((FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex) || (RMSDS_Ptr->MSD_Hex != RMSDS_Pre_Ptr->MSD_Hex))
+			if(1)
 			{
-				#if 0
-				
-				if(1 == addGearFlag)
+				if(goStraightStatus == ctrlParasPtr->agvStatus)
 				{
-					addGearFlag = 0;
-					ctrlParasPtr->gear++;
+					#if 0
+					
+					if(1 == addGearFlag)
+					{
+						addGearFlag = 0;
+						ctrlParasPtr->gear++;
+					}
+
+					if(ctrlParasPtr->gear > 10)
+					{
+						CleanAllSpeed();
+						CHANGE_TO_STOP_MODE();
+					}
+					
+					#endif
+					
+					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
+					//gS_startup_mode();
+				}
+				else if(backStatus == ctrlParasPtr->agvStatus)
+				{
+					//addGearFlag = 1;
+					//AGV_Correct_back_5(ctrlParasPtr->gear);
+					//AGV_Correct_back_5(3);
+					//gS_back_mode();
+				}
+				else if(cirLeft == ctrlParasPtr->agvStatus)
+				{
+					walking_cirLeft(ctrlParasPtr->gear);
+				}
+				else if(cirRight == ctrlParasPtr->agvStatus)
+				{
+					walking_cirRight(ctrlParasPtr->gear);
+				}
+				
+				//AGV_Change_Mode();
+				
+				//LeftOrRight_Counter();
+
+				if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+				{
+					Show_Infomation();
 				}
 
-				if(ctrlParasPtr->gear > 10)
-				{
-					CleanAllSpeed();
-					CHANGE_TO_STOP_MODE();
-				}
 				
-				#endif
-				
-				AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-				//gS_startup_mode();
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				//addGearFlag = 1;
-				//AGV_Correct_back_5(ctrlParasPtr->gear);
-				//AGV_Correct_back_5(3);
-				//gS_back_mode();
-			}
-			else if(cirLeft == ctrlParasPtr->agvStatus)
-			{
-				walking_cirLeft(ctrlParasPtr->gear);
-			}
-			else if(cirRight == ctrlParasPtr->agvStatus)
-			{
-				walking_cirRight(ctrlParasPtr->gear);
-			}
-			
-			//AGV_Change_Mode();
-			
-			//LeftOrRight_Counter();
-
-			if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
-			{
-				Show_Infomation();
 			}
 
 			
