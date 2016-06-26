@@ -220,7 +220,7 @@ void Zigbee_Init(void)
 	
 	Zigbee_Ptr->receive_end = 0;
 	Zigbee_Ptr->recvValidDataFlag = 0;
-	Zigbee_Ptr->recvId = 0x0002;
+	Zigbee_Ptr->recvId = 0x0006;
 }
 
 

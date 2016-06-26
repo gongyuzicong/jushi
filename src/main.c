@@ -41,7 +41,7 @@ void SystemInit(void)
 int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
-	int cir = 1, cir2 = 0;
+	int cir = 1, cir2 = 0, flag = 0;
 	//static u8 addGearFlag = 0;
 	
 	CB_RCC_Config();	/*ÅäÖÃÏµÍ³Ê±ÖÓ*/
@@ -51,15 +51,15 @@ int main(void)
 	
 	printf("Start\r\n");
 	
-	//ECV_POWER_ON();
-	//FECV_DOWN();
-	//BECV_DOWN();
-	//Delay_ns(3);
+	ECV_POWER_ON();
+	FECV_DOWN();
+	BECV_DOWN();
+	Delay_ns(3);
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
 	//AGV_Walking_Test();
 
-	ctrlParasPtr->gear = 9;
+	ctrlParasPtr->gear = 8;
 	
 	while(1)
 	{
@@ -76,29 +76,35 @@ int main(void)
 		{
 			
 			#if 1
-			
+			if(0 == flag)
+			{
+				
+			//flag = 1;
 			if(step_stop == ctrlParasPtr->walkingstep)
 			{
 				if(Zigbee_Ptr->recvId < 0x0a)
 				{
 					Zigbee_Ptr->recvValidDataFlag = 1;
 					Zigbee_Ptr->recvId++;
-					//Zigbee_Ptr->recvId = 0x02;
-					
+					#if 0
+					Zigbee_Ptr->recvId = 0x02;
+					#else
 					if(0x02 == Zigbee_Ptr->recvId)
 					{
 						Zigbee_Ptr->recvId = 0x03;
 					}
-					
+					#endif
 					ctrlParasPtr->walkingstep = step_gS;
 					CHANGE_TO_GO_STRAIGHT_MODE();
+					//CHANGE_TO_BACK_MODE();
 				}
 				else
 				{
-					Zigbee_Ptr->recvId = 0x03;
+					Zigbee_Ptr->recvId = 0x01;
 				}
 			}
 
+			}
 			#else
 			/*
 			if(1 == Zigbee_Ptr->recvValidDataFlag)
@@ -118,11 +124,13 @@ int main(void)
 			
 			//Zigbee_Data_Scan();
 			
-			//RFID_Node_Analy();
+			RFID_Node_Analy();
 			
-			//Walking_Step_Controler();
+			Walking_Step_Controler();
 			
 			//AGV_Walking();
+
+			Hall_Count();
 			
 			//if((FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex) || (RMSDS_Ptr->MSD_Hex != RMSDS_Pre_Ptr->MSD_Hex))
 			if(1)
@@ -146,14 +154,14 @@ int main(void)
 					#endif
 					
 					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-					//gS_startup_mode();
+					//gS_startup_mode(ctrlParasPtr->gear);
 				}
 				else if(backStatus == ctrlParasPtr->agvStatus)
 				{
 					//addGearFlag = 1;
 					//AGV_Correct_back_5(ctrlParasPtr->gear);
 					//AGV_Correct_back_5(3);
-					//gS_back_mode();
+					AGV_Correct_back_ug(ctrlParasPtr->gear);
 				}
 				else if(cirLeft == ctrlParasPtr->agvStatus)
 				{
@@ -162,6 +170,14 @@ int main(void)
 				else if(cirRight == ctrlParasPtr->agvStatus)
 				{
 					walking_cirRight(ctrlParasPtr->gear);
+				}
+				else if(gSslow == ctrlParasPtr->agvStatus)
+				{
+					gS_slow(ctrlParasPtr->gear);
+				}
+				else if(bSslow == ctrlParasPtr->agvStatus)
+				{
+					back_slow(ctrlParasPtr->gear);
 				}
 				
 				//AGV_Change_Mode();

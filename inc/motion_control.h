@@ -43,6 +43,8 @@
 #define CHANGE_TO_CIR_RIGHT_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
 #define CHANGE_TO_STOP_MODE()				{MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus;}
 #define CHANGE_TO_TEST_MODE()				{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = testStatus;}
+#define CHANGE_TO_GO_STRAIGHT_SLOW_MODE()	{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = gSslow;}
+#define CHANGE_TO_BACK_SLOW_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = bSslow;}
 
 /***********MOTOR RIGHT: START***************/
 /****MOTOR OUT: START****/
@@ -138,6 +140,8 @@ typedef enum
 	cirLeft,
 	cirRight,
 	testStatus,
+	gSslow,
+	bSslow,
 }AgvStatus, *AgvStatus_P;
 
 typedef enum
@@ -261,6 +265,13 @@ typedef struct
 
 typedef struct
 {
+	u32 HallCountLeft;
+	u32 HallCountRight;
+}HallCount, *HallCount_P;
+
+
+typedef struct
+{
 	void (*motor_up)(void);
 	void (*motor_down)(void);
 	void (*motor_left)(void);
@@ -301,8 +312,12 @@ void AGV_Correct_gS_8(u8 gear);
 void AGV_Correct_gS_7_ug(u8 gear);
 void AGV_Correct_gS_7_ug2(u8 gear);
 void AGV_Correct_gS_8ug(u8 gear);
-void gS_back_mode(void);
-void gS_startup_mode(void);
+void gS_back_mode(u8);
+void gS_startup_mode(u8);
+void gS_slow(u8);
+void back_slow(u8);
+void AGV_Correct_back_ug(u8);
+void Hall_Count(void);
 
 
 

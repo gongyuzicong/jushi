@@ -779,15 +779,20 @@ void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P ptr)
 
 void Midpoint_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
 {
+	if((FMS->AgvMSLocation >= Agv_MS_Left_End) && (FMS->AgvMSLocation <= Agv_MS_Right_End))
+	{
+		PTR->Midpoint = (FMS->AgvMSLocation - Agv_MS_Center) + (RMS->AgvMSLocation - Agv_MS_Center);
+	}
 	
-	PTR->Midpoint = (FMS->AgvMSLocation - Agv_MS_Center) + (RMS->AgvMSLocation - Agv_MS_Center);
 	
 }
 
 void Angle_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
 {
-	
-	PTR->Angle = (FMS->AgvMSLocation - Agv_MS_Center) - (RMS->AgvMSLocation - Agv_MS_Center);
+	if((FMS->AgvMSLocation >= Agv_MS_Left_End) && (FMS->AgvMSLocation <= Agv_MS_Right_End))
+	{
+		PTR->Angle = (FMS->AgvMSLocation - Agv_MS_Center) - (RMS->AgvMSLocation - Agv_MS_Center);
+	}
 	
 }
 
@@ -1196,7 +1201,7 @@ void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P 
 
 void Get_AngleDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
 {
-	now->AngleDirection = (now->AngleDirection - pre->AngleDirection) * now->AngleDirection;
+	now->AngleDirection = (now->Angle - pre->Angle) * now->Angle;
 }
 
 void Get_MidpointDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
