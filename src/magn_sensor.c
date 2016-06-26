@@ -995,10 +995,15 @@ void Magn_Sensor_Scan(void)
 		}
 
 		Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
-		
-		Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 
-		Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+		
+		if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
+		{
+			Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+
+			Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+		}
+		
 #else
 
 		if(tempFMS != FMSDS_Ptr->MSD_Hex)
