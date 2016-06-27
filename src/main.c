@@ -51,12 +51,16 @@ int main(void)
 	
 	printf("Start\r\n");
 	
-	ECV_POWER_ON();
-	FECV_DOWN();
-	BECV_DOWN();
-	Delay_ns(3);
+	//ECV_POWER_ON();
+	//FECV_DOWN();
+	//BECV_DOWN();
+	//FECV_DOWN();
+	//Delay_ns(20);
+	//FECV_UP();
+	//Delay_ns(20);
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
+	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 
 	ctrlParasPtr->gear = 8;
@@ -124,9 +128,9 @@ int main(void)
 			
 			//Zigbee_Data_Scan();
 			
-			RFID_Node_Analy();
+			//RFID_Node_Analy();
 			
-			Walking_Step_Controler();
+			//Walking_Step_Controler();
 			
 			//AGV_Walking();
 
