@@ -50,20 +50,34 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-	
-	//ECV_POWER_ON();
-	//FECV_DOWN();
-	//BECV_DOWN();
-	//FECV_DOWN();
-	//Delay_ns(20);
+
+
+	ECV_POWER_ON();
+	FECV_DOWN();
+	BECV_DOWN();
+	WECV_DOWN();
+	Delay_ns(3);
+	//MOTOR_POWER_OFF();
 	//FECV_UP();
+	//FECV_DOWN();
+	//BECV_UP();
+	//Delay_ns(3);
+	//BECV_DOWN();
+	
+	//FECV_DOWN();
 	//Delay_ns(20);
+	//FECV_DOWN();
+	//Delay_ns(20);
+	//Delay_ns(3);
+	//WECV_UP();
+	//Delay_ns(7);
+	//WECV_DOWN();
+	//Delay_ns(5);
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
-	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 
-	ctrlParasPtr->gear = 8;
+	ctrlParasPtr->gear = 7;
 	
 	while(1)
 	{
@@ -100,6 +114,7 @@ int main(void)
 					#endif
 					ctrlParasPtr->walkingstep = step_gS;
 					CHANGE_TO_GO_STRAIGHT_MODE();
+					printf("**************recvId = %d\r\n", Zigbee_Ptr->recvId);
 					//CHANGE_TO_BACK_MODE();
 				}
 				else
@@ -127,14 +142,17 @@ int main(void)
 			Magn_Sensor_Scan();
 			
 			//Zigbee_Data_Scan();
+
+			CrossRoad_Count();
+			//Hall_Count();
 			
-			//RFID_Node_Analy();
+			RFID_Goal_Node_Analy();
 			
-			//Walking_Step_Controler();
+			Walking_Step_Controler();
 			
 			//AGV_Walking();
-
-			Hall_Count();
+			
+			
 			
 			//if((FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex) || (RMSDS_Ptr->MSD_Hex != RMSDS_Pre_Ptr->MSD_Hex))
 			if(1)

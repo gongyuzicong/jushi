@@ -97,7 +97,7 @@
 /****MOTOR IN: END****/
 #define ECV1_POWER			PDout(13)
 #define ECV2_POWER			PDout(14)
-#define ECV3_POWER			PDout(16)	//
+#define ECV3_POWER			PEout(6)	//
 #define MOTOR_POWER			PDout(15)
 #define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
 #define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
@@ -109,8 +109,8 @@
 #define ECV2_PWM		PBout(9)		// 后电缸
 #define ECV2_DIR		PCout(15)		// 电缸方向 0: 推   1: 缩
 
-#define ECV3_PWM		PBout(10)		// 
-#define ECV3_DIR		PCout(16)		// 
+#define ECV3_PWM		PEout(8)		// 
+#define ECV3_DIR		PEout(7)		// 
 
 #define LMT_IN1			PCin(3)			// 响应为 0
 #define LMT_IN2			PCin(4)			// 响应为 0
@@ -123,12 +123,15 @@
 
 #define FECV_UP()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }		//
 #define FECV_DOWN()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
+#define FECV_STOP()		{ECV1_PWM = 0;					}
 
 #define BECV_UP()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
 #define BECV_DOWN()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
+#define BECV_STOP()		{ECV2_PWM = 0;					}
 
-#define WECV_UP()		{ECV3_DIR = 0;   ECV3_PWM = 1;  }
-#define WECV_DOWN()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
+#define WECV_UP()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
+#define WECV_DOWN()		{ECV3_DIR = 0;   ECV3_PWM = 1;  }
+#define WECV_STOP()		{ECV3_PWM = 0;					}
 /**************ECV**************/
 
 
@@ -242,6 +245,8 @@ typedef struct
 	SpinStation goalStation;
 
 	WalkStep walkingstep;
+
+	u8 crossRoadCount;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -302,7 +307,7 @@ void AGV_Correct_gS_4(u8);
 void AGV_Correct_gS_5(u8);
 void AGV_Correct_back_4(u8);
 void walking_cirLeft(u8);
-void RFID_Node_Analy(void);
+void RFID_Goal_Node_Analy(void);
 void Walking_Step_Controler(void);
 void walking_cirRight(u8);
 void AGV_Correct_gS_6(u8 gear);

@@ -803,6 +803,7 @@ void USART3_IRQHandler(void)
 		{
 			RFID_Info_Ptr->updateFlag = 1;
 			RFID_Info_Ptr->rfidData = recvD;
+			ctrlParasPtr->crossRoadCount = recvD;
 			printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);
 		}
 		

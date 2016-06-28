@@ -784,6 +784,7 @@ void Show_Infomation(void)
 	printf("\r\n");
 	Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
 	printf("\r\n");
+	printf("LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
 	/*
 	Show_Check_MSD_Category(RMSDS_Ptr);
 	//Show_My_MSD_Opt(RMSDS_Ptr);
@@ -943,7 +944,7 @@ void Magn_Sensor_Scan(void)
 		*AGV_Pat_Pre_Ptr = *AGV_Pat_Ptr;
 
 		#if 1
-		if(backStatus == ctrlParasPtr->agvStatus)
+		if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
 		{
 			FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
 			RMSDS_Ptr->MSD_Hex = FMS_Hex;
