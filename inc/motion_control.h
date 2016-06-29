@@ -274,6 +274,21 @@ typedef struct
 	u32 HallCountRight;
 }HallCount, *HallCount_P;
 
+typedef enum
+{
+	Good = 0,
+	Big,
+	Small,
+}Result_Judge;
+
+typedef struct
+{
+	Result_Judge result;
+	u32 timRec;
+	u8 duty;
+	u8 goodDuty;
+}T1_AutoAdapt_Info, *T1_AutoAdapt_Info_P;
+
 
 typedef struct
 {
@@ -323,6 +338,7 @@ void gS_slow(u8);
 void back_slow(u8);
 void AGV_Correct_back_ug(u8);
 void Hall_Count(void);
+void AGV_Proc(void);
 
 
 

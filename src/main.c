@@ -77,7 +77,7 @@ int main(void)
 	MOTOR_POWER_ON();
 	//AGV_Walking_Test();
 
-	ctrlParasPtr->gear = 7;
+	ctrlParasPtr->gear = 10;
 	
 	while(1)
 	{
@@ -143,12 +143,12 @@ int main(void)
 			
 			//Zigbee_Data_Scan();
 
-			CrossRoad_Count();
+			//CrossRoad_Count();
 			//Hall_Count();
 			
-			RFID_Goal_Node_Analy();
+			//RFID_Goal_Node_Analy();
 			
-			Walking_Step_Controler();
+			//Walking_Step_Controler();
 			
 			//AGV_Walking();
 			
@@ -203,6 +203,7 @@ int main(void)
 				}
 				
 				//AGV_Change_Mode();
+				AGV_Proc();
 				
 				//LeftOrRight_Counter();
 
