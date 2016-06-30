@@ -6,6 +6,8 @@
 #include "zigbee.h"
 
 #define ABSOLU(value)	(value >= 0 ? value : (-value))
+#define MAX_ADAPT_NUM	20
+#define MAX_DAMP_ADAPT_NUM	15
 
 TimRec rec[30];
 u8 recH = 0;
@@ -24,8 +26,10 @@ u8 AgvGearCompDutyLB[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 u8 AgvGearCompDutyRB[MAX_GEAR_NUM] = {0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
 u8 AgvGearK[MAX_GEAR_NUM] = {1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 16, 17, 18, 19, 20, 21, 22};
 u8 AgvGear7CDLF[MAX_GEAR_OFFSET] = {0, 2, 7, 8, 10, 12, 14, 16, 18, 20, 20};
-T1_AutoAdapt_Info adaptInfo[20];
-T1_AutoAdapt_Info adaptInfoB[20];
+T1_AutoAdapt_Info adaptInfo[MAX_ADAPT_NUM];
+T1_AutoAdapt_Info adaptInfoB[MAX_ADAPT_NUM];
+Damp_AutoAdapt_Info dampAdapetInfo[MAX_DAMP_ADAPT_NUM];
+Damp_AutoAdapt_Info dampAdapetInfoB[MAX_DAMP_ADAPT_NUM];
 
 
 u8 FLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},\
@@ -6291,7 +6295,7 @@ void gS_startup_mode(u8 gear)
 				centCount = SystemRunningTime - startCount;
 			}
 			
-			if(centCount > 5000)
+			if(centCount > 7000)
 			{
 				ctrlParasPtr->FSflag = 1;
 				ctrlParasPtr->comflag = 6331;
@@ -6411,7 +6415,7 @@ void back_startup_mode(u8 gear)
 				centCount = SystemRunningTime - startCount;
 			}
 			
-			if(centCount > 5000)
+			if(centCount > 7000)
 			{
 				ctrlParasPtr->BSflag = 1;
 				ctrlParasPtr->comflag = 6331;
@@ -9242,7 +9246,7 @@ void Get_T1(Trec *now)
 		now->T1_update = 1;
 		
 		//rec[recH].trec[0] = T1;
-		printf("T1 = %d\r\n", T1);
+		//printf("T1 = %d\r\n", T1);
 		
 	}
 	
@@ -9366,16 +9370,1193 @@ void show_adapt_info(T1_AutoAdapt_Info *arr)
 {
 	u8 cir = 0;
 	
-	for(cir = 0; cir <= 10; cir++)
+	for(cir = 0; cir < MAX_ADAPT_NUM; cir++)
 	{
-		printf("%d: tim = %d, duty = %d, res = %d\r\n", cir, arr[cir].timRec, arr[cir].duty, arr[cir].result);
+		printf("%d: lock = %d, goodDuty = %d, duty = %d, res = %d\r\n", cir, arr[cir].lock, arr[cir].goodDuty, arr[cir].duty, arr[cir].result);
 	}
 	
 	
 }
 
+void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
+{
+
+	static Trec Tnow, Tpre;
+
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
+
+	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+
+	static u32 recT1Tim = 0;
+
+	u8 div = 100;
+	
+		
+	Get_T1(&Tnow);
+	
+
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		maxRec = FMSDS_Ptr->AgvMSLocation;
+		
+	}
+
+
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+
+		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		{
+			Tnow.T1_update = 2;
+			
+
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			{
+				T1LSpeedin = 0;
+				if(1 == arr[re].lock)
+				{
+					T1RSpeedin = arr[re].goodDuty;
+				}
+				else
+				{
+					T1RSpeedin = arr[re].duty;
+				}
+			}
+			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
+			{
+				if(1 == arr[re].lock)
+				{
+					T1LSpeedin = arr[re].goodDuty;
+				}
+				else
+				{
+					T1LSpeedin = arr[re].duty;
+				}
+				
+				T1RSpeedin = 0;
+			}
+			flag = 1;
+			locRec = FMSDS_Ptr->AgvMSLocation;
+			
+			recT1Tim = SystemRunningTime;
+			
+			printf("re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{
+		if(SystemRunningTime - recT1Tim >= 3000)
+		{
+			printf("T1 close*******\r\n");
+			Tnow.T1_update = 3;
+			T1LSpeedin = 0;
+			T1RSpeedin = 0;
+		}
+		
+	}
+
+	if(3 == Tnow.T1_update)
+	{
+		if((AgvRight2Cent == FMSDS_Ptr->agvDirection) || (AgvLeft2Cent == FMSDS_Ptr->agvDirection))
+		{
+			Tnow.T1_update = 4;
+			
+			if(((maxRec >= Agv_MS_Left_10) && (maxRec <= Agv_MS_Left_2_5)) || ((maxRec >= Agv_MS_Right_2_5) && (maxRec <= Agv_MS_Right_10)))
+			{
+				arr[re].result = Small;
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Small\r\n", re);
+				}
+
+				if(arr[re].duty < 15)
+				{
+					arr[re].duty++;
+				}	
+				
+			}
+			else if(((maxRec > Agv_MS_Left_1) && (maxRec < Agv_MS_Center)) || ((maxRec > Agv_MS_Center) && (maxRec < Agv_MS_Right_1)))
+			{
+				arr[re].result = Big;
+
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Big\r\n", re);
+				}
+
+				if(arr[re].duty > 0)
+				{
+					arr[re].duty--;
+				}
+				
+			}
+			else if(((maxRec >= Agv_MS_Left_2) && (maxRec <= Agv_MS_Left_1)) || ((maxRec >= Agv_MS_Right_1) && (maxRec <= Agv_MS_Right_2)))
+			{
+				arr[re].result = Good;
+				
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Good****************\r\n\r\n", re);
+				}
+				arr[re].goodDuty = arr[re].duty;
+				arr[re].lock = 1;
+				
+			}
+			printf("showAdapt:\r\n");
+			show_adapt_info(arr);
+			printf("\r\n");
+		}
+	}
+	
+	if(1 == Tnow.All_update)
+	{
+		Tpre = Tnow;
+
+		Tnow.All_update = 0;
+		Tnow.T1 = 0;
+		Tnow.T1_update = 0;
+		Tnow.T2 = 0;
+		Tnow.T2_update = 0;
+		Tnow.T3 = 0;
+		Tnow.T3_update = 0;
+	}
+
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
 
 void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
+{
+
+	static Trec Tnow, Tpre;
+
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
+
+	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+
+	static u32 recT1Tim = 0;
+
+	u8 div = 100;
+	
+		
+	Get_T1(&Tnow);
+	
+
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		maxRec = FMSDS_Ptr->AgvMSLocation;
+		
+	}
+
+
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+
+		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		{
+			Tnow.T1_update = 2;
+			
+
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			{
+				T1LSpeedin = 0;
+				if(1 == adaptInfo[re].lock)
+				{
+					T1RSpeedin = adaptInfo[re].goodDuty;
+				}
+				else
+				{
+					T1RSpeedin = adaptInfo[re].duty;
+				}
+			}
+			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
+			{
+				if(1 == adaptInfo[re].lock)
+				{
+					T1LSpeedin = adaptInfo[re].goodDuty;
+				}
+				else
+				{
+					T1LSpeedin = adaptInfo[re].duty;
+				}
+				
+				T1RSpeedin = 0;
+			}
+			flag = 1;
+			locRec = FMSDS_Ptr->AgvMSLocation;
+			
+			recT1Tim = SystemRunningTime;
+			
+			//printf("re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{
+		if((SystemRunningTime - recT1Tim >= 3000) || (AGV_Pat_Ptr->AngleDirection < 0))
+		{
+			printf("T1 close*******\r\n");
+			Tnow.T1_update = 3;
+			T1LSpeedin = 0;
+			T1RSpeedin = 0;
+		}
+		
+	}
+
+	if(3 == Tnow.T1_update)
+	{
+		if((AgvRight2Cent == FMSDS_Ptr->agvDirection) || (AgvLeft2Cent == FMSDS_Ptr->agvDirection))
+		{
+			Tnow.T1_update = 4;
+			
+			if(((maxRec >= Agv_MS_Left_10) && (maxRec <= Agv_MS_Left_2_5)) || ((maxRec >= Agv_MS_Right_2_5) && (maxRec <= Agv_MS_Right_10)))
+			{
+				adaptInfo[re].result = Small;
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Small\r\n", re);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+				}
+
+				if(adaptInfo[re].duty < 15)
+				{
+					adaptInfo[re].duty++;
+				}	
+				
+			}
+			else if(((maxRec > Agv_MS_Left_1) && (maxRec < Agv_MS_Center)) || ((maxRec > Agv_MS_Center) && (maxRec < Agv_MS_Right_1)))
+			{
+				adaptInfo[re].result = Big;
+
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Big\r\n", re);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+				}
+
+				if(adaptInfo[re].duty > 0)
+				{
+					adaptInfo[re].duty--;
+				}
+				
+			}
+			else if(((maxRec >= Agv_MS_Left_2) && (maxRec <= Agv_MS_Left_1)) || ((maxRec >= Agv_MS_Right_1) && (maxRec <= Agv_MS_Right_2)))
+			{
+				adaptInfo[re].result = Good;
+				
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Good****************\r\n\r\n", re);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+				}
+				adaptInfo[re].goodDuty = adaptInfo[re].duty;
+				adaptInfo[re].lock = 1;
+				
+			}
+			printf("showAdaptG:\r\n");
+			show_adapt_info(adaptInfo);
+			printf("\r\n");
+		}
+	}
+	
+	if(1 == Tnow.All_update)
+	{
+		Tpre = Tnow;
+
+		Tnow.All_update = 0;
+		Tnow.T1 = 0;
+		Tnow.T1_update = 0;
+		Tnow.T2 = 0;
+		Tnow.T2_update = 0;
+		Tnow.T3 = 0;
+		Tnow.T3_update = 0;
+	}
+
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
+
+void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
+{
+
+	static Trec Tnow, Tpre;
+
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
+
+	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+
+	static u32 recT1Tim = 0;
+
+	u8 div = 100;
+	
+		
+	Get_T1(&Tnow);
+	
+
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		maxRec = FMSDS_Ptr->AgvMSLocation;
+		
+	}
+
+
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+
+		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		{
+			Tnow.T1_update = 2;
+			
+
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			{
+				T1LSpeedin = 0;
+				if(1 == adaptInfoB[re].lock)
+				{
+					T1RSpeedin = adaptInfoB[re].goodDuty;
+				}
+				else
+				{
+					T1RSpeedin = adaptInfoB[re].duty;
+				}
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
+			{
+				if(1 == adaptInfoB[re].lock)
+				{
+					T1LSpeedin = adaptInfoB[re].goodDuty;
+				}
+				else
+				{
+					T1LSpeedin = adaptInfoB[re].duty;
+				}
+				
+				
+				T1RSpeedin = 0;
+			}
+			
+			flag = 1;
+			locRec = FMSDS_Ptr->AgvMSLocation;
+			
+			recT1Tim = SystemRunningTime;
+			
+			//printf("B re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{
+		if((SystemRunningTime - recT1Tim >= 3000) || (AGV_Pat_Ptr->AngleDirection < 0))
+		{
+			printf("B T1 close*******\r\n");
+			Tnow.T1_update = 3;
+			T1LSpeedin = 0;
+			T1RSpeedin = 0;
+		}
+		
+	}
+
+	if(3 == Tnow.T1_update)
+	{
+		
+		if((AgvRight2Cent == FMSDS_Ptr->agvDirection) || (AgvLeft2Cent == FMSDS_Ptr->agvDirection))
+		{
+			Tnow.T1_update = 4;
+			
+			if(((maxRec >= Agv_MS_Left_10) && (maxRec <= Agv_MS_Left_2_5)) || ((maxRec >= Agv_MS_Right_2_5) && (maxRec <= Agv_MS_Right_10)))
+			{
+				adaptInfoB[re].result = Small;
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("B re = %d: Small\r\n", re);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+				}
+
+				if(adaptInfoB[re].duty < 15)
+				{
+					adaptInfoB[re].duty++;
+				}
+				
+			}
+			else if(((maxRec > Agv_MS_Left_1) && (maxRec < Agv_MS_Center)) || ((maxRec > Agv_MS_Center) && (maxRec < Agv_MS_Right_1)))
+			{
+				adaptInfoB[re].result = Big;
+
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("re = %d: Big\r\n", re);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+				}
+
+				if(adaptInfoB[re].duty > 0)
+				{
+					adaptInfoB[re].duty--;
+				}
+				
+			}
+			else if(((maxRec >= Agv_MS_Left_2) && (maxRec <= Agv_MS_Left_1)) || ((maxRec >= Agv_MS_Right_1) && (maxRec <= Agv_MS_Right_2)))
+			{
+				adaptInfoB[re].result = Good;
+				
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("B re = %d: Good****************\r\n\r\n", re);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+				}
+				
+				adaptInfoB[re].lock = 1;
+				adaptInfoB[re].goodDuty = adaptInfoB[re].duty;
+			}
+			printf("BshowAdaptB:\r\n");
+			show_adapt_info(adaptInfoB);
+			printf("\r\n");
+		}
+	}
+	
+	if(1 == Tnow.All_update)
+	{
+		Tpre = Tnow;
+
+		Tnow.All_update = 0;
+		Tnow.T1 = 0;
+		Tnow.T1_update = 0;
+		Tnow.T2 = 0;
+		Tnow.T2_update = 0;
+		Tnow.T3 = 0;
+		Tnow.T3_update = 0;
+	}
+
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
+void show_damp_info(Damp_AutoAdapt_Info *arr)
+{
+	u8 cir = 0;
+
+	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
+	{
+		printf("%d: lock = %d, goodDuty = %d, duty = %d, result = %d\r\n", cir, arr[cir].lock, arr[cir].goodDuty, arr[cir].duty, arr[cir].result);
+	}
+	
+}
+
+void Damp_Adapter_Com(u8 *lmSpeedPull, u8 *rmSpeedPull, Damp_AutoAdapt_Info *arr)
+{
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, flag4 = 0, sideRec = 0, sideRecPre = 0, index = 0;
+	static u32 startCount = 0, countTime = 0, recoverTim = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec4 = AgvInits, maxRec = AgvInits;
+	static u32 time = 3000;
+	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		sideRec = 1;
+		
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_0_5)	// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)		
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+				
+			}
+			
+		}
+		else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)	// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation >= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+
+		
+		if(1 == flag)		// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)		// 如果还在时间内, 拉
+			{
+				if(maxRec <= Agv_MS_Left_2)
+				{
+					index = Agv_MS_Left_1 - maxRec;
+					
+					if(1 == arr[index].lock)
+					{
+						lmSpeedPullin = arr[index].goodDuty;
+						
+					}
+					else
+					{
+						lmSpeedPullin = arr[index].duty;
+						
+					}
+					
+					rmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("l-%d\r\n", lmSpeedPullin);
+						printf("l-index = %d, lmSpeedPullin = %d\r\n", index, lmSpeedPullin);
+					}
+				}
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+			
+
+			if(2 == flag)		// 打印拉关闭log
+			{
+				printf("damp close***\r\n");
+				flag = 3;
+			}
+
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		sideRec = 2;
+		
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)		// 这里找时间为time的点
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_0_5)		// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+			}
+			
+		}
+		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation <= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+		
+		
+		if(1 == flag)	// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)
+			{
+				if(maxRec >= Agv_MS_Right_2)
+				{
+					index = maxRec - Agv_MS_Right_1;
+
+					if(1 == arr[index].lock)
+					{
+						rmSpeedPullin = arr[index].goodDuty;
+						
+					}
+					else
+					{
+						rmSpeedPullin = arr[index].duty;
+						
+					}
+					
+					lmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("r-%d\r\n", rmSpeedPullin);
+						printf("r-index = %d, rmSpeedPullin = %d\r\n", index, rmSpeedPullin);
+					}
+				}
+				
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		if(2 == flag)		// 打印拉关闭log
+		{
+			printf("damp close***\r\n");
+			flag = 3;
+			
+		}
+
+
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+
+		if(1 == flag)
+		{
+			flag4 = 1;
+		}
+		
+		cir = 0;
+		flag3 = 0;
+
+		flag = 0;
+		flag2 = 0;
+
+		sideRec = 0;
+		countTime = 0;
+		startCount = 0;
+		
+
+		maxRec = Agv_MS_Center;
+	}
+
+	/******************************************************************************/
+	if(1 == flag4)
+	{
+
+		if(3 == flag)
+		{
+			flag = 4;
+			sideRecPre = sideRec;
+		}
+		
+		if(SystemRunningTime - recoverTim > 3000)
+		{
+			// 开始合格判定
+			flag4 = 0;
+
+			if(sideRecPre != sideRec)		
+			{
+				// 如果300ms后偏的不在同一边, 则拉太小, 不合格, 差评
+				arr[index].duty++;
+				arr[index].result = Small;
+				printf("Small***************\r\n");
+				printf("index = %d, duty = %d\r\n", index, arr[index].duty);
+			}
+			else 
+			{
+				if(0 == sideRec)
+				{
+					// 拉太小, 不合格, 差评, 要++
+					arr[index].duty++;
+					arr[index].result = Small;
+					printf("Small***************\r\n");
+					printf("index = %d, duty = %d\r\n", index, arr[index].duty);
+				}
+				else if(1 == sideRec)		// 左侧
+				{
+					if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
+					{
+						// 拉太大, 不合格, 差评, 要--
+						arr[index].duty--;
+						arr[index].result = Big;
+						printf("Big***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, arr[index].duty);
+					}
+					else if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Center) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1))
+					{
+						// 拉的刚刚好, 合格, 要记录并且lock
+						arr[index].goodDuty = arr[index].duty;
+						arr[index].lock = 1;
+						arr[index].result = Good;
+						printf("LGood***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, arr[index].duty);
+					}
+					
+				}
+				else if(2 == sideRec)		// 右侧
+				{
+					if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1))
+					{
+						// 拉太大, 不合格, 差评, 要--
+						
+						arr[index].duty--;
+						arr[index].result = Big;
+						printf("Big***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, arr[index].duty);
+					}
+					else if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Center))
+					{
+						// 拉的刚刚好, 合格, 要记录并且lock
+						
+						arr[index].goodDuty = arr[index].duty;
+						arr[index].lock = 1;
+						arr[index].result = Good;
+						printf("RGood***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, arr[index].duty);
+					}
+					
+				}
+				
+			}
+
+			show_damp_info(arr);
+			printf("\r\n");
+		}
+		
+	}
+
+	
+	
+	*lmSpeedPull = lmSpeedPullin;
+	*rmSpeedPull = rmSpeedPullin;
+}
+
+
+void Damp_Adapter(u8 *lmSpeedPull, u8 *rmSpeedPull)
+{
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, flag4 = 0, sideRec = 0, sideRecPre = 0, index = 0;
+	static u32 startCount = 0, countTime = 0, recoverTim = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec4 = AgvInits, maxRec = AgvInits;
+	static u32 time = 3000;
+	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		sideRec = 1;
+		
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_0_5)	// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)		
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+				
+			}
+			
+		}
+		else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)	// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation >= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+
+		
+		if(1 == flag)		// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)		// 如果还在时间内, 拉
+			{
+				if(maxRec <= Agv_MS_Left_2)
+				{
+					index = Agv_MS_Left_1 - maxRec;
+					
+					if(1 == dampAdapetInfo[index].lock)
+					{
+						lmSpeedPullin = dampAdapetInfo[index].goodDuty;
+						
+					}
+					else
+					{
+						lmSpeedPullin = dampAdapetInfo[index].duty;
+						
+					}
+					
+					rmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("l-%d\r\n", lmSpeedPullin);
+						printf("l-index = %d, lmSpeedPullin = %d\r\n", index, lmSpeedPullin);
+					}
+				}
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+			
+
+			if(2 == flag)		// 打印拉关闭log
+			{
+				printf("damp close***\r\n");
+				flag = 3;
+			}
+
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		sideRec = 2;
+		
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)		// 这里找时间为time的点
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_0_5)		// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+			}
+			
+		}
+		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation <= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+		
+		
+		if(1 == flag)	// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)
+			{
+				if(maxRec >= Agv_MS_Right_2)
+				{
+					index = maxRec - Agv_MS_Right_1;
+
+					if(1 == dampAdapetInfo[index].lock)
+					{
+						rmSpeedPullin = dampAdapetInfo[index].goodDuty;
+						
+					}
+					else
+					{
+						rmSpeedPullin = dampAdapetInfo[index].duty;
+						
+					}
+					
+					lmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("r-%d\r\n", rmSpeedPullin);
+						printf("r-index = %d, rmSpeedPullin = %d\r\n", index, rmSpeedPullin);
+					}
+				}
+				
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		if(2 == flag)		// 打印拉关闭log
+		{
+			printf("damp close***\r\n");
+			flag = 3;
+			
+		}
+
+
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+
+		if(1 == flag)
+		{
+			flag4 = 1;
+		}
+		
+		cir = 0;
+		flag3 = 0;
+
+		flag = 0;
+		flag2 = 0;
+
+		sideRec = 0;
+		countTime = 0;
+		startCount = 0;
+		
+
+		maxRec = Agv_MS_Center;
+	}
+
+	/******************************************************************************/
+	if(1 == flag4)
+	{
+
+		if(3 == flag)
+		{
+			flag = 4;
+			sideRecPre = sideRec;
+		}
+		
+		if(SystemRunningTime - recoverTim > 3000)
+		{
+			// 开始合格判定
+			flag4 = 0;
+
+			if(sideRecPre != sideRec)		
+			{
+				// 如果300ms后偏的不在同一边, 则拉太小, 不合格, 差评
+				dampAdapetInfo[index].duty++;
+				dampAdapetInfo[index].result = Small;
+				printf("Small***************\r\n");
+				printf("index = %d, duty = %d\r\n", index, dampAdapetInfo[index].duty);
+			}
+			else 
+			{
+				if(0 == sideRec)
+				{
+					// 拉太小, 不合格, 差评, 要++
+					dampAdapetInfo[index].duty++;
+					dampAdapetInfo[index].result = Small;
+					printf("Small***************\r\n");
+					printf("index = %d, duty = %d\r\n", index, dampAdapetInfo[index].duty);
+				}
+				else if(1 == sideRec)		// 左侧
+				{
+					if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
+					{
+						// 拉太大, 不合格, 差评, 要--
+						dampAdapetInfo[index].duty--;
+						dampAdapetInfo[index].result = Big;
+						printf("Big***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, dampAdapetInfo[index].duty);
+					}
+					else if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Center) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1))
+					{
+						// 拉的刚刚好, 合格, 要记录并且lock
+						dampAdapetInfo[index].goodDuty = dampAdapetInfo[index].duty;
+						dampAdapetInfo[index].lock = 1;
+						dampAdapetInfo[index].result = Good;
+						printf("LGood***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, dampAdapetInfo[index].duty);
+					}
+					
+				}
+				else if(2 == sideRec)		// 右侧
+				{
+					if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1))
+					{
+						// 拉太大, 不合格, 差评, 要--
+						
+						dampAdapetInfo[index].duty--;
+						dampAdapetInfo[index].result = Big;
+						printf("Big***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, dampAdapetInfo[index].duty);
+					}
+					else if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Center))
+					{
+						// 拉的刚刚好, 合格, 要记录并且lock
+						
+						dampAdapetInfo[index].goodDuty = dampAdapetInfo[index].duty;
+						dampAdapetInfo[index].lock = 1;
+						dampAdapetInfo[index].result = Good;
+						printf("RGood***************\r\n");
+						printf("index = %d, duty = %d\r\n", index, dampAdapetInfo[index].duty);
+					}
+					
+				}
+				
+			}
+
+			show_damp_info(dampAdapetInfo);
+			printf("\r\n");
+		}
+		
+	}
+
+	
+	
+	*lmSpeedPull = lmSpeedPullin;
+	*rmSpeedPull = rmSpeedPullin;
+}
+
+void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed)
 {
 
 	static Trec Tnow, Tpre;
@@ -9432,7 +10613,7 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 	
 	if(2 == Tnow.T1_update)
 	{
-		if(SystemRunningTime - recT1Tim >= 4000)
+		if(SystemRunningTime - recT1Tim >= 3000)
 		{
 			printf("T1 close*******\r\n");
 			Tnow.T1_update = 3;
@@ -9441,200 +10622,520 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 		}
 		
 	}
-
-	if(3 == Tnow.T1_update)
-	{
-		if((AgvRight2Cent == FMSDS_Ptr->agvDirection) || (AgvLeft2Cent == FMSDS_Ptr->agvDirection))
-		{
-			Tnow.T1_update = 4;
-			
-			if((maxRec <= Agv_MS_Left_1_5) || (maxRec >= Agv_MS_Right_1_5))
-			{
-				adaptInfo[re].result = Small;
-				if(1 == flag)
-				{
-					flag = 2;
-					printf("re = %d: Small\r\n", re);
-				}
-				
-				if(adaptInfo[re].duty < 10)
-				{
-					adaptInfo[re].duty++;
-				}
-				else
-				{
-					if(adaptInfo[re].goodDuty != 0)
-					{
-						adaptInfo[re].duty = adaptInfo[re].goodDuty;
-					}
-				}
-			}
-			else
-			{
-				adaptInfo[re].result = Good;
-				if(1 == flag)
-				{
-					flag = 2;
-					printf("re = %d: Good****************\r\n\r\n", re);
-				}
-				
-			}
-
-			show_adapt_info(adaptInfo);
-			printf("\r\n");
-		}
-	}
 	
-	if(1 == Tnow.All_update)
-	{
-		Tpre = Tnow;
-
-		Tnow.All_update = 0;
-		Tnow.T1 = 0;
-		Tnow.T1_update = 0;
-		Tnow.T2 = 0;
-		Tnow.T2_update = 0;
-		Tnow.T3 = 0;
-		Tnow.T3_update = 0;
-	}
 
 	*T1LSpeed = T1LSpeedin;
 	*T1RSpeed = T1RSpeedin;
 	
 }
 
-
-void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
+void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 {
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, flag4 = 0, index = 0;
+	static u32 startCount = 0, countTime = 0, recoverTim = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec4 = AgvInits, maxRec = AgvInits;
+	static u32 time = 3000;
+	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
 
-	static Trec Tnow, Tpre;
-
-	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
-
-	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
-
-	static u32 recT1Tim = 0;
-
-	u8 div = 100;
 	
-		
-	Get_T1(&Tnow);
-	
-
-	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
 	{
-		maxRec = FMSDS_Ptr->AgvMSLocation;
 		
-	}
-
-
-	if(1 == Tnow.T1_update)
-	{
-		re = Tnow.T1 / div;
-
-		if((re >= 0) && (re <= 10))
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
 		{
-			Tnow.T1_update = 2;
+			maxRec = FMSDS_Ptr->AgvMSLocation;
 			
-
-			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_0_5)	// 这里找时间为time的点
 			{
-				T1LSpeedin = 0;
-				T1RSpeedin = adaptInfoB[re].duty;
-			}
-			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
-			{
-				T1LSpeedin = adaptInfoB[re].duty;
-				T1RSpeedin = 0;
-			}
-			flag = 1;
-			locRec = FMSDS_Ptr->AgvMSLocation;
-			
-			recT1Tim = SystemRunningTime;
-			
-			printf("B re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
-		}
-		
-		
-	}
-	
-	
-	if(2 == Tnow.T1_update)
-	{
-		if(SystemRunningTime - recT1Tim >= 4000)
-		{
-			printf("B T1 close*******\r\n");
-			Tnow.T1_update = 3;
-			T1LSpeedin = 0;
-			T1RSpeedin = 0;
-		}
-		
-	}
-
-	if(3 == Tnow.T1_update)
-	{
-		
-		if((AgvRight2Cent == FMSDS_Ptr->agvDirection) || (AgvLeft2Cent == FMSDS_Ptr->agvDirection))
-		{
-			Tnow.T1_update = 4;
-			
-			if((maxRec <= Agv_MS_Left_1_5) || (maxRec >= Agv_MS_Right_1_5))
-			{
-				adaptInfoB[re].result = Small;
-				if(1 == flag)
+				if(0 == flag2)
 				{
-					flag = 2;
-					printf("B re = %d: Small\r\n", re);
-				}
-
-				if(adaptInfoB[re].duty < 10)
-				{
-					adaptInfoB[re].duty++;
-				}
-				else
-				{
-					if(adaptInfoB[re].goodDuty != 0)
+					if(countTime >= time)		
 					{
-						adaptInfoB[re].duty = adaptInfoB[re].goodDuty;
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+				
+			}
+			
+		}
+		else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)	// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation >= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+
+		
+		if(1 == flag)		// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)		// 如果还在时间内, 拉
+			{
+				if(maxRec <= Agv_MS_Left_2)
+				{
+					index = Agv_MS_Left_1 - maxRec;
+					
+					if(1 == dampAdapetInfo[index].lock)
+					{
+						lmSpeedPullin = dampAdapetInfo[index].goodDuty;
+						
+					}
+					else
+					{
+						lmSpeedPullin = dampAdapetInfo[index].duty;
+						
 					}
 					
-				}
-			}
-			else
-			{
-				adaptInfoB[re].result = Good;
-				if(1 == flag)
-				{
-					flag = 2;
-					printf("B re = %d: Good****************\r\n\r\n", re);
+					rmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("l-%d\r\n", lmSpeedPullin);
+						printf("l-index = %d, lmSpeedPullin = %d\r\n", index, lmSpeedPullin);
+					}
 				}
 				
-				adaptInfoB[re].goodDuty = adaptInfoB[re].duty;
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+			
+
+			if(2 == flag)		// 打印拉关闭log
+			{
+				printf("damp close***\r\n");
+				flag = 3;
 			}
 
-			show_adapt_info(adaptInfoB);
-			printf("\r\n");
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
 		}
+
+		
 	}
-	
-	if(1 == Tnow.All_update)
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{
-		Tpre = Tnow;
+		
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)		// 这里找时间为time的点
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_0_5)		// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+			}
+			
+		}
+		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation <= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+		
+		
+		if(1 == flag)	// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)
+			{
+				if(maxRec >= Agv_MS_Right_2)
+				{
+					index = maxRec - Agv_MS_Right_1;
 
-		Tnow.All_update = 0;
-		Tnow.T1 = 0;
-		Tnow.T1_update = 0;
-		Tnow.T2 = 0;
-		Tnow.T2_update = 0;
-		Tnow.T3 = 0;
-		Tnow.T3_update = 0;
+					if(1 == dampAdapetInfo[index].lock)
+					{
+						rmSpeedPullin = dampAdapetInfo[index].goodDuty;
+						
+					}
+					else
+					{
+						rmSpeedPullin = dampAdapetInfo[index].duty;
+						
+					}
+					
+					lmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("r-%d\r\n", rmSpeedPullin);
+						printf("r-index = %d, rmSpeedPullin = %d\r\n", index, rmSpeedPullin);
+					}
+				}
+				
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		if(2 == flag)		// 打印拉关闭log
+		{
+			printf("damp close***\r\n");
+			flag = 3;
+			
+		}
+
+
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+
+		if(1 == flag)
+		{
+			flag4 = 1;
+		}
+		
+		cir = 0;
+		flag3 = 0;
+
+		flag = 0;
+		flag2 = 0;
+
+		countTime = 0;
+		startCount = 0;
+		
+
+		maxRec = Agv_MS_Center;
 	}
 
-	*T1LSpeed = T1LSpeedin;
-	*T1RSpeed = T1RSpeedin;
-	
+
+
+	*lmSpeedPull = lmSpeedPullin;
+	*rmSpeedPull = rmSpeedPullin;
 }
 
+void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
+{
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, flag4 = 0, index = 0;
+	static u32 startCount = 0, countTime = 0, recoverTim = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec4 = AgvInits, maxRec = AgvInits;
+	static u32 time = 3000;
+	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
+
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_0_5)	// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)		
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+				
+			}
+			
+		}
+		else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)	// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation >= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+
+		
+		if(1 == flag)		// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)		// 如果还在时间内, 拉
+			{
+				if(maxRec <= Agv_MS_Left_2)
+				{
+					index = Agv_MS_Left_1 - maxRec;
+					
+					if(1 == dampAdapetInfoB[index].lock)
+					{
+						lmSpeedPullin = dampAdapetInfoB[index].goodDuty;
+						
+					}
+					else
+					{
+						lmSpeedPullin = dampAdapetInfoB[index].duty;
+						
+					}
+					
+					rmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("l-%d\r\n", lmSpeedPullin);
+						printf("l-index = %d, lmSpeedPullin = %d\r\n", index, lmSpeedPullin);
+					}
+				}
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+			
+
+			if(2 == flag)		// 打印拉关闭log
+			{
+				printf("damp close***\r\n");
+				flag = 3;
+			}
+
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)		// 这里找时间为time的点
+		{
+			maxRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_0_5)		// 这里找时间为time的点
+			{
+				if(0 == flag2)
+				{
+					if(countTime >= time)
+					{
+						locRec1 = FMSDS_Ptr->AgvMSLocation;
+						printf("Point: ");
+						Show_Analy(FMSDS_Ptr);
+						printf(",\tcountTime = %d\r\n", countTime);
+						countTime = 0;
+						flag2 = 1;
+						cir = 0;
+					}
+					else
+					{
+						if(locRec4 != FMSDS_Ptr->AgvMSLocation)
+						{
+							locRec4 = FMSDS_Ptr->AgvMSLocation;
+							countTime += FMSDS_Ptr->VelocityXt;
+							cir++;
+							printf("cir = %d, VelocityXt = %d, countTime = %d\r\n", cir, FMSDS_Ptr->VelocityXt, countTime);
+						}
+						
+					}
+				}
+				
+			}
+			
+		}
+		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)		// 这里回到记录的点, 开始计时并且拉
+		{
+			if((FMSDS_Ptr->AgvMSLocation <= locRec1) && (1 == flag2))
+			{
+				flag = 1;
+				flag2 = 2;
+				startCount = SystemRunningTime;
+				printf("startCount***\r\n");
+			}
+			
+		}
+		
+		
+		if(1 == flag)	// 开始拉并且计时
+		{
+			if(SystemRunningTime - startCount <= time)
+			{
+				if(maxRec >= Agv_MS_Right_2)
+				{
+					index = maxRec - Agv_MS_Right_1;
+
+					if(1 == dampAdapetInfoB[index].lock)
+					{
+						rmSpeedPullin = dampAdapetInfoB[index].goodDuty;
+						
+					}
+					else
+					{
+						rmSpeedPullin = dampAdapetInfoB[index].duty;
+						
+					}
+					
+					lmSpeedPullin = 0;
+					
+					if(0 == flag3)
+					{
+						flag3 = 1;
+						printf("MaxRecoder = %d\r\n", maxRec);
+						//printf("r-%d\r\n", rmSpeedPullin);
+						printf("r-index = %d, rmSpeedPullin = %d\r\n", index, rmSpeedPullin);
+					}
+				}
+				
+				
+			}
+			else		// 如果超出时间了, 放
+			{
+				
+				flag3 = 0;
+				flag = 2;
+				
+				lmSpeedPullin = 0;
+				rmSpeedPullin = 0;
+				flag4 = 1;
+				recoverTim = SystemRunningTime;
+				
+			}
+
+			printf("**ti = %d\r\n", SystemRunningTime - startCount);
+			
+		}
+
+		if(2 == flag)		// 打印拉关闭log
+		{
+			printf("damp close***\r\n");
+			flag = 3;
+			
+		}
+
+
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+
+		if(1 == flag)
+		{
+			flag4 = 1;
+		}
+		
+		cir = 0;
+		flag3 = 0;
+
+		flag = 0;
+		flag2 = 0;
+
+		countTime = 0;
+		startCount = 0;
+		
+
+		maxRec = Agv_MS_Center;
+	}
+
+
+
+	*lmSpeedPull = lmSpeedPullin;
+	*rmSpeedPull = rmSpeedPullin;
+}
 
 
 
@@ -11746,7 +13247,7 @@ void scale_1_mode12(u8 gear)
 	// 普通模式,偏差在1格之内调整
 	static Trec Tnow, Tpre;
 	
-	gearRecod = gear;	
+	gearRecod = gear;
 	
 	ctrlParasPtr->comflag = 64;
 	
@@ -12987,7 +14488,7 @@ void scale_1_mode14(u8 gear)
 	// 普通模式,偏差在1格之内调整
 	static Trec Tnow, Tpre;
 	
-	gearRecod = gear;	
+	gearRecod = gear;
 	
 	ctrlParasPtr->comflag = 64;
 	
@@ -13354,7 +14855,95 @@ void scale_1_mode14(u8 gear)
 	
 }
 
-void scale_1_mode15(u8 gear)
+void scale_1_mode15_t1adapt(u8 gear)
+{
+	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
+	static u32 startCount = 0, countTime = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
+	u32 centCount = 0;
+	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0, gain = 3;
+	u8 leftPullDuty[15] = {1, 2, 2, };
+	static u32 time = 3000;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
+	u32 T1 = 0;
+	static u8 T1LSpeed = 0, T1RSpeed = 0;
+	// 普通模式,偏差在1格之内调整
+	
+	gearRecod = gear;	
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
+	{
+		
+		ctrlParasPtr->comflag = 641;
+
+		if(AgvCent2Left == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+			
+		}
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+
+		if(AgvCent2Right == FMSDS_Ptr->agvDirection)
+		{
+			FMSDS_Ptr->MaxRecoder = FMSDS_Ptr->AgvMSLocation;
+
+		}
+		
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+
+		lmSpeed_pat = 0;
+		rmSpeed_pat = 0;
+	
+		lmSpeed = 0;
+		rmSpeed = 0;
+		cir = 0;
+		countTime = 0;
+		startCount = 0;
+		time = 3000;
+
+		flag3 = 0;
+
+		flag = 0;
+		flag2 = 0;
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+	}
+
+	T1_Adapter(&T1LSpeed, &T1RSpeed);
+	
+	//lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - T1LSpeed;
+	
+	//rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull - T1RSpeed;
+
+	//printf("T1LSpeed = %d, T1RSpeed = %d\r\n", T1LSpeed, T1RSpeed);
+	
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - T1LSpeed;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - T1RSpeed;
+	
+	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
+	
+	
+}
+
+void scale_1_mode15_t1(u8 gear)
 {
 	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
 	static u32 startCount = 0, countTime = 0;
@@ -13426,7 +15015,7 @@ void scale_1_mode15(u8 gear)
 		
 	}
 
-	T1_Adapter(&T1LSpeed, &T1RSpeed);
+	Get_T1_Duty(&T1LSpeed, &T1RSpeed);
 	
 	//lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - T1LSpeed;
 	
@@ -13443,7 +15032,8 @@ void scale_1_mode15(u8 gear)
 	
 }
 
-void scale_1_mode15_back(u8 gear)
+
+void scale_1_mode15_t1_back(u8 gear)
 {
 	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
 	static u32 startCount = 0, countTime = 0;
@@ -13532,6 +15122,267 @@ void scale_1_mode15_back(u8 gear)
 }
 
 
+void scale_1_mode16_dampadapt(u8 gear)
+{
+	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
+	u32 centCount = 0;
+	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0, gain = 3;
+	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
+	u32 T1 = 0;
+	static u8 T1LSpeed = 0, T1RSpeed = 0;
+	// 普通模式,偏差在1格之内调整
+	static Trec Tnow, Tpre;
+	
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+	
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+		
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];		
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+	
+		lmSpeed = 0;
+		rmSpeed = 0;
+		
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+
+	#if 0
+	Damp_Adapter_Com(&lmSpeedPull, &rmSpeedPull, dampAdapetInfo);
+	#else
+	Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	#endif
+			
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull;
+	
+	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
+	
+	
+}
+
+void scale_1_mode16_dampadapt_back(u8 gear)
+{
+	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
+	u32 centCount = 0;
+	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0, gain = 3;
+	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
+	u32 T1 = 0;
+	static u8 T1LSpeed = 0, T1RSpeed = 0;
+	// 普通模式,偏差在1格之内调整
+	static Trec Tnow, Tpre;
+	
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+	
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+		
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];		
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+	
+		lmSpeed = 0;
+		rmSpeed = 0;
+		
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+	#if 0
+	Damp_Adapter_Com(&lmSpeedPull, &rmSpeedPull, dampAdapetInfoB);
+	#else
+	Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	#endif
+			
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLB[gearRecod] - lmSpeed - lmSpeedPull;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRB[gearRecod] - rmSpeed - rmSpeedPull;
+	
+	damping_func(1000, gearRecod, rmSpeedSet, lmSpeedSet);
+	
+	
+}
+
+
+void scale_1_mode17(u8 gear)
+{
+	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
+	u32 centCount = 0;
+	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0, gain = 3;
+	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,  lmSpeedT1 = 0, rmSpeedT1 = 0;
+	u32 T1 = 0;
+	static u8 T1LSpeed = 0, T1RSpeed = 0;
+	// 普通模式,偏差在1格之内调整
+	static Trec Tnow, Tpre;
+	
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+	
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];		
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+	
+		lmSpeed = 0;
+		rmSpeed = 0;
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+
+	
+	Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+
+	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
+	{
+		Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+	}
+	
+			
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - lmSpeedT1;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
+	
+	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
+	
+	
+}
+
+
+void scale_1_mode17_back(u8 gear)
+{
+	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
+	u32 centCount = 0;
+	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0, gain = 3;
+	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,  lmSpeedT1 = 0, rmSpeedT1 = 0;
+	u32 T1 = 0;
+	static u8 T1LSpeed = 0, T1RSpeed = 0;
+	// 普通模式,偏差在1格之内调整
+	static Trec Tnow, Tpre;
+	
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+	
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+		
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];		
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+	
+		lmSpeed = 0;
+		rmSpeed = 0;
+		
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		
+	}
+
+	Get_Damp_Duty_Back(&lmSpeedPull, &rmSpeedPull);
+	
+	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
+	{
+		Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+	}
+	
+			
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLB[gearRecod] - lmSpeed - lmSpeedPull - lmSpeedT1;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRB[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
+	
+	damping_func(1000, gearRecod, rmSpeedSet, lmSpeedSet);
+	
+	
+}
+
+
 void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 {
 	static u32 counter = 0, startCount = 0;
@@ -13598,8 +15449,14 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		else if(1 == ctrlParasPtr->FSflag)
 		{
 			// 偏差达到1格模式
-			scale_1_mode15(gearRecod);
-			
+			/*
+			#if 0
+			scale_1_mode16_dampadapt(gearRecod);
+			#else
+			scale_1_mode15_t1adapt(gearRecod);
+			#endif
+			*/
+			scale_1_mode17(gearRecod);
 		}
 		else if(2 == ctrlParasPtr->FSflag)
 		{
@@ -13683,8 +15540,14 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 		else if(1 == ctrlParasPtr->BSflag)
 		{
 			// 偏差达到1格模式
-			scale_1_mode15_back(gearRecod);
-			
+			/*
+			#if 0
+			scale_1_mode16_dampadapt_back(gearRecod);
+			#else
+			scale_1_mode15_t1_back(gearRecod);
+			#endif
+			*/
+			scale_1_mode17_back(gearRecod);
 		}
 		else if(2 == ctrlParasPtr->BSflag)
 		{
@@ -16279,7 +18142,7 @@ void AGV_Change_Mode(void)
 
 void AGV_Proc(void)
 {
-	u8 flag = 2;
+	u8 flag = 3;
 
 	// 跑出去的紧急模式
 	if(1 == flag)
@@ -16317,6 +18180,21 @@ void AGV_Proc(void)
 			}
 		}
 
+		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		{
+			MOTOR_RIGHT_DUTY_SET(0);
+			MOTOR_LEFT_DUTY_SET(0);
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->FSflag = 0;
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->BSflag = 0;
+			}
+		}
+		
+		/*
 		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
 			//CHANGE_TO_STOP_MODE();
@@ -16331,8 +18209,9 @@ void AGV_Proc(void)
 				ctrlParasPtr->BSflag = 0;
 			}
 		}
-
-		if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_4) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_4))
+		*/
+		
+		if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_3) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_3))
 		{
 			if(goStraightStatus == ctrlParasPtr->agvStatus)
 			{
@@ -16344,6 +18223,46 @@ void AGV_Proc(void)
 			}
 		}
 	}
+
+
+	
+	if(3 == flag)
+	{
+		if(0x0000 == FMSDS_Ptr->MSD_Hex)
+		{
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->BSflag = 0;
+				backStatus_change();
+				printf("backStatus_change\r\n");
+				Delay_ns(2);
+				
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->FSflag = 0;
+				goStraight_change();
+				
+				printf("goStraight_change\r\n");
+				Delay_ns(2);
+			}
+		}
+		
+		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		{
+			MOTOR_RIGHT_DUTY_SET(0);
+			MOTOR_LEFT_DUTY_SET(0);
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->FSflag = 0;
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->BSflag = 0;
+			}
+		}
+	}
+	
 	
 }
 
@@ -17467,33 +19386,35 @@ void Motion_Ctrl_Init(void)
 		adaptInfo[cir].timRec = 0;
 		adaptInfo[cir].duty = 0;
 		adaptInfo[cir].goodDuty = 0;
+		adaptInfo[cir].lock = 0;
 
 		adaptInfoB[cir].result = Good;
 		adaptInfoB[cir].timRec = 0;
 		adaptInfoB[cir].duty = 0;
 		adaptInfoB[cir].goodDuty = 0;
+		adaptInfoB[cir].lock = 0;
 	}
 	
 	adaptInfo[0].timRec = 0;
 	adaptInfo[0].duty = 6;
 
 	adaptInfo[1].timRec = 0;
-	adaptInfo[1].duty = 5;
+	adaptInfo[1].duty = 6;
 
 	adaptInfo[2].timRec = 0;
-	adaptInfo[2].duty = 4;
+	adaptInfo[2].duty = 6;
 
 	adaptInfo[3].timRec = 0;
-	adaptInfo[3].duty = 4;
+	adaptInfo[3].duty = 5;
 
 	adaptInfo[4].timRec = 0;
-	adaptInfo[4].duty = 3;
+	adaptInfo[4].duty = 4;
 
 	adaptInfo[5].timRec = 0;
 	adaptInfo[5].duty = 3;
 
 	adaptInfo[6].timRec = 0;
-	adaptInfo[6].duty = 2;
+	adaptInfo[6].duty = 3;
 
 	adaptInfo[7].timRec = 0;
 	adaptInfo[7].duty = 2;
@@ -17512,13 +19433,13 @@ void Motion_Ctrl_Init(void)
 	adaptInfoB[0].duty = 6;
 
 	adaptInfoB[1].timRec = 0;
-	adaptInfoB[1].duty = 5;
+	adaptInfoB[1].duty = 6;
 
 	adaptInfoB[2].timRec = 0;
-	adaptInfoB[2].duty = 5;
+	adaptInfoB[2].duty = 6;
 
 	adaptInfoB[3].timRec = 0;
-	adaptInfoB[3].duty = 4;
+	adaptInfoB[3].duty = 5;
 
 	adaptInfoB[4].timRec = 0;
 	adaptInfoB[4].duty = 4;
@@ -17540,6 +19461,50 @@ void Motion_Ctrl_Init(void)
 
 	adaptInfoB[10].timRec = 0;
 	adaptInfoB[10].duty = 1;
+
+	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
+	{
+		dampAdapetInfo[cir].duty = 0;
+		dampAdapetInfo[cir].goodDuty = 0;
+		dampAdapetInfo[cir].lock = 0;
+		dampAdapetInfo[cir].result = Good;
+		
+		dampAdapetInfoB[cir].duty = 0;
+		dampAdapetInfoB[cir].goodDuty = 0;
+		dampAdapetInfoB[cir].lock = 0;
+		dampAdapetInfoB[cir].result = Good;
+	}
+
+	dampAdapetInfo[Agv_MS_Right_1 - Agv_MS_Right_1].duty = 2;
+	dampAdapetInfo[Agv_MS_Right_1_5 - Agv_MS_Right_1].duty = 3;
+	dampAdapetInfo[Agv_MS_Right_2 - Agv_MS_Right_1].duty = 4;
+	dampAdapetInfo[Agv_MS_Right_2_5 - Agv_MS_Right_1].duty = 7;
+	dampAdapetInfo[Agv_MS_Right_3 - Agv_MS_Right_1].duty = 10;
+	dampAdapetInfo[Agv_MS_Right_3_5 - Agv_MS_Right_1].duty = 12;
+	dampAdapetInfo[Agv_MS_Right_4 - Agv_MS_Right_1].duty = 15;
+	dampAdapetInfo[Agv_MS_Right_4_5 - Agv_MS_Right_1].duty = 18;
+	dampAdapetInfo[Agv_MS_Right_5 - Agv_MS_Right_1].duty = 20;
+	dampAdapetInfo[Agv_MS_Right_6 - Agv_MS_Right_1].duty = 23;
+	dampAdapetInfo[Agv_MS_Right_7 - Agv_MS_Right_1].duty = 25;
+	dampAdapetInfo[Agv_MS_Right_8 - Agv_MS_Right_1].duty = 25;
+	dampAdapetInfo[Agv_MS_Right_9 - Agv_MS_Right_1].duty = 26;
+	dampAdapetInfo[Agv_MS_Right_10 - Agv_MS_Right_1].duty = 26;
+
+	
+	dampAdapetInfoB[Agv_MS_Right_1 - Agv_MS_Right_1].duty = 2;
+	dampAdapetInfoB[Agv_MS_Right_1_5 - Agv_MS_Right_1].duty = 3;
+	dampAdapetInfoB[Agv_MS_Right_2 - Agv_MS_Right_1].duty = 4;
+	dampAdapetInfoB[Agv_MS_Right_2_5 - Agv_MS_Right_1].duty = 7;
+	dampAdapetInfoB[Agv_MS_Right_3 - Agv_MS_Right_1].duty = 10;
+	dampAdapetInfoB[Agv_MS_Right_3_5 - Agv_MS_Right_1].duty = 12;
+	dampAdapetInfoB[Agv_MS_Right_4 - Agv_MS_Right_1].duty = 15;
+	dampAdapetInfoB[Agv_MS_Right_4_5 - Agv_MS_Right_1].duty = 18;
+	dampAdapetInfoB[Agv_MS_Right_5 - Agv_MS_Right_1].duty = 20;
+	dampAdapetInfoB[Agv_MS_Right_6 - Agv_MS_Right_1].duty = 23;
+	dampAdapetInfoB[Agv_MS_Right_7 - Agv_MS_Right_1].duty = 25;
+	dampAdapetInfoB[Agv_MS_Right_8 - Agv_MS_Right_1].duty = 25;
+	dampAdapetInfoB[Agv_MS_Right_9 - Agv_MS_Right_1].duty = 26;
+	dampAdapetInfoB[Agv_MS_Right_10 - Agv_MS_Right_1].duty = 26;
 	
 }
 

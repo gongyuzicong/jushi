@@ -287,7 +287,17 @@ typedef struct
 	u32 timRec;
 	u8 duty;
 	u8 goodDuty;
+	u8 lock;
 }T1_AutoAdapt_Info, *T1_AutoAdapt_Info_P;
+
+
+typedef struct
+{
+	Result_Judge result;
+	u8 lock;
+	u8 duty;
+	u8 goodDuty;
+}Damp_AutoAdapt_Info, *Damp_AutoAdapt_Info_P;
 
 
 typedef struct
