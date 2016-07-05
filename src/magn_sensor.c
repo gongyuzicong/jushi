@@ -976,6 +976,8 @@ void Magn_Sensor_Scan(void)
 		if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 		{
 			FMSDS_Ptr->TimeRecoder = SystemRunningTime;
+
+			FMSDS_Ptr->MSD_Hex_Update = 1;
 			
 			MSD_Analy(FMSDS_Ptr);
 
@@ -987,6 +989,8 @@ void Magn_Sensor_Scan(void)
 		if(RMSDS_Pre_Ptr->MSD_Hex != RMSDS_Ptr->MSD_Hex)
 		{
 			RMSDS_Ptr->TimeRecoder = SystemRunningTime;
+
+			RMSDS_Ptr->MSD_Hex_Update = 1;
 			
 			MSD_Analy(RMSDS_Ptr);
 			
@@ -995,11 +999,11 @@ void Magn_Sensor_Scan(void)
 			Magn_VelocityXt_Clau(RMSDS_Ptr, RMSDS_Pre_Ptr);
 		}
 
-		Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
-
-		
-		if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
+		if(((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)) &&\
+			((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)))
 		{
+			Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
+
 			Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 
 			Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);

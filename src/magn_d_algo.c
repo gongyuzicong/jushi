@@ -791,12 +791,9 @@ void Angle_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P 
 
 void Get_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
 {
-	if(((FMS->AgvMSLocation >= Agv_MS_Left_End) && (FMS->AgvMSLocation <= Agv_MS_Right_End)) &&\
-		((RMS->AgvMSLocation >= Agv_MS_Left_End) && (RMS->AgvMSLocation <= Agv_MS_Right_End)))
-	{
-		Midpoint_Pattern_Num(FMS, RMS, PTR);
-		Angle_Pattern_Num(FMS, RMS, PTR);
-	}
+	
+	Midpoint_Pattern_Num(FMS, RMS, PTR);
+	Angle_Pattern_Num(FMS, RMS, PTR);
 	
 }
 

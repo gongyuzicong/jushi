@@ -3466,12 +3466,8 @@ void AGV_Correct_gS_3(u8 gear)
 
 void AGV_Correct_gS_4(u8 gear)
 {
-	//static u32 startCount = 0;
+	
 	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0;
-	//static u8 loffset = 0, roffset = 5;
-	//static Agv_MS_Location MSLRecode = AgvInits;
-	//u8 LTM_flag = 0;
-	u32 centCount = 0;
 
 	gearRecod = gear;
 	
@@ -4858,9 +4854,7 @@ void gS_step_gS3(u8 gear)
 
 void gS_step_entry(u8 gearRecod)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lreco = 0, rreco = 0;
-	static u32 startCount = 0;
-	//u32 centCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0;
 	
 	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
 	{
@@ -4875,9 +4869,7 @@ void gS_step_entry(u8 gearRecod)
 
 		MOTOR_LEFT_DUTY_SET(lmSpeed);
 		MOTOR_RIGHT_DUTY_SET(rmSpeed);
-		
-		
-		startCount = 0;
+				
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{		
@@ -4893,7 +4885,6 @@ void gS_step_entry(u8 gearRecod)
 		MOTOR_LEFT_DUTY_SET(lmSpeed);
 		MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
-		startCount = 0;
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
@@ -4913,7 +4904,6 @@ void gS_step_entry(u8 gearRecod)
 		}
 		else
 		{
-			startCount = 0;
 			#if 0
 			ctrlParasPtr->comflag = 662;
 			if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 		// 如果是左偏之后拉回来的
@@ -5000,8 +4990,7 @@ void gS_step_entry(u8 gearRecod)
 
 void gS_step_entry2(u8 gearRecod)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lreco = 0, rreco = 0;
-	static u32 startCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0;
 	
 	gearRecod = 2;
 	
@@ -5019,7 +5008,6 @@ void gS_step_entry2(u8 gearRecod)
 		MOTOR_LEFT_DUTY_SET(lmSpeed);
 		MOTOR_RIGHT_DUTY_SET(rmSpeed);
 		
-		startCount = 0;
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{		
@@ -5035,7 +5023,6 @@ void gS_step_entry2(u8 gearRecod)
 		MOTOR_LEFT_DUTY_SET(lmSpeed);
 		MOTOR_RIGHT_DUTY_SET(rmSpeed);
 
-		startCount = 0;
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
@@ -5181,19 +5168,13 @@ void AGV_Correct_gS_6(u8 gear)
 
 void AGV_Correct_gS_7(u8 gear)
 {
-	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0;
-	static u8 loffset = 0, roffset = 5;
-	static Agv_MS_Location MSLRecode = AgvInits;
-	u8 LTM_flag = 0;
-	u32 centCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0;
 	
 	
 	ctrlParasPtr->comflag = 6;
 	
 	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
-	counter = 0;
 	gearRecod = gear;
 	//printf("************\r\n");
 	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
@@ -5526,19 +5507,13 @@ void AGV_Correct_gS_7(u8 gear)
 
 void AGV_Correct_gS_7_ug(u8 gear)
 {
-	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0, falg2 = 0;
-	static u8 loffset = 0, roffset = 5;
-	static Agv_MS_Location MSLRecode = AgvInits;
-	u8 LTM_flag = 0;
-	u32 centCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3;
 	
 	
 	ctrlParasPtr->comflag = 6;
 	
 	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
-	counter = 0;
 	gearRecod = gear;
 	//printf("************\r\n");
 	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
@@ -5607,19 +5582,14 @@ void AGV_Correct_gS_7_ug(u8 gear)
 
 void AGV_Correct_gS_7_ug2(u8 gear)
 {
-	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0, falg2 = 0;
-	static u8 loffset = 0, roffset = 5;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, falg2 = 0;
 	static Agv_MS_Location MSLRecode = AgvInits;
-	u8 LTM_flag = 0;
-	u32 centCount = 0;
 	
 	
 	ctrlParasPtr->comflag = 6;
 	
 	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
-	counter = 0;
 	gearRecod = gear;
 	//printf("************\r\n");
 	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
@@ -5657,7 +5627,6 @@ void AGV_Correct_gS_7_ug2(u8 gear)
 						MSLRecode = FMSDS_Ptr->MaxRecoder;
 						printf("1: MaxRecoder = %d\r\n", (Agv_MS_Center - FMSDS_Ptr->MaxRecoder));
 					}
-					flag = 1;
 				}
 				else if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)		// 
 				{
@@ -5768,19 +5737,14 @@ void AGV_Correct_gS_7_ug2(u8 gear)
 
 void AGV_Correct_gS_8(u8 gear)		// 3 mode
 {
-	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0, flag = 0;
-	static u8 loffset = 0, roffset = 5;
-	static Agv_MS_Location MSLRecode = AgvInits;
-	u8 LTM_flag = 0;
+	static u32 startCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3;
 	u32 centCount = 0;
-	static u8 modeFlag = 0xff;
 	
 	ctrlParasPtr->comflag = 6;
 	
 	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
-	counter = 0;
 	gearRecod = gear;
 	
 	//printf("************\r\n");
@@ -6246,42 +6210,7 @@ void gS_startup_mode(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-
-	#if 0
-		// 加入阻尼模块
-		// 阻尼begin	
-		if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 		// 如果是左偏之后拉回来的
-		{
-			ctrlParasPtr->comflag = 6341;
-			ctrlParasPtr->dampingFlag = DampingLeft;
-			ctrlParasPtr->dampingTimeRec = SystemRunningTime;
-			
-			//LocValu(FMSDS_Ptr->MaxRecoder);
-			
-			//lmSpeed = AgvGear[gearRecod] + FLeftCompDuty[AgvGear[gearRecod]] - DutyTable[1];
-			
-			lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - gainDuty[1];
-			rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
-			
-			//printf("lmSpeed = %d\r\n", ctrlParasPtr->leftMotorSettedSpeed);
-		}
-		else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)			// 如果是左偏之后拉回来的
-		{
-			ctrlParasPtr->comflag = 6342;
-			ctrlParasPtr->dampingFlag = DampingRight;
-			ctrlParasPtr->dampingTimeRec = SystemRunningTime;
-
-			//rmSpeed = AgvGear[gearRecod] + FRightCompDuty[AgvGear[gearRecod]] - DutyTable[1];
-			lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
-			rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - gainDuty[1];
-			
-
-			//printf("rmSpeed = %d\r\n", ctrlParasPtr->rightMotorSettedSpeed);
-		}
-		// 阻尼end
-		//else if(AgvNone == FMSDS_Ptr->agvDirection)
-	#endif
-	
+		
 		if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 		{
 			ctrlParasPtr->comflag = 633;
@@ -6445,8 +6374,6 @@ void back_startup_mode(u8 gear)
 void gS_slow(u8 gear)
 {
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 
@@ -6471,7 +6398,6 @@ void gS_slow(u8 gear)
 		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - gainDuty[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
 		
-		startCount = 0;
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{		
@@ -6482,7 +6408,6 @@ void gS_slow(u8 gear)
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
 		
 		
-		startCount = 0;
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
@@ -6538,8 +6463,6 @@ void gS_slow(u8 gear)
 void back_slow(u8 gear)
 {
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 
@@ -6564,7 +6487,6 @@ void back_slow(u8 gear)
 		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLB[gearRecod];
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRB[gearRecod] - gainDuty[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
 		
-		startCount = 0;
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{		
@@ -6575,7 +6497,6 @@ void back_slow(u8 gear)
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRB[gearRecod];
 		
 		
-		startCount = 0;
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
@@ -6661,8 +6582,6 @@ void gS_urgency_mode(void)
 void scale_1_mode(u8 gearRecod)
 {
 	static u8 lmSpeed = 0, rmSpeed = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0;
 	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 7, 8, 10, 12, 14, 16, 18, 20, 20};
 	
 	// 普通模式,偏差在1格之内调整
@@ -6971,12 +6890,9 @@ void scale_1_mode1(u8 gear)
 
 void scale_1_mode2(u8 gear)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeedR = 0, rmSpeedR = 0, modeFlag1 = 0, modeFlag2 = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeedR = 0, rmSpeedR = 0;
 	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 6, 9, 11, 11, 11, 11, 11, 11, 11};
 	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec = AgvInits;
 	// 普通模式,偏差在1格之内调整
 
 	gearRecod = gear;
@@ -7068,12 +6984,8 @@ void scale_1_mode2(u8 gear)
 
 void scale_1_mode3(u8 gear)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeedR = 0, rmSpeedR = 0, modeFlag1 = 0, modeFlag2 = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0;
-	u8 AgvGearS1CDLF[MAX_GEAR_OFFSET] = {0, 2, 6, 9, 11, 11, 11, 11, 11, 11, 11};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec = AgvInits;
+	static u8 lmSpeed = 0, rmSpeed = 0;
+	u8 gearRecod = 0;
 	// 普通模式,偏差在1格之内调整
 
 	gearRecod = gear;
@@ -7272,13 +7184,11 @@ void showTrec(void)
 
 void scale_1_mode4(u8 gear)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeed_pat = 0, rmSpeed_pat = 0, flaga = 0, flagt1 = 0, flagt2 = 0, acFlag = 0, lmflag = 0, rmflag = 0, t2flag = 0, lmSpeedbak = 0, rmSpeedbak = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0, enterTF = 0, exitTF = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, flaga = 0, flagt1 = 0, acFlag = 0, lmflag = 0, rmflag = 0, t2flag = 0, lmSpeedbak = 0, rmSpeedbak = 0;
 	u8 AgvGearS1CDLF[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	static u32 T1 = 0, T2 = 0, T3 = 0, centerTT = 0, ET1 = 0, countFlag = 0, ET0_5 = 0, T1pre = 0, T2pre = 0, T3pre = 0, acTST = 0;
+	u8 gearRecod = 0;
+	static Agv_MS_Location locRec = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits;
+	static u32 T1 = 0, T2 = 0, T3 = 0, ET1 = 0, countFlag = 0, ET0_5 = 0, T1pre = 0, acTST = 0;
 	u8 add = 0;
 	
 	// 普通模式,偏差在1格之内调整
@@ -7573,8 +7483,6 @@ void scale_1_mode4(u8 gear)
 		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
 
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 
 		if(AGV_Pat_Ptr->Midpoint > 0)
 		{
@@ -7701,13 +7609,11 @@ void scale_1_mode4(u8 gear)
 			if(0 == countFlag)
 			{
 				//centerTT = FMSDS_Ptr->TimeRecoder;
-				centerTT = SystemRunningTime;
 				rec[recH].amlH = 0;
 			}
 			else if(3 == countFlag)
 			{
 				//T3 = FMSDS_Ptr->TimeRecoder - ET0_5;
-				T3pre = T3;
 				T3 = FMSDS_Ptr->VelocityXt;
 				//ET0_5 = FMSDS_Ptr->TimeRecoder;
 				countFlag = 0;
@@ -7773,7 +7679,6 @@ void scale_1_mode4(u8 gear)
 				if(1 == countFlag)
 				{
 					ET0_5 = SystemRunningTime;
-					T2pre = T2;
 					T2 = ET0_5 - ET1;
 					//T2 = FMSDS_Ptr->TimeRecoder - ET1;
 					//ET0_5 = FMSDS_Ptr->TimeRecoder;
@@ -7788,7 +7693,6 @@ void scale_1_mode4(u8 gear)
 				if(2 == countFlag)
 				{
 					ET0_5 = SystemRunningTime;
-					T2pre = T2;
 					T2 = ET0_5 - ET1;
 					//T2 = FMSDS_Ptr->TimeRecoder - ET1;
 					//ET0_5 = FMSDS_Ptr->TimeRecoder;
@@ -7904,7 +7808,6 @@ void scale_1_mode4(u8 gear)
 		if(T2 > 5000)
 		{
 			t2flag = 1;
-			locRec4 = FMSDS_Ptr->AgvMSLocation;
 		}
 	}
 	
@@ -8119,15 +8022,11 @@ void scale_1_mode4(u8 gear)
 
 void scale_1_mode5(u8 gear)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeed_pat = 0, rmSpeed_pat = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0, enterTF = 0, exitTF = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0;
 	u8 AgvGearS1CDLF[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12};
-	u8 gearRecod = 0, gain = 3;
+	u8 gearRecod = 0;
 	static Agv_MS_Location locRec = AgvInits;
-	static u32 T1 = 0, T2 = 0, T3 = 0, centerTT = 0, L1ET = 0, countFlag = 0, L0_5ET = 0, R1ET = 0, R0_5ET = 0;
-	u32 OSC_TREC[15] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	static u8 OSC_Head = 0;
+	static u32 T1 = 0, T2 = 0, T3 = 0, centerTT = 0, L1ET = 0, countFlag = 0, L0_5ET = 0, R1ET = 0;
 	// 普通模式,偏差在1格之内调整
 
 	gearRecod = gear;	
@@ -8400,11 +8299,6 @@ void scale_1_mode5(u8 gear)
 
 		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
-
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
-		
-		OSC_Head = 0;
 
 		if(AGV_Pat_Ptr->Midpoint > 0)
 		{
@@ -8493,7 +8387,6 @@ void scale_1_mode5(u8 gear)
 				if(2 == countFlag)
 				{
 					T2 = FMSDS_Ptr->TimeRecoder - R1ET;
-					R0_5ET = FMSDS_Ptr->TimeRecoder;
 					countFlag = 3;
 					printf("T2 = %d\r\n", T2);
 				}
@@ -8510,13 +8403,11 @@ void scale_1_mode5(u8 gear)
 
 void scale_1_mode6(u8 gear)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lmSpeed_pat = 0, rmSpeed_pat = 0, flaga = 0, flagt1 = 0, flagt2 = 0, acFlag = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0, enterTF = 0, exitTF = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0, flaga = 0, flagt1 = 0, acFlag = 0;
 	u8 AgvGearS1CDLF[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12};
-	u8 gearRecod = 0, gain = 3;
+	u8 gearRecod = 0;
 	static Agv_MS_Location locRec = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits;
-	static u32 T1 = 0, T2 = 0, T3 = 0, centerTT = 0, ET1 = 0, countFlag = 0, ET0_5 = 0, T1pre = 0, T2pre = 0, T3pre = 0, acTST = 0;
+	static u32 T1 = 0, T2 = 0, T3 = 0, ET1 = 0, countFlag = 0, ET0_5 = 0, T1pre = 0, acTST = 0;
 	
 	
 	// 普通模式,偏差在1格之内调整
@@ -8793,8 +8684,6 @@ void scale_1_mode6(u8 gear)
 		lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod];
 		rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod];
 
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 
 		if(AGV_Pat_Ptr->Midpoint > 0)
 		{
@@ -8920,13 +8809,11 @@ void scale_1_mode6(u8 gear)
 			if(0 == countFlag)
 			{
 				//centerTT = FMSDS_Ptr->TimeRecoder;
-				centerTT = SystemRunningTime;
 				rec[recH].amlH = 0;
 			}
 			else if(3 == countFlag)
 			{
 				//T3 = FMSDS_Ptr->TimeRecoder - ET0_5;
-				T3pre = T3;
 				T3 = FMSDS_Ptr->VelocityXt;
 				//ET0_5 = FMSDS_Ptr->TimeRecoder;
 				countFlag = 0;
@@ -8992,7 +8879,6 @@ void scale_1_mode6(u8 gear)
 				if(1 == countFlag)
 				{
 					ET0_5 = SystemRunningTime;
-					T2pre = T2;
 					T2 = ET0_5 - ET1;
 					//T2 = FMSDS_Ptr->TimeRecoder - ET1;
 					//ET0_5 = FMSDS_Ptr->TimeRecoder;
@@ -9007,7 +8893,6 @@ void scale_1_mode6(u8 gear)
 				if(2 == countFlag)
 				{
 					ET0_5 = SystemRunningTime;
-					T2pre = T2;
 					T2 = ET0_5 - ET1;
 					//T2 = FMSDS_Ptr->TimeRecoder - ET1;
 					//ET0_5 = FMSDS_Ptr->TimeRecoder;
@@ -9254,8 +9139,8 @@ void Get_T1(Trec *now)
 
 void T_monitor(Trec *now)
 {
-	static u8 flaga = 0, flagt1 = 0, flagt2 = 0, acFlag = 0, t2flag = 0;
-	static u32 T1 = 0, T2 = 0, T3 = 0, centerTT = 0, ET1 = 0, countFlag = 0, ET0_5 = 0, T1pre = 0, T2pre = 0, T3pre = 0, acTST = 0;
+	static u8 flaga = 0, flagt1 = 0;
+	static u32 T1 = 0, T2 = 0, T3 = 0, countFlag = 0;
 	static Agv_MS_Location locRec = AgvInits, locRec2 = AgvInits;
 	
 	
@@ -9319,15 +9204,9 @@ void T_monitor(Trec *now)
 				//rec[recH].amlH = 0;
 				flaga = 0;
 
-				centerTT = SystemRunningTime;
-
 				now->T3_update = 1;
 				now->T3 = T3;
 				now->All_update = 1;
-				
-				T1pre = T1;
-				T2pre = T2;
-				T3pre = T3;
 
 				T1 = 0;
 				T2 = 0;
@@ -9381,11 +9260,11 @@ void show_adapt_info(T1_AutoAdapt_Info *arr)
 void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 {
 
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 
 	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
 
-	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+	static Agv_MS_Location maxRec = AgvInits;
 
 	static u32 recT1Tim = 0;
 
@@ -9437,7 +9316,6 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 				T1RSpeedin = 0;
 			}
 			flag = 1;
-			locRec = FMSDS_Ptr->AgvMSLocation;
 			
 			recT1Tim = SystemRunningTime;
 			
@@ -9518,7 +9396,6 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
 
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
@@ -9538,11 +9415,11 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 {
 
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 
 	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
 
-	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+	static Agv_MS_Location maxRec = AgvInits;
 
 	static u32 recT1Tim = 0;
 
@@ -9594,7 +9471,6 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 				T1RSpeedin = 0;
 			}
 			flag = 1;
-			locRec = FMSDS_Ptr->AgvMSLocation;
 			
 			recT1Tim = SystemRunningTime;
 			
@@ -9678,7 +9554,6 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 	
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
 
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
@@ -9698,11 +9573,11 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 {
 
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 
 	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
 
-	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+	static Agv_MS_Location maxRec = AgvInits;
 
 	static u32 recT1Tim = 0;
 
@@ -9757,7 +9632,6 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 			}
 			
 			flag = 1;
-			locRec = FMSDS_Ptr->AgvMSLocation;
 			
 			recT1Tim = SystemRunningTime;
 			
@@ -9842,7 +9716,6 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 	
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
 
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
@@ -10559,11 +10432,9 @@ void Damp_Adapter(u8 *lmSpeedPull, u8 *rmSpeedPull)
 void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed)
 {
 
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 
-	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0;
-
-	static Agv_MS_Location locRec = AgvInits, maxRec = AgvInits;
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, re = 0;
 
 	static u32 recT1Tim = 0;
 
@@ -10572,12 +10443,6 @@ void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed)
 		
 	Get_T1(&Tnow);
 	
-
-	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
-	{
-		maxRec = FMSDS_Ptr->AgvMSLocation;
-		
-	}
 
 
 	if(1 == Tnow.T1_update)
@@ -10599,8 +10464,6 @@ void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed)
 				T1LSpeedin = adaptInfo[re].duty;
 				T1RSpeedin = 0;
 			}
-			flag = 1;
-			locRec = FMSDS_Ptr->AgvMSLocation;
 			
 			recT1Tim = SystemRunningTime;
 			
@@ -10631,8 +10494,8 @@ void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed)
 
 void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 {
-	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, flag4 = 0, index = 0;
-	static u32 startCount = 0, countTime = 0, recoverTim = 0;
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, index = 0;
+	static u32 startCount = 0, countTime = 0;
 	static Agv_MS_Location locRec1 = AgvInits, locRec4 = AgvInits, maxRec = AgvInits;
 	static u32 time = 3000;
 	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
@@ -10728,8 +10591,6 @@ void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 				
 				lmSpeedPullin = 0;
 				rmSpeedPullin = 0;
-				flag4 = 1;
-				recoverTim = SystemRunningTime;
 				
 			}
 			
@@ -10837,8 +10698,6 @@ void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 				
 				lmSpeedPullin = 0;
 				rmSpeedPullin = 0;
-				flag4 = 1;
-				recoverTim = SystemRunningTime;
 				
 			}
 
@@ -10858,11 +10717,6 @@ void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
-
-		if(1 == flag)
-		{
-			flag4 = 1;
-		}
 		
 		cir = 0;
 		flag3 = 0;
@@ -10885,8 +10739,8 @@ void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 
 void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 {
-	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, flag4 = 0, index = 0;
-	static u32 startCount = 0, countTime = 0, recoverTim = 0;
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, index = 0;
+	static u32 startCount = 0, countTime = 0;
 	static Agv_MS_Location locRec1 = AgvInits, locRec4 = AgvInits, maxRec = AgvInits;
 	static u32 time = 3000;
 	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
@@ -10982,8 +10836,6 @@ void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 				
 				lmSpeedPullin = 0;
 				rmSpeedPullin = 0;
-				flag4 = 1;
-				recoverTim = SystemRunningTime;
 				
 			}
 			
@@ -11091,8 +10943,6 @@ void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 				
 				lmSpeedPullin = 0;
 				rmSpeedPullin = 0;
-				flag4 = 1;
-				recoverTim = SystemRunningTime;
 				
 			}
 
@@ -11112,11 +10962,6 @@ void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
-
-		if(1 == flag)
-		{
-			flag4 = 1;
-		}
 		
 		cir = 0;
 		flag3 = 0;
@@ -11141,13 +10986,8 @@ void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 
 void scale_1_mode7(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0, enterTF = 0, exitTF = 0;
 	u8 AgvGearS1CDLF[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
-	u8 add = 0;
+	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	// 普通模式,偏差在1格之内调整
 
@@ -11283,13 +11123,10 @@ void scale_1_mode7(u8 gear)
 					ctrlParasPtr->comflag = 642111;
 						
 					lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
-					lmflag = 1;
 				}
 				else if(0 == AGV_Pat_Ptr->Angle)
 				{
 					ctrlParasPtr->comflag = 642112;
-					lmflag = 0;
-					rmflag = 0;
 				}
 				else if(AGV_Pat_Ptr->Angle < 0)
 				{
@@ -11297,13 +11134,10 @@ void scale_1_mode7(u8 gear)
 					if(AGV_Pat_Ptr->Angle >= -2)
 					{
 						
-						lmflag = 0;
-						rmflag = 0;
 					}
 					else
 					{
 						rmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
-						rmflag = 1;
 					}
 				}
 			}
@@ -11315,19 +11149,15 @@ void scale_1_mode7(u8 gear)
 					ctrlParasPtr->comflag = 642121;
 						
 					lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
-					lmflag = 1;
 				}
 				else if(0 == AGV_Pat_Ptr->Angle)
 				{
 					ctrlParasPtr->comflag = 642122;
-					lmflag = 0;
-					rmflag = 0;
 				}
 				else if(AGV_Pat_Ptr->Angle < 0)
 				{
 					ctrlParasPtr->comflag = 642123;
 					rmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
-					rmflag = 0;
 				}
 			}
 			else if(AGV_Pat_Ptr->Midpoint < 0)
@@ -11339,27 +11169,21 @@ void scale_1_mode7(u8 gear)
 					if(AGV_Pat_Ptr->Angle <= 2)
 					{
 						
-						lmflag = 0;
-						rmflag = 0;
 					}
 					else
 					{
 						
 						lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
-						lmflag = 1;
 					}
 				}
 				else if(0 == AGV_Pat_Ptr->Angle)
 				{
 					ctrlParasPtr->comflag = 642132;
-					lmflag = 0;
-					rmflag = 0;
 				}
 				else if(AGV_Pat_Ptr->Angle < 0)
 				{
 					ctrlParasPtr->comflag = 642133;
 					rmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];
-					rmflag = 1;
 				}
 			}
 			
@@ -11380,8 +11204,6 @@ void scale_1_mode7(u8 gear)
 	{
 		ctrlParasPtr->comflag = 634;
 
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 
 		if(AGV_Pat_Ptr->Midpoint > 0)
 		{
@@ -11540,13 +11362,7 @@ void scale_1_mode7(u8 gear)
 
 void scale_1_mode8(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0;
-	u32 centCount = 0;
-	static u32 startCount = 0, enterTF = 0, exitTF = 0;
-	u8 AgvGearPatAngl[50] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
-	u8 add = 0;
+	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	u8 maxLimt = 4;
 	// 普通模式,偏差在1格之内调整
@@ -11806,16 +11622,13 @@ void scale_1_mode8(u8 gear)
 
 void scale_1_mode9(u8 gear)
 {
-	u8 AgvGearPatAngl[50] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
+	u8 gearRecod = 0;
+	static Agv_MS_Location locRec3 = AgvInits;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	u8 maxLimt = 16;
-	u32 T1 = 0, T2 = 0, T3 = 0;
-	u8 T1Speed = 0, T2Speed = 0, T3Speed = 0;
-	static u8 T1LSpeed = 0, T2LSpeed = 0, T3LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0, T3RSpeed = 0, T2LSpeedRec = 0, T2RSpeedRec = 0;
+	static u8 T1LSpeed = 0, T2LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 	
 	gearRecod = gear;	
 	
@@ -12165,7 +11978,6 @@ void scale_1_mode9(u8 gear)
 
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
 
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
@@ -12188,16 +12000,13 @@ void scale_1_mode9(u8 gear)
 
 void scale_1_mode9_back(u8 gear)
 {
-	u8 AgvGearPatAngl[50] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
+	u8 gearRecod = 0;
+	static Agv_MS_Location locRec3 = AgvInits;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	u8 maxLimt = 8;
-	u32 T1 = 0, T2 = 0, T3 = 0;
-	u8 T1Speed = 0, T2Speed = 0, T3Speed = 0;
-	static u8 T1LSpeed = 0, T2LSpeed = 0, T3LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0, T3RSpeed = 0, T2LSpeedRec = 0, T2RSpeedRec = 0;
+	static u8 T1LSpeed = 0, T2LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 	
 	gearRecod = gear;	
 	
@@ -12546,7 +12355,6 @@ void scale_1_mode9_back(u8 gear)
 
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
 
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
@@ -12569,13 +12377,11 @@ void scale_1_mode9_back(u8 gear)
 
 void scale_1_mode10(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0;
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0;
 	static u32 startCount = 0, countTime = 0;
 	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	static u32 time = 3000;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
 	// 普通模式,偏差在1格之内调整
@@ -12941,9 +12747,6 @@ void scale_1_mode10(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
@@ -12976,12 +12779,11 @@ void scale_1_mode10(u8 gear)
 
 void scale_1_mode11(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0;
+	static u8  flag = 0, flag2 = 0, cir = 0;
 	static u32 startCount = 0, countTime = 0;
 	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20};
-	u8 gearRecod = 0, gain = 3;
+	u8 gearRecod = 0;
 	
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
 	// 普通模式,偏差在1格之内调整
@@ -13202,8 +13004,6 @@ void scale_1_mode11(u8 gear)
 	{
 		ctrlParasPtr->comflag = 634;
 
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
@@ -13233,19 +13033,16 @@ void scale_1_mode11(u8 gear)
 
 void scale_1_mode12(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0;
 	static u32 startCount = 0, countTime = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	static u32 time = 3000;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
 	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 	
 	gearRecod = gear;
 	
@@ -13608,9 +13405,6 @@ void scale_1_mode12(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
@@ -13826,7 +13620,6 @@ void scale_1_mode12(u8 gear)
 	
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
 
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
@@ -13854,19 +13647,16 @@ void scale_1_mode12(u8 gear)
 
 void scale_1_mode12_back(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
+	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0;
 	static u32 startCount = 0, countTime = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
+	static Agv_MS_Location locRec1 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	static u32 time = 3000;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
 	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 	
 	gearRecod = gear;	
 	
@@ -14229,9 +14019,6 @@ void scale_1_mode12_back(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
@@ -14447,8 +14234,6 @@ void scale_1_mode12_back(u8 gear)
 	
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
-
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
 		Tnow.T1_update = 0;
@@ -14477,16 +14262,13 @@ void scale_1_mode12_back(u8 gear)
 
 void scale_1_mode14(u8 gear)
 {
-	u8 AgvGearPatAngl[50] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
-	u8 gearRecod = 0, gain = 3;
-	static Agv_MS_Location locRec3 = AgvInits, locRec4 = AgvInits;
+	u8 gearRecod = 0;
+	static Agv_MS_Location locRec3 = AgvInits;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	u8 maxLimt = 16;
-	u32 T1 = 0, T2 = 0, T3 = 0;
-	u8 T1Speed = 0, T2Speed = 0, T3Speed = 0;
-	static u8 T1LSpeed = 0, T2LSpeed = 0, T3LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0, T3RSpeed = 0, T2LSpeedRec = 0, T2RSpeedRec = 0;
+	static u8 T1LSpeed = 0, T2LSpeed = 0, T1RSpeed = 0, T2RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
+	static Trec Tnow;
 	
 	gearRecod = gear;
 	
@@ -14834,8 +14616,6 @@ void scale_1_mode14(u8 gear)
 
 	if(1 == Tnow.All_update)
 	{
-		Tpre = Tnow;
-
 		Tnow.All_update = 0;
 		Tnow.T1 = 0;
 		Tnow.T1_update = 0;
@@ -14857,16 +14637,9 @@ void scale_1_mode14(u8 gear)
 
 void scale_1_mode15_t1adapt(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
-	static u32 startCount = 0, countTime = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
-	static u32 time = 3000;
-	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
+	u8 gearRecod = 0;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
 	
@@ -14907,20 +14680,10 @@ void scale_1_mode15_t1adapt(u8 gear)
 	{
 		ctrlParasPtr->comflag = 634;
 
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
-		cir = 0;
-		countTime = 0;
-		startCount = 0;
-		time = 3000;
-
-		flag3 = 0;
-
-		flag = 0;
-		flag2 = 0;
+		
 		
 		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
 		
@@ -14945,16 +14708,9 @@ void scale_1_mode15_t1adapt(u8 gear)
 
 void scale_1_mode15_t1(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
-	static u32 startCount = 0, countTime = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
-	static u32 time = 3000;
-	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
+	u8 gearRecod = 0;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
 	
@@ -14994,21 +14750,10 @@ void scale_1_mode15_t1(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
-		cir = 0;
-		countTime = 0;
-		startCount = 0;
-		time = 3000;
-
-		flag3 = 0;
-
-		flag = 0;
-		flag2 = 0;
+		
 		
 		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
 		
@@ -15035,16 +14780,9 @@ void scale_1_mode15_t1(u8 gear)
 
 void scale_1_mode15_t1_back(u8 gear)
 {
-	static u8  lmSpeed_pat = 0, rmSpeed_pat = 0, lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, cir = 0, flag3 = 0, pullFlag = 0;
-	static u32 startCount = 0, countTime = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
-	static u32 time = 3000;
-	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
+	u8 gearRecod = 0;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0;
 	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
 	
@@ -15084,21 +14822,10 @@ void scale_1_mode15_t1_back(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-
-		lmSpeed_pat = 0;
-		rmSpeed_pat = 0;
 	
 		lmSpeed = 0;
 		rmSpeed = 0;
-		cir = 0;
-		countTime = 0;
-		startCount = 0;
-		time = 3000;
-
-		flag3 = 0;
-
-		flag = 0;
-		flag2 = 0;
+		
 		
 		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
 		
@@ -15124,17 +14851,10 @@ void scale_1_mode15_t1_back(u8 gear)
 
 void scale_1_mode16_dampadapt(u8 gear)
 {
-	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
-	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
 	
 	gearRecod = gear;
 	
@@ -15188,17 +14908,10 @@ void scale_1_mode16_dampadapt(u8 gear)
 
 void scale_1_mode16_dampadapt_back(u8 gear)
 {
-	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0;
-	u32 T1 = 0;
-	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
 	
 	gearRecod = gear;
 	
@@ -15252,17 +14965,10 @@ void scale_1_mode16_dampadapt_back(u8 gear)
 
 void scale_1_mode17(u8 gear)
 {
-	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,  lmSpeedT1 = 0, rmSpeedT1 = 0;
-	u32 T1 = 0;
-	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
 	
 	gearRecod = gear;
 	
@@ -15273,7 +14979,6 @@ void scale_1_mode17(u8 gear)
 	{
 		
 		ctrlParasPtr->comflag = 641;
-		
 		
 		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
 	
@@ -15302,7 +15007,8 @@ void scale_1_mode17(u8 gear)
 
 	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
 	{
-		Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+		//Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+		Get_T1_Duty(&lmSpeedT1, &rmSpeedT1);
 	}
 	
 			
@@ -15318,17 +15024,10 @@ void scale_1_mode17(u8 gear)
 
 void scale_1_mode17_back(u8 gear)
 {
-	static u8  lmSpeedbak = 0, rmSpeedbak = 0, lmflag = 0, rmflag = 0, flag = 0, flag2 = 0, flag3 = 0, pullFlag = 0;
-	static Agv_MS_Location locRec1 = AgvInits, locRec2 = AgvInits, locRec3 = AgvInits, locRec4 = AgvInits;
-	u32 centCount = 0;
 	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
-	u8 gearRecod = 0, gain = 3;
-	u8 leftPullDuty[15] = {1, 2, 2, };
+	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,  lmSpeedT1 = 0, rmSpeedT1 = 0;
-	u32 T1 = 0;
-	static u8 T1LSpeed = 0, T1RSpeed = 0;
 	// 普通模式,偏差在1格之内调整
-	static Trec Tnow, Tpre;
 	
 	gearRecod = gear;
 	
@@ -15369,7 +15068,8 @@ void scale_1_mode17_back(u8 gear)
 	
 	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
 	{
-		Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+		//Get_Damp_Duty_Back(&lmSpeedT1, &rmSpeedT1);
+		Get_T1_Duty(&lmSpeedT1, &rmSpeedT1);
 	}
 	
 			
@@ -15385,61 +15085,16 @@ void scale_1_mode17_back(u8 gear)
 
 void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 {
-	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0;
-	u32 centCount = 0;
+	static u8 gearRecod = 0;
 	
 	ctrlParasPtr->comflag = 6;
-	
-	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
-
-	counter = 0;
-	
+		
 	gearRecod = gear;
 	
-	//printf("************\r\n");
-
-	
-	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
-		(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3))
+	//if(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3)
+	if(1)
 	{
-		//printf("AgvMSLocation %d, %d\r\n",FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation);
 		
-		#if 0
-		/********************************/
-		if(0 == ctrlParasPtr->FSflag)			// 启动修正模式, 进入修正控制	
-		{
-			ctrlParasPtr->comflag = 61;
-		}
-		else if(2 == ctrlParasPtr->FSflag)		// 普通模式下
-		{
-			ctrlParasPtr->comflag = 62;
-			
-			if(((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End)) ||\
-				((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End)))
-			{
-				// 超过5格, 跑失控修正模式
-				ctrlParasPtr->FSflag = 0;
-				ctrlParasPtr->comflag = 621;
-			}
-			
-			/*
-			else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) || (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
-			{
-				// 正常模式
-				ctrlParasPtr->FSflag = 2;
-				ctrlParasPtr->comflag = 622;
-			}
-			*/
-		}
-		#endif
-		
-		
-		
-		/***********************实现************************/
-		
-		
-
 		if(0 == ctrlParasPtr->FSflag)		
 		{
 			// 启动模式
@@ -15449,14 +15104,8 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		else if(1 == ctrlParasPtr->FSflag)
 		{
 			// 偏差达到1格模式
-			/*
-			#if 0
-			scale_1_mode16_dampadapt(gearRecod);
-			#else
-			scale_1_mode15_t1adapt(gearRecod);
-			#endif
-			*/
 			scale_1_mode17(gearRecod);
+			
 		}
 		else if(2 == ctrlParasPtr->FSflag)
 		{
@@ -15464,10 +15113,6 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 			gS_urgency_mode();
 			
 		}
-		
-		
-		
-		
 			
 	}
 	
@@ -15475,61 +15120,19 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 
 void AGV_Correct_back_ug(u8 gear)		// 3 mode
 {
-	static u32 counter = 0, startCount = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0;
-	u32 centCount = 0;
+	static u8 gearRecod = 0;
 	
 	ctrlParasPtr->comflag = 6;
-	
-	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
-	counter = 0;
 	
 	gearRecod = gear;
 	
 	//printf("************\r\n");
 
 	
-	//if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
-		//(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3))
+	//if(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3)
 	if(1)
 	{
-		//printf("AgvMSLocation %d, %d\r\n",FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation);
-		
-		#if 0
-		/********************************/
-		if(0 == ctrlParasPtr->FSflag)			// 启动修正模式, 进入修正控制	
-		{
-			ctrlParasPtr->comflag = 61;
-		}
-		else if(2 == ctrlParasPtr->FSflag)		// 普通模式下
-		{
-			ctrlParasPtr->comflag = 62;
-			
-			if(((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End)) ||\
-				((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End)))
-			{
-				// 超过5格, 跑失控修正模式
-				ctrlParasPtr->FSflag = 0;
-				ctrlParasPtr->comflag = 621;
-			}
-			
-			/*
-			else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) || (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
-			{
-				// 正常模式
-				ctrlParasPtr->FSflag = 2;
-				ctrlParasPtr->comflag = 622;
-			}
-			*/
-		}
-		#endif
-		
-		
-		
-		/***********************实现************************/
-		
-		
 
 		if(0 == ctrlParasPtr->BSflag)		
 		{
@@ -15540,13 +15143,6 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 		else if(1 == ctrlParasPtr->BSflag)
 		{
 			// 偏差达到1格模式
-			/*
-			#if 0
-			scale_1_mode16_dampadapt_back(gearRecod);
-			#else
-			scale_1_mode15_t1_back(gearRecod);
-			#endif
-			*/
 			scale_1_mode17_back(gearRecod);
 		}
 		else if(2 == ctrlParasPtr->BSflag)
@@ -15556,8 +15152,6 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 			
 		}
 		
-		
-			
 	}
 	
 }
@@ -15960,8 +15554,7 @@ void gS_step_gB(u8 gear)
 
 void gS_step_exit(u8 gearRecod)
 {
-	static u8 lmSpeed = 0, rmSpeed = 0, lreco = 0, rreco = 0;
-	static u32 startCount = 0;
+	static u8 lmSpeed = 0, rmSpeed = 0;
 	//u32 centCount = 0;
 	
 	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
@@ -15979,7 +15572,6 @@ void gS_step_exit(u8 gearRecod)
 		MOTOR_RIGHT_DUTY_SET(lmSpeed);
 		
 		
-		startCount = 0;
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{		
@@ -15995,7 +15587,6 @@ void gS_step_exit(u8 gearRecod)
 		MOTOR_LEFT_DUTY_SET(rmSpeed);
 		MOTOR_RIGHT_DUTY_SET(lmSpeed);
 
-		startCount = 0;
 	}
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
@@ -16015,7 +15606,6 @@ void gS_step_exit(u8 gearRecod)
 		}
 		else
 		{
-			startCount = 0;
 			#if 0
 			ctrlParasPtr->comflag = 662;
 			if(AgvLeft2Cent == FMSDS_Ptr->agvDirection) 		// 如果是左偏之后拉回来的
@@ -16497,14 +16087,6 @@ void AGV_Correct_back_2(void)
 			}
 
 		}
-
-		
-
-
-
-
-
-
 		
 		else
 		{
@@ -17199,16 +16781,14 @@ void AGV_Correct_back_4(u8 gear)
 
 void AGV_Correct_back_5(u8 gear)
 {
-	static u32 counter = 0, startCount = 0;
+
 	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 3, lreco = 0, rreco = 0;
-	u32 centCount = 0;
 	
 	
 	ctrlParasPtr->comflag = 6;
 	
 	//if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 
-	counter = 0;
 	
 	gearRecod = gear;
 	if((Agv_MS_CrossRoad != FMSDS_Pre_Ptr->AgvMSLocation) && (Agv_MS_Undefine != FMSDS_Pre_Ptr->AgvMSLocation) &&\
@@ -18644,7 +18224,6 @@ void CrossRoad_Count(void)
 
 void Walking_Step_Controler(void)
 {
-	u8 flag = 0;
 	
 	if(STATION_1AND2_RFID == ctrlParasPtr->goalRFIDnode)
 	{

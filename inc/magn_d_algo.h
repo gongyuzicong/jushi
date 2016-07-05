@@ -259,6 +259,8 @@ typedef struct
 	u8 zflag;
 
 	Agv_MS_Location MaxRecoder;
+
+	u8 MSD_Hex_Update;
 }Magn_Sensor_Data_Sturct, *Magn_Sensor_Data_Sturct_P;
 
 

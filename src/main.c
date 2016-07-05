@@ -154,68 +154,57 @@ int main(void)
 			//AGV_Walking();
 			
 			
-			
-			//if((FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex) || (RMSDS_Ptr->MSD_Hex != RMSDS_Pre_Ptr->MSD_Hex))
+
+			//if((1 == FMSDS_Ptr->MSD_Hex_Update) || (1 == RMSDS_Ptr->MSD_Hex_Update))
 			if(1)
 			{
-				
-				if(goStraightStatus == ctrlParasPtr->agvStatus)
+				if(((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)) &&\
+					((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)))
 				{
-					#if 0
-					
-					if(1 == addGearFlag)
+					if(goStraightStatus == ctrlParasPtr->agvStatus)
 					{
-						addGearFlag = 0;
-						ctrlParasPtr->gear++;
+						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
 					}
-
-					if(ctrlParasPtr->gear > 10)
+					else if(backStatus == ctrlParasPtr->agvStatus)
 					{
-						CleanAllSpeed();
-						CHANGE_TO_STOP_MODE();
+						AGV_Correct_back_ug(ctrlParasPtr->gear);
+					}
+					else if(cirLeft == ctrlParasPtr->agvStatus)
+					{
+						walking_cirLeft(ctrlParasPtr->gear);
+					}
+					else if(cirRight == ctrlParasPtr->agvStatus)
+					{
+						walking_cirRight(ctrlParasPtr->gear);
+					}
+					else if(gSslow == ctrlParasPtr->agvStatus)
+					{
+						gS_slow(ctrlParasPtr->gear);
+					}
+					else if(bSslow == ctrlParasPtr->agvStatus)
+					{
+						back_slow(ctrlParasPtr->gear);
 					}
 					
-					#endif
-					
-					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-					//gS_startup_mode(ctrlParasPtr->gear);
-				}
-				else if(backStatus == ctrlParasPtr->agvStatus)
-				{
-					//addGearFlag = 1;
-					//AGV_Correct_back_5(ctrlParasPtr->gear);
-					//AGV_Correct_back_5(3);
-					AGV_Correct_back_ug(ctrlParasPtr->gear);
-				}
-				else if(cirLeft == ctrlParasPtr->agvStatus)
-				{
-					walking_cirLeft(ctrlParasPtr->gear);
-				}
-				else if(cirRight == ctrlParasPtr->agvStatus)
-				{
-					walking_cirRight(ctrlParasPtr->gear);
-				}
-				else if(gSslow == ctrlParasPtr->agvStatus)
-				{
-					gS_slow(ctrlParasPtr->gear);
-				}
-				else if(bSslow == ctrlParasPtr->agvStatus)
-				{
-					back_slow(ctrlParasPtr->gear);
 				}
 				
 				//AGV_Change_Mode();
 				AGV_Proc();
 				
+				
 				//LeftOrRight_Counter();
 
 				if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 				{
-					//Show_Infomation();
+					Show_Infomation();
 				}
-
 				
+
+				FMSDS_Ptr->MSD_Hex_Update = 0;
+				RMSDS_Ptr->MSD_Hex_Update = 0;
 			}
+			
+			
 
 			
 			
