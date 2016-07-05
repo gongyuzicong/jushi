@@ -247,6 +247,7 @@ typedef struct
 	WalkStep walkingstep;
 
 	u8 crossRoadCount;
+	u8 crossRoadUpdate;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 

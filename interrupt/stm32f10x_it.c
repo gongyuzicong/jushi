@@ -752,7 +752,7 @@ void USART2_IRQHandler(void)
 	else if(0 != (USART2->SR & (0x01 << 5)))	// ÅÐ¶ÏÊÇ·ñÎªRXNEÖÐ¶Ï
 	{
 		u8 recvD = USART2_RECV_DATA;
-		//printf("D = %x\r\n", recvD);
+		printf("D = %x\r\n", recvD);
 
 		Protocol_analysis(recvD);
 		

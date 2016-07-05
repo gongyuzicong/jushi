@@ -18260,6 +18260,7 @@ void AGV_Proc(void)
 			{
 				ctrlParasPtr->BSflag = 0;
 			}
+			//MOTOR_POWER_OFF();
 		}
 	}
 	
@@ -18571,82 +18572,12 @@ void STATION_9AND10_WalkControl(void)
 
 void Hall_Count(void)
 {
-	u8 cir = 0;
-	static u32 rfid = 0x0000;
+	static u8 crcRec = 0;	
 	
-	static Agv_MS_Location mslRec = AgvInits;
-	/*
-	if(goStraightStatus == ctrlParasPtr->agvStatus)
+	if(crcRec != ctrlParasPtr->crossRoadCount)
 	{
-		if((0x0000 != FMSDS_Ptr->MSD_Hex) && (0xFFFF != FMSDS_Ptr->MSD_Hex))
-		{
-			if(1 == RFID_Info_Ptr->updateFlag)
-			{
-				
-				if(rfid != RFID_Info_Ptr->rfidData)
-				{
-					rfid = RFID_Info_Ptr->rfidData;
-					HallCountArr[RFID_Info_Ptr->rfidData].HallCountLeft = ctrlParasPtr->leftHallCounter;
-					HallCountArr[RFID_Info_Ptr->rfidData].HallCountRight = ctrlParasPtr->rightHallCounter;
-					ctrlParasPtr->leftHallCounter = 0;
-					ctrlParasPtr->rightHallCounter = 0;
-					
-					for(cir = 1; cir <= RFID_Info_Ptr->rfidData; cir++)
-					{
-						printf("ID = %d, HCL = %d, HCR = %d\r\n", cir, HallCountArr[cir].HallCountLeft, HallCountArr[cir].HallCountRight);
-					}
-				}
-				
-			}
-		}
 		
 	}
-	*/
-
-	if((goStraightStatus == ctrlParasPtr->agvStatus) || (gSslow == ctrlParasPtr->agvStatus))
-	{
-		if(mslRec != FMSDS_Ptr->AgvMSLocation)
-		{
-			mslRec = FMSDS_Ptr->AgvMSLocation;
-			
-			if(Agv_MS_CrossRoad == FMSDS_Ptr->AgvMSLocation)
-			{
-				ctrlParasPtr->rightHallCounter = 0;
-				ctrlParasPtr->leftHallCounter = 0;
-				printf("1Hclean\r\n");
-				
-			}
-		}
-	}
-	else if(backStatus == ctrlParasPtr->agvStatus)
-	{
-		if(mslRec != FMSDS_Ptr->AgvMSLocation)
-		{
-			mslRec = FMSDS_Ptr->AgvMSLocation;
-			
-			if(Agv_MS_CrossRoad == FMSDS_Ptr->AgvMSLocation)
-			{
-				ctrlParasPtr->rightHallCounter = 0;
-				ctrlParasPtr->leftHallCounter = 0;
-				printf("2Hclean\r\n");
-			}
-		}
-	}
-	else if(bSslow == ctrlParasPtr->agvStatus)
-	{
-		if(mslRec != FMSDS_Ptr->AgvMSLocation)
-		{
-			mslRec = FMSDS_Ptr->AgvMSLocation;
-			
-			if(Agv_MS_CrossRoad == FMSDS_Ptr->AgvMSLocation)
-			{
-				ctrlParasPtr->rightHallCounter = 0;
-				ctrlParasPtr->leftHallCounter = 0;
-				printf("3Hclean\r\n");
-			}
-		}
-	}
-	
 	
 }
 
@@ -18672,7 +18603,7 @@ void CrossRoad_Count(void)
 						ctrlParasPtr->rightHallCounter = 0;
 						ctrlParasPtr->leftHallCounter = 0;
 						ctrlParasPtr->crossRoadCount++;
-						
+						ctrlParasPtr->crossRoadUpdate = 1;
 						printf("1Hclean\r\n");
 						printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadCount);
 					}
@@ -18692,7 +18623,7 @@ void CrossRoad_Count(void)
 						ctrlParasPtr->rightHallCounter = 0;
 						ctrlParasPtr->leftHallCounter = 0;
 						ctrlParasPtr->crossRoadCount--;
-						
+						ctrlParasPtr->crossRoadUpdate = 1;
 						printf("2Hclean\r\n");
 						printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadCount);
 					}
@@ -19339,11 +19270,11 @@ void Motion_Ctrl_Init(void)
 
 	ZBandRFIDmapping[ControlCenter] = 0x0000;
 	//ZBandRFIDmapping[SpinStation_2] = 0xD358;
-	ZBandRFIDmapping[SpinStation_1] = 0x0001;
-	ZBandRFIDmapping[SpinStation_2] = 0x0002;
-	//ZBandRFIDmapping[SpinStation_3] = 0xD358;
-	//ZBandRFIDmapping[SpinStation_2] = 0xF1C3;
-	ZBandRFIDmapping[SpinStation_3] = 0x0003;
+	//ZBandRFIDmapping[SpinStation_1] = 0x0001;
+	//ZBandRFIDmapping[SpinStation_2] = 0x0002;
+	ZBandRFIDmapping[SpinStation_2] = 0xF1C3;
+	ZBandRFIDmapping[SpinStation_3] = 0xD358;
+	//ZBandRFIDmapping[SpinStation_3] = 0x0003;
 	ZBandRFIDmapping[SpinStation_4] = 0x0004;
 	ZBandRFIDmapping[SpinStation_5] = 0x0005;
 	ZBandRFIDmapping[SpinStation_6] = 0x0006;

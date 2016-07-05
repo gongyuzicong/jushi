@@ -52,16 +52,16 @@ int main(void)
 	printf("Start\r\n");
 
 
-	ECV_POWER_ON();
-	FECV_DOWN();
-	BECV_DOWN();
-	WECV_DOWN();
+	//ECV_POWER_ON();
+	//FECV_DOWN();
+	//BECV_DOWN();
+	//WECV_DOWN();
 	Delay_ns(3);
 	//MOTOR_POWER_OFF();
 	//FECV_UP();
 	//FECV_DOWN();
 	//BECV_UP();
-	//Delay_ns(3);
+	//Delay_ns(5);
 	//BECV_DOWN();
 	
 	//FECV_DOWN();
@@ -76,7 +76,7 @@ int main(void)
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
 	//AGV_Walking_Test();
-
+	
 	ctrlParasPtr->gear = 10;
 	
 	while(1)
@@ -144,6 +144,7 @@ int main(void)
 			//Zigbee_Data_Scan();
 
 			//CrossRoad_Count();
+			
 			//Hall_Count();
 			
 			//RFID_Goal_Node_Analy();
@@ -157,6 +158,7 @@ int main(void)
 			//if((FMSDS_Ptr->MSD_Hex != FMSDS_Pre_Ptr->MSD_Hex) || (RMSDS_Ptr->MSD_Hex != RMSDS_Pre_Ptr->MSD_Hex))
 			if(1)
 			{
+				
 				if(goStraightStatus == ctrlParasPtr->agvStatus)
 				{
 					#if 0
@@ -209,7 +211,7 @@ int main(void)
 
 				if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 				{
-					Show_Infomation();
+					//Show_Infomation();
 				}
 
 				

@@ -1,4 +1,5 @@
 #include "zigbee.h"
+#include "cfg_gpio.h"
 
 Zigbee_Info Zigbee;
 Zigbee_Info_P Zigbee_Ptr = &Zigbee;
@@ -75,7 +76,7 @@ void Protocol_analysis(u8 rec_dat)
   
 }
 
-#if 0
+#if 1
 
 u8 SendChar_Zigbee(u8 ch)  //发送单个数据 
 {
@@ -154,6 +155,19 @@ void Zigbee_Usart_Init(void)
 	USART_InitTypeDef USART_InitStructure;
 	USART_ClockInitTypeDef USART_ClockInitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
+	
+	/*设置UART3的TX脚(PB.10)为第二功能推挽输出模式*/
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	/*设置UART3的RX脚(PB.11)为第二功能推挽输出模式*/
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
 	/***USART3 初始化 BEGIN***/
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
@@ -164,21 +178,22 @@ void Zigbee_Usart_Init(void)
 	NVIC_Init(&NVIC_InitStructure);								//初始化
 	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-
+	
+	/*
 	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
 	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
 	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
 	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
 	USART_ClockInit(USART2, &USART_ClockInitStructure);
+	*/
 	
-	USART_ClockInit(USART2, &USART_ClockInitStructure);
 	USART_InitStructure.USART_BaudRate = 19200;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_InitStructure.USART_Parity = USART_Parity_No;
-
+	
 	USART_Init(USART2, &USART_InitStructure);
 	USART_Cmd(USART2, ENABLE);
 	
@@ -214,13 +229,30 @@ void Zigbee_Data_Scan(void)
 }
 
 
+
+void Zigbee_GPIO_Init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	/****TIM3 CH1 CH2 CH3 CH4 PWM输出 GPIO分别为 PA6 PA7 PB0 PB1*****/
+	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
+	
+}
+
+
 void Zigbee_Init(void)
 {
 	Zigbee_Usart_Init();
 	
 	Zigbee_Ptr->receive_end = 0;
 	Zigbee_Ptr->recvValidDataFlag = 0;
-	Zigbee_Ptr->recvId = 0x0006;
+	Zigbee_Ptr->recvId = 0x0000;
 }
 
 
