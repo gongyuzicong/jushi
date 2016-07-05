@@ -256,8 +256,6 @@ void EXTI2_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line2) != RESET)
 	{
 		//printf("pd2exti\r\n");
-		//NRF24L01OptsPtr->IT_Process();
-		//NRF24L01OptsPtr->TEST_Recv();
 		//EXTI->PR = ((u32)0x00004);
 		EXTI_ClearITPendingBit(EXTI_Line2);
 	}
@@ -286,8 +284,6 @@ void EXTI4_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
 		//printf("pd2exti\r\n");
-		NRF24L01OptsPtr->IT_Process();
-		//NRF24L01OptsPtr->TEST_Recv();
 		//EXTI->PR = ((u32)0x00004);
 		EXTI_ClearITPendingBit(EXTI_Line4);
 	}

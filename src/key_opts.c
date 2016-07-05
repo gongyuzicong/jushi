@@ -121,7 +121,6 @@ void key4Opt(void)
 {
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Sub(pwmParaPtr_1, 10);
 	//printf("key4\r\n");
-	NRF24L01OptsPtr->TEST_Send();
 }
 
 void key1Opt_cepark(void)
@@ -129,7 +128,6 @@ void key1Opt_cepark(void)
 	//pwmOptsPtr_1->Duty_Cycle_OC1_Add(pwmParaPtr_1, 10);
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Add(pwmParaPtr_1, 10);
 	printf("key1\r\n");
-	NRF24L01OptsPtr->nrf_send_up();
 }
 
 void key2Opt_cepark(void)
@@ -137,7 +135,6 @@ void key2Opt_cepark(void)
 	//pwmOptsPtr_1->Duty_Cycle_OC1_Sub(pwmParaPtr_1, 10);
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Sub(pwmParaPtr_1, 10);
 	printf("key2\r\n");
-	NRF24L01OptsPtr->nrf_send_down();
 }
 
 void key3Opt_cepark(void)
@@ -173,15 +170,12 @@ void key3Opt_cepark(void)
 	*/
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Add(pwmParaPtr_1, 10);
 	printf("key3\r\n");
-	NRF24L01OptsPtr->nrf_send_left();
 }
 
 void key4Opt_cepark(void)
 {
 	//pwmOptsPtr_1->Duty_Cycle_OC2_Sub(pwmParaPtr_1, 10);
 	printf("key4\r\n");
-	NRF24L01OptsPtr->nrf_send_right();
-	//NRF24L01OptsPtr->TEST_Send();
 }
 
 void KeyScanState_Check_Opt_cepark(int *scaningKey)

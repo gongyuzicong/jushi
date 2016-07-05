@@ -125,7 +125,6 @@ void NRF24L01_TEST(void);
 #endif
 
 
-extern NrfOptStruct_P NRF24L01OptsPtr;
 extern u8 need2SendInfo;
 
 #endif

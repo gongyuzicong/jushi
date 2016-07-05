@@ -4,8 +4,8 @@
 #include "buffer.h"
 #include "motion_control.h"
 
-NrfOptStruct nrfOpts;
-NrfOptStruct_P NRF24L01OptsPtr = &nrfOpts;
+//NrfOptStruct nrfOpts;
+//NrfOptStruct_P NRF24L01OptsPtr = &nrfOpts;
 u8 need2SendInfo = 0;
 
 u8 const TX_ADDRESS[TX_ADR_WIDTH] = {0x12, 0x34, 0x56, 0x78, 0x9A};	//本地地址
@@ -389,122 +389,7 @@ void Send_Info_To_Contorler(void)
 	
 }
 
-void NRF24L01_Read_Buf_Process(u8 *pBuf)
-{
-	#if 0
-	
-	switch(pBuf[3])
-	{
-		case 0x01:
-			printf("left\r\n");
-			motionOptsPtr->motor_left();
-			break;
 
-		case 0x02:
-			printf("up\r\n");
-			motionOptsPtr->motor_up();
-			break;
-
-		case 0x03:
-			printf("down\r\n");
-			motionOptsPtr->motor_down();
-			break;
-
-		case 0x04:
-			printf("right\r\n");
-			motionOptsPtr->motor_right();
-			break;
-
-		default:
-			break;
-	}
-
-	#else
-
-	if(0x01 == pBuf[3])
-	{
-		printf("up\r\n");
-		motionOptsPtr->motor_up();
-	}
-	else if(0x02 == pBuf[3])
-	{
-		printf("down\r\n");
-		motionOptsPtr->motor_down();
-	}
-	else if(0x03 == pBuf[3])
-	{
-		printf("left\r\n");
-		motionOptsPtr->motor_left();
-	}
-	else if(0x04 == pBuf[3])
-	{
-		printf("right\r\n");
-		motionOptsPtr->motor_right();
-	}
-	else if(0x05 == pBuf[3])
-	{
-		printf("stop\r\n");
-		motionOptsPtr->motor_stop();
-	}
-
-	
-	#endif
-}
-
-
-
-
-void NRF24L01_IT_Process(void)
-{
-	u8 status;
-	
-	status = SPI_Read(READ_REG_CMD + STATUS);
-	//printf("status = %x\r\n", status);
-	
-	if(status & RX_DR)			// 收到数据
-	{
-		printf("RX_DR\r\n");
-		//NRF24L01_Read_Data_2Buf();
-		SPI_Read_Buf(RD_RX_PLOAD, rx_buf, RX_PLOAD_WIDTH);	//读取数据
-		NRF24L01_Read_Buf_Process(rx_buf);
-		/*
-		for(i = 0; i < RX_PLOAD_WIDTH; i++)
-		{
-			printf("rx_buf[%d] = %d\r\n", i, rx_buf[i]);
-		}
-		*/
-		printf("rx_buf[3] = %d\r\n\r\n", rx_buf[3]);
-		
-		NRF24L01_Clean_Status_Reg(status);					// 清除RX_DR中断标志			
-		SPI_RW_Reg(FLUSH_RX, NOP);    						// 清除RX FIFO寄存器 
-
-		need2SendInfo = 1;
-		//rf_rec_flag = RX_DR; 
-	}
-	else if(status & TX_DS)		// 发送完成ACK中断
-	{
-		// 发送成功处理
-		printf("TX_DS\r\n");
-		Change_To_RX_Mode_Fast();
-		NRF24L01_Clean_Status_Reg(status);					// 清除TX_DS或MAX_RT中断标志
-		SPI_RW_Reg(FLUSH_TX, NOP);      					// 清除TX FIFO寄存器
-		//rf_rec_flag = TX_DS;
-	}
-	else if(status & MAX_RT) 	//达到最大重发次数 
-	{	
-		// 最大重发次数处理
-		printf("MAX_RT\r\n");
-		NRF24L01_Clean_Status_Reg(status);					// 清除TX_DS或MAX_RT中断标志
-		SPI_RW_Reg(FLUSH_TX, NOP);      					// 清除TX FIFO寄存器
-		//rf_rec_flag = MAX_RT;
-	}
-	else 
-	{
-		//rf_rec_flag = 0;   // 没收到任何数据
-	}
-
-	
-}
 
 
 void NRF24L01_GPIO_Init(void)
@@ -666,26 +551,6 @@ void NFR24L01_Init(void)
 	tx_buf[1] = 0x01;
 	tx_buf[2] = 0x02;
 	
-	NRF24L01OptsPtr->TEST_Send = NRF24L01_TEST_Send;
-	NRF24L01OptsPtr->TEST_Recv = NRF24L01_TEST_Recv;
-	NRF24L01OptsPtr->Read_Register = SPI_Read;
-	NRF24L01OptsPtr->Write_Register = SPI_RW_Reg;
-	NRF24L01OptsPtr->Read_Buf = SPI_Read_Buf;
-	NRF24L01OptsPtr->Write_Buf = SPI_Write_Buf;
-	NRF24L01OptsPtr->Check = NRF24L01_Check;
-	NRF24L01OptsPtr->TxMode = TX_Mode;
-	NRF24L01OptsPtr->RxMode = RX_Mode;
-	NRF24L01OptsPtr->TxMode_Fast = Change_To_TX_Mode_Fast;
-	NRF24L01OptsPtr->RxMode_Fast = Change_To_RX_Mode_Fast;
-	NRF24L01OptsPtr->Get_Status_Reg = NRF24L01_Get_Status_Reg;
-	NRF24L01OptsPtr->Clean_Status_Reg = NRF24L01_Clean_Status_Reg;
-	NRF24L01OptsPtr->Clean_All_Status_Reg = NRF24L01_Clean_All_Status_Reg;
-	NRF24L01OptsPtr->IT_Process = NRF24L01_IT_Process;
-	NRF24L01OptsPtr->nrf_send_up = nrf_up;
-	NRF24L01OptsPtr->nrf_send_down = nrf_down;
-	NRF24L01OptsPtr->nrf_send_left = nrf_left;
-	NRF24L01OptsPtr->nrf_send_right = nrf_right;
-	NRF24L01OptsPtr->Send_Info_To_Contorler = Send_Info_To_Contorler;
 }
 
 

@@ -41,7 +41,8 @@ void SystemInit(void)
 int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
-	int cir = 1, cir2 = 0, flag = 0;
+	//int cir = 1, cir2 = 0;
+	u8 flag = 0;
 	//static u8 addGearFlag = 0;
 	
 	CB_RCC_Config();	/*ÅäÖÃÏµÍ³Ê±ÖÓ*/
@@ -161,6 +162,7 @@ int main(void)
 				if(((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)) &&\
 					((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)))
 				{
+					
 					if(goStraightStatus == ctrlParasPtr->agvStatus)
 					{
 						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
