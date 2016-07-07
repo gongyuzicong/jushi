@@ -155,58 +155,54 @@ int main(void)
 			//AGV_Walking();
 			
 			
-
-			//if((1 == FMSDS_Ptr->MSD_Hex_Update) || (1 == RMSDS_Ptr->MSD_Hex_Update))
-			if(1)
+			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
-				if(((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)) &&\
-					((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)))
+				
+				if(goStraightStatus == ctrlParasPtr->agvStatus)
 				{
-					
-					if(goStraightStatus == ctrlParasPtr->agvStatus)
-					{
-						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-					}
-					else if(backStatus == ctrlParasPtr->agvStatus)
-					{
-						AGV_Correct_back_ug(ctrlParasPtr->gear);
-					}
-					else if(cirLeft == ctrlParasPtr->agvStatus)
-					{
-						walking_cirLeft(ctrlParasPtr->gear);
-					}
-					else if(cirRight == ctrlParasPtr->agvStatus)
-					{
-						walking_cirRight(ctrlParasPtr->gear);
-					}
-					else if(gSslow == ctrlParasPtr->agvStatus)
-					{
-						gS_slow(ctrlParasPtr->gear);
-					}
-					else if(bSslow == ctrlParasPtr->agvStatus)
-					{
-						back_slow(ctrlParasPtr->gear);
-					}
-					
+					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
+				}
+				else if(backStatus == ctrlParasPtr->agvStatus)
+				{
+					AGV_Correct_back_ug(ctrlParasPtr->gear);
+				}
+				else if(cirLeft == ctrlParasPtr->agvStatus)
+				{
+					walking_cirLeft(ctrlParasPtr->gear);
+				}
+				else if(cirRight == ctrlParasPtr->agvStatus)
+				{
+					walking_cirRight(ctrlParasPtr->gear);
+				}
+				else if(gSslow == ctrlParasPtr->agvStatus)
+				{
+					gS_slow(ctrlParasPtr->gear);
+				}
+				else if(bSslow == ctrlParasPtr->agvStatus)
+				{
+					back_slow(ctrlParasPtr->gear);
 				}
 				
-				//AGV_Change_Mode();
-				AGV_Proc();
-				
-				
-				//LeftOrRight_Counter();
+			}
+			
+			//AGV_Change_Mode();
+			AGV_Proc();
+			
+			
+			//LeftOrRight_Counter();
 
-				if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+			if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+			{
+				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
+				{
+					Show_Infomation();
+				}
+				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
 				{
 					Show_Infomation();
 				}
 				
-
-				FMSDS_Ptr->MSD_Hex_Update = 0;
-				RMSDS_Ptr->MSD_Hex_Update = 0;
 			}
-			
-			
 
 			
 			

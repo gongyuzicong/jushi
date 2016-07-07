@@ -976,8 +976,6 @@ void Magn_Sensor_Scan(void)
 		if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 		{
 			FMSDS_Ptr->TimeRecoder = SystemRunningTime;
-
-			FMSDS_Ptr->MSD_Hex_Update = 1;
 			
 			MSD_Analy(FMSDS_Ptr);
 
@@ -989,8 +987,6 @@ void Magn_Sensor_Scan(void)
 		if(RMSDS_Pre_Ptr->MSD_Hex != RMSDS_Ptr->MSD_Hex)
 		{
 			RMSDS_Ptr->TimeRecoder = SystemRunningTime;
-
-			RMSDS_Ptr->MSD_Hex_Update = 1;
 			
 			MSD_Analy(RMSDS_Ptr);
 			

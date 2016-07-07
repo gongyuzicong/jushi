@@ -30,6 +30,8 @@ T1_AutoAdapt_Info adaptInfo[MAX_ADAPT_NUM];
 T1_AutoAdapt_Info adaptInfoB[MAX_ADAPT_NUM];
 Damp_AutoAdapt_Info dampAdapetInfo[MAX_DAMP_ADAPT_NUM];
 Damp_AutoAdapt_Info dampAdapetInfoB[MAX_DAMP_ADAPT_NUM];
+T1_AutoAdapt_Info2 adaptInfo2[MAX_ADAPT_NUM];
+T1_AutoAdapt_Info2 adaptInfoB2[MAX_ADAPT_NUM];
 
 
 u8 FLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},\
@@ -1650,17 +1652,13 @@ void showTrec(void)
 
 void Get_T1(Trec *now)
 {
-	static u32 T1 = 0;
-	
-	if((Agv_MS_Left_1 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_1 == FMSDS_Ptr->AgvMSLocation))
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
 	{
-		T1 = FMSDS_Ptr->VelocityXt;
-		now->T1 = T1;
-		now->T1_update = 1;
-		
-		//rec[recH].trec[0] = T1;
-		//printf("T1 = %d\r\n", T1);
-		
+		if((Agv_MS_Left_1 == FMSDS_Ptr->AgvMSLocation) || (Agv_MS_Right_1 == FMSDS_Ptr->AgvMSLocation))
+		{
+			now->T1 = FMSDS_Ptr->VelocityXt;
+			now->T1_update = 1;			
+		}
 	}
 	
 }
@@ -1776,14 +1774,52 @@ void T_monitor(Trec *now)
 void show_adapt_info(T1_AutoAdapt_Info *arr)
 {
 	u8 cir = 0;
+
+	if(goStraightStatus == ctrlParasPtr->agvStatus)
+	{
+		printf("showAdaptG:\r\n");
+	}
+	else if(backStatus == ctrlParasPtr->agvStatus)
+	{
+		printf("showAdaptB:\r\n");
+	}
 	
 	for(cir = 0; cir < MAX_ADAPT_NUM; cir++)
 	{
-		printf("%d: lock = %d, goodDuty = %d, duty = %d, res = %d\r\n", cir, arr[cir].lock, arr[cir].goodDuty, arr[cir].duty, arr[cir].result);
+		printf("%02d: goodLock = %d, goodDuty = %d, duty = %d, upLock = %d, upLim = %d,  lowLock = %d, lowLim = %d, res = %d\r\n", cir, arr[cir].goodLock, arr[cir].goodDuty, arr[cir].duty, arr[cir].upLock, arr[cir].upLimDuty, arr[cir].lowLock, arr[cir].lowLimDuty, arr[cir].result);
 	}
 	
-	
+	printf("\r\n");
 }
+
+void show_adapt_info2(T1_AutoAdapt_Info2 *arr)
+{
+	u8 cir = 0, cir2 = 0;
+
+	if(goStraightStatus == ctrlParasPtr->agvStatus)
+	{
+		printf("showAdaptG:\r\n");
+	}
+	else if(backStatus == ctrlParasPtr->agvStatus)
+	{
+		printf("showAdaptB:\r\n");
+	}
+	
+	for(cir = 0; cir < MAX_ADAPT_NUM; cir++)
+	{
+		printf("arr %02d: dutyr = %02d, lock = %d\r\n", cir, arr[cir].dutyr, arr[cir].lock);
+		
+		for(cir2 = 0; cir2 < arr[cir].dt_head; cir2++)
+		{
+			printf("\tdt %02d: duty = %02d, ms1 = %02d, ms2 = %02d, ms3 = %02d, ms4 = %02d, ms5 = %02d, msabs = %02d\r\n", cir2, arr[cir].dt[cir2].duty, arr[cir].dt[cir2].ms1, arr[cir].dt[cir2].ms2, arr[cir].dt[cir2].ms3, arr[cir].dt[cir2].ms4, arr[cir].dt[cir2].ms5, arr[cir].dt[cir2].msabs);
+		}
+		
+		printf("\r\n");
+	}
+	
+	printf("\r\n");
+}
+
 
 void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 {
@@ -1821,7 +1857,7 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
 			{
 				T1LSpeedin = 0;
-				if(1 == arr[re].lock)
+				if(1 == arr[re].goodLock)
 				{
 					T1RSpeedin = arr[re].goodDuty;
 				}
@@ -1832,7 +1868,7 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 			}
 			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
 			{
-				if(1 == arr[re].lock)
+				if(1 == arr[re].goodLock)
 				{
 					T1LSpeedin = arr[re].goodDuty;
 				}
@@ -1913,7 +1949,7 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 					printf("re = %d: Good****************\r\n\r\n", re);
 				}
 				arr[re].goodDuty = arr[re].duty;
-				arr[re].lock = 1;
+				arr[re].goodLock = 1;
 				
 			}
 			printf("showAdapt:\r\n");
@@ -1970,13 +2006,12 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 
 		if((re >= 0) && (re < MAX_ADAPT_NUM))
 		{
-			Tnow.T1_update = 2;
 			
-
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
 			{
 				T1LSpeedin = 0;
-				if(1 == adaptInfo[re].lock)
+				
+				if(1 == adaptInfo[re].goodLock)
 				{
 					T1RSpeedin = adaptInfo[re].goodDuty;
 				}
@@ -1987,7 +2022,9 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 			}
 			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
 			{
-				if(1 == adaptInfo[re].lock)
+				T1RSpeedin = 0;
+				
+				if(1 == adaptInfo[re].goodLock)
 				{
 					T1LSpeedin = adaptInfo[re].goodDuty;
 				}
@@ -1996,15 +2033,20 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 					T1LSpeedin = adaptInfo[re].duty;
 				}
 				
-				T1RSpeedin = 0;
 			}
+			
 			flag = 1;
 			
 			recT1Tim = SystemRunningTime;
 			
 			//printf("re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
 		}
-		
+		else
+		{
+			
+		}
+
+		Tnow.T1_update = 2;
 		
 	}
 	
@@ -2071,7 +2113,7 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
 				}
 				adaptInfo[re].goodDuty = adaptInfo[re].duty;
-				adaptInfo[re].lock = 1;
+				adaptInfo[re].goodLock = 1;
 				
 			}
 			printf("showAdaptG:\r\n");
@@ -2134,7 +2176,7 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
 			{
 				T1LSpeedin = 0;
-				if(1 == adaptInfoB[re].lock)
+				if(1 == adaptInfoB[re].goodLock)
 				{
 					T1RSpeedin = adaptInfoB[re].goodDuty;
 				}
@@ -2146,7 +2188,7 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 			}
 			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
 			{
-				if(1 == adaptInfoB[re].lock)
+				if(1 == adaptInfoB[re].goodLock)
 				{
 					T1LSpeedin = adaptInfoB[re].goodDuty;
 				}
@@ -2233,7 +2275,7 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
 				}
 				
-				adaptInfoB[re].lock = 1;
+				adaptInfoB[re].goodLock = 1;
 				adaptInfoB[re].goodDuty = adaptInfoB[re].duty;
 			}
 			printf("BshowAdaptB:\r\n");
@@ -2258,6 +2300,789 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 	*T1RSpeed = T1RSpeedin;
 	
 }
+
+
+void T1_Adapter2(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
+{
+
+	static Trec Tnow;
+
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0, side = 0, flag2 = 0;
+
+	static Agv_MS_Location maxRec = AgvInits;
+
+	static u32 recT1Tim = 0;
+
+	static AgvStatus recStatus = stopStatus;
+
+	u8 div = 100;
+	//printf("agvStatus = %d, recStatus = %d\r\n", ctrlParasPtr->agvStatus, recStatus);
+	if(recStatus != ctrlParasPtr->agvStatus)
+	{
+		recStatus = ctrlParasPtr->agvStatus;
+		
+		Tnow.T1_update = 0;
+		T1LSpeedin = 0;
+		T1RSpeedin = 0;
+		side = 0;
+		flag = 0;
+		maxRec = AgvInits;
+	}
+	
+	if(0 == Tnow.T1_update)
+	{
+		Get_T1(&Tnow);
+		//printf("Get_T1\r\n");
+	}
+	
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		maxRec = FMSDS_Ptr->AgvMSLocation;
+		
+	}
+
+
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+
+		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		{
+			
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			{
+				T1LSpeedin = 0;
+				
+				if(1 == arr[re].upLock)
+				{
+					T1RSpeedin = arr[re].upLimDuty - 1;
+				}
+				else
+				{
+					T1RSpeedin = arr[re].duty;
+				}
+
+				side = 1;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
+			{
+				T1RSpeedin = 0;
+				
+				if(1 == arr[re].upLock)
+				{
+					T1LSpeedin = arr[re].upLimDuty - 1;
+				}
+				else
+				{
+					T1LSpeedin = arr[re].duty;
+				}
+
+				side = 2;
+			}
+			
+			flag = 1;
+			
+			recT1Tim = SystemRunningTime;
+			printf("T1 start************\r\n");
+			Tnow.T1_update = 2;
+			//printf("re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		else
+		{
+			Tnow.T1_update = 0;
+			printf("SB, re = %d\r\n", re);
+		}
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{
+		if(SystemRunningTime - recT1Tim >= 3000)
+		{
+			printf("T1 close*******\r\n");
+			Tnow.T1_update = 3;
+			T1LSpeedin = 0;
+			T1RSpeedin = 0;
+		}
+		
+	}
+
+	
+	if(3 == Tnow.T1_update)
+	{
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+		{
+			if(1 == side)
+			{
+				// 依旧在同侧
+				flag2 = 1;
+				
+			}
+			else if(2 == side)
+			{
+				// 在不同侧
+				flag2 = 2;
+			}
+		}
+		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+		{
+			if(1 == side)
+			{
+				// 在不同侧
+				
+				flag2 = 2;
+			}
+			else if(2 == side)
+			{
+				// 依旧在同侧
+				
+				flag2 = 1;
+			}
+		}
+		else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+		{
+			flag2 = 3;
+			
+		}
+
+		
+		if(1 == flag2)
+		{
+			if(((maxRec >= Agv_MS_Left_10) && (maxRec <= Agv_MS_Left_2_5)) || ((maxRec >= Agv_MS_Right_2_5) && (maxRec <= Agv_MS_Right_10)))
+			{
+				arr[re].result = Small;
+				
+				if(arr[re].duty < 15)
+				{
+					arr[re].duty++;
+				}	
+
+				if(goStraightStatus == ctrlParasPtr->agvStatus)
+				{
+					ctrlParasPtr->FSflag = 0;
+				}
+				else if(backStatus == ctrlParasPtr->agvStatus)
+				{
+					ctrlParasPtr->BSflag = 0;
+				}
+
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("Small\r\n");
+					printf("%02d: upLock = %d, goodDuty = %d, duty = %d, up = %d, low = %d\r\n", re, arr[re].upLock, arr[re].goodDuty, arr[re].duty, arr[re].upLimDuty, arr[re].lowLimDuty);
+				}
+				
+				Tnow.T1_update = 0;
+				
+			}
+			else if(((maxRec >= Agv_MS_Left_2) && (maxRec <= Agv_MS_Left_1)) || ((maxRec >= Agv_MS_Right_1) && (maxRec <= Agv_MS_Right_2)))
+			{
+				arr[re].result = Good;
+
+				if(0 == arr[re].lowLock)
+				{
+					arr[re].lowLimDuty = arr[re].duty;
+
+					arr[re].lowLock = 1;
+				}
+
+				if(arr[re].duty < 15)
+				{
+					arr[re].duty++;
+				}		
+
+				if(1 == flag)
+				{
+					flag = 2;
+					printf("Normal****************\r\n\r\n");
+					printf("%02d: upLock = %d, goodDuty = %d, duty = %d, up = %d, low = %d\r\n", re, arr[re].upLock, arr[re].goodDuty, arr[re].duty, arr[re].upLimDuty, arr[re].lowLimDuty);
+				}
+			}
+			else if(((maxRec > Agv_MS_Left_1) && (maxRec < Agv_MS_Center)) || ((maxRec > Agv_MS_Center) && (maxRec < Agv_MS_Right_1)))
+			{
+				arr[re].result = Good;
+
+				if(0 == arr[re].goodLock)
+				{
+					arr[re].goodDuty = arr[re].duty;
+				}
+				
+				if(1 == flag)
+				{
+					flag = 2;
+
+					printf("Good\r\n");
+					printf("%02d: upLock = %d, goodDuty = %d, duty = %d, up = %d, low = %d\r\n", re, arr[re].upLock, arr[re].goodDuty, arr[re].duty, arr[re].upLimDuty, arr[re].lowLimDuty);
+				}
+				
+			}
+			
+		}
+		else if(2 == flag2)
+		{
+			// 在不同侧
+			arr[re].result = Big;
+			arr[re].upLock = 1;
+			arr[re].upLimDuty = arr[re].duty;
+
+			if(1 == flag)
+			{
+				flag = 2;
+
+				printf("Big\r\n");
+				printf("%02d: upLock = %d, goodDuty = %d, duty = %d, up = %d, low = %d\r\n", re, arr[re].upLock, arr[re].goodDuty, arr[re].duty, arr[re].upLimDuty, arr[re].lowLimDuty);
+			}
+		}
+		else if(3 == flag2)
+		{
+			arr[re].result = Good;
+			arr[re].goodDuty = arr[re].duty;
+			arr[re].goodLock = 1;
+			
+			if(1 == flag)
+			{
+				flag = 2;
+
+				printf("GoodLock\r\n");
+				printf("%02d: upLock = %d, goodDuty = %d, duty = %d, up = %d, low = %d\r\n", re, arr[re].upLock, arr[re].goodDuty, arr[re].duty, arr[re].upLimDuty, arr[re].lowLimDuty);
+			}
+		}
+
+		
+		show_adapt_info(arr);
+
+		Tnow.T1_update = 0;
+		side = 0;
+		flag = 0;
+		flag2 = 0;
+		
+	}
+	
+	
+
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
+
+void T1_Adapter3(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info2 *arr)
+{
+
+	static Trec Tnow;
+
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0, side = 0, step = 1;
+
+	static u32 recT1Tim = 0;
+
+	u8 div = 100;
+	//printf("agvStatus = %d, recStatus = %d\r\n", ctrlParasPtr->agvStatus, recStatus);
+	
+	if(0 == Tnow.T1_update)
+	{
+		Get_T1(&Tnow);
+		//printf("Get_T1\r\n");
+	}
+	
+
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+		
+		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		{
+			
+			if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
+			{
+				T1LSpeedin = 0;
+				T1RSpeedin = arr[re].dutyr;
+				if(1 == arr[re].lock)
+				{
+					printf("re = 02%d lock, T1RSpeedin = %02d\r\n", re, T1RSpeedin);
+					goto END2_T1;
+				}
+				else
+				{
+					printf("Tnow.T1_update = %d, T1RSpeedin = %02d\r\n", Tnow.T1_update, T1RSpeedin);
+				}
+
+				side = 1;
+			}
+			else if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Center))
+			{
+				T1RSpeedin = 0;
+				T1LSpeedin = arr[re].dutyr;
+				if(1 == arr[re].lock)
+				{
+					
+					printf("re = 02%d lock, T1LSpeedin = %02d\r\n", re, T1LSpeedin);
+					goto END2_T1;
+				}
+				else
+				{
+					printf("Tnow.T1_update = %d, T1LSpeedin = %02d\r\n", Tnow.T1_update, T1LSpeedin);
+				}
+
+				side = 2;
+			}
+			
+			flag = 1;
+			
+			
+			printf("T1 start************\r\n");
+			Tnow.T1_update = 2;
+			//printf("re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		else
+		{
+			//printf("SB, re = %d\r\n", re);
+			goto END_T1;
+		}
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{
+		
+		if(1 == side)
+		{
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3)
+			{
+				// fail small
+				if(arr[re].dutyr < 15)
+				{
+					arr[re].dutyr++;
+				}
+				//Tnow.T1_update = 0;
+				ctrlParasPtr->FSflag = 0;
+				ctrlParasPtr->BSflag = 0;
+				printf("too small\r\n");
+				goto END_T1;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Left_0_5)
+			{
+				if(1 == flag)
+				{
+					T1RSpeedin /= 2;
+					printf("T1RSpeedin / 2 = %02d\r\n", T1RSpeedin);
+					flag = 2;
+				}
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				T1RSpeedin = 0;
+				printf("T1RSpeedin = 0\r\n");
+				Tnow.T1_update = 3;
+				recT1Tim = SystemRunningTime;
+			}
+		}
+		else if(2 == side)
+		{
+			if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3)
+			{
+				// fail small
+				if(arr[re].dutyr < 15)
+				{
+					arr[re].dutyr++;
+				}
+				//Tnow.T1_update = 0;
+				ctrlParasPtr->FSflag = 0;
+				ctrlParasPtr->BSflag = 0;
+				printf("too small\r\n");
+				goto END_T1;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Right_0_5)
+			{
+				if(1 == flag)
+				{
+					T1LSpeedin /= 2;
+					printf("T1RSpeedin / 2 = %02d\r\n", T1LSpeedin);
+					flag = 2;
+				}
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				T1LSpeedin = 0;
+				printf("T1LSpeedin = 0\r\n");
+				Tnow.T1_update = 3;
+				step = 1;
+				recT1Tim = SystemRunningTime;
+			}
+		}
+		
+	}
+
+	
+	if(3 == Tnow.T1_update)
+	{
+		u32 clau = 0;
+		if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3))
+		{
+			ctrlParasPtr->FSflag = 0;
+			ctrlParasPtr->BSflag = 0;
+			//.arr[re].lock = 1;
+			printf("Go to end\r\n", step);
+			goto END_T1;
+		}
+
+		clau = SystemRunningTime - recT1Tim;
+		if(1 == step)
+		{
+			
+			if(clau >= 1000)
+			{
+				arr[re].dt[arr[re].dt_head].ms1 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms1, clau);
+				step = 2;
+			}
+			
+		}
+		else if(2 == step)
+		{
+			if(clau >= 2000)
+			{
+				arr[re].dt[arr[re].dt_head].ms2 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms2, clau);
+				step = 3;
+			}
+			
+		}
+		else if(3 == step)
+		{
+			if(clau >= 3000)
+			{
+				arr[re].dt[arr[re].dt_head].ms3 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms3, clau);
+				step = 4;
+			}
+			
+		}
+		else if(4 == step)
+		{
+			if(clau >= 4000)
+			{
+				arr[re].dt[arr[re].dt_head].ms4 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms4, clau);
+				step = 5;
+			}
+			
+		}
+		else if(5 == step)
+		{
+			if(clau >= 5000)
+			{
+				arr[re].dt[arr[re].dt_head].ms5 = FMSDS_Ptr->AgvMSLocation;
+				//arr[re].dt[arr[re].dt_head].msabs = arr[re].dt[arr[re].dt_head].ms1 + arr[re].dt[arr[re].dt_head].ms2 + arr[re].dt[arr[re].dt_head].ms3 + arr[re].dt[arr[re].dt_head].ms4 + arr[re].dt[arr[re].dt_head].ms5;
+				arr[re].dt[arr[re].dt_head].duty = arr[re].dutyr;
+
+				if(arr[re].dt_head < MAX_ADAPT_NUM)
+				{
+					arr[re].dt_head++;
+					arr[re].dutyr++;
+				}
+				else
+				{
+					arr[re].lock = 1;
+				}
+
+				show_adapt_info2(arr);
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms5, clau);
+								
+				step = 1;
+				goto END_T1;
+			}
+			
+		}
+		
+		
+	}
+	
+		*T1LSpeed = T1LSpeedin;
+		*T1RSpeed = T1RSpeedin;
+		return;
+	
+	END_T1:
+		Tnow.T1_update = 0;
+		side = 0;
+		flag = 0;
+		step = 1;
+		*T1LSpeed = 0;
+		*T1RSpeed = 0;
+		return;
+
+	END2_T1:
+		Tnow.T1_update = 0;
+		side = 0;
+		flag = 0;
+		step = 1;
+		*T1LSpeed = T1LSpeedin;
+		*T1RSpeed = T1RSpeedin;
+		return;
+}
+
+void T1_Adapter3_back(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info2 *arr)
+{
+
+	static Trec Tnow;
+
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, flag = 0, re = 0, side = 0, step = 1;
+
+	static u32 recT1Tim = 0;
+
+	u8 div = 100;
+	//printf("agvStatus = %d, recStatus = %d\r\n", ctrlParasPtr->agvStatus, recStatus);
+	
+	if(0 == Tnow.T1_update)
+	{
+		Get_T1(&Tnow);
+		//printf("Get_T1\r\n");
+	}
+	
+
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+		
+		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		{
+			
+			if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
+			{
+				T1LSpeedin = 0;
+				T1RSpeedin = arr[re].dutyr;
+				if(1 == arr[re].lock)
+				{
+					printf("re = 02%d lock, T1RSpeedin = %02d\r\n", re, T1RSpeedin);
+					goto END2_T1;
+				}
+				else
+				{
+					printf("Tnow.T1_update = %d, T1RSpeedin = %02d\r\n", Tnow.T1_update, T1RSpeedin);
+				}
+
+				side = 1;
+			}
+			else if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Center))
+			{
+				T1RSpeedin = 0;
+				T1LSpeedin = arr[re].dutyr;
+				if(1 == arr[re].lock)
+				{
+					
+					printf("re = 02%d lock, T1LSpeedin = %02d\r\n", re, T1LSpeedin);
+					goto END2_T1;
+				}
+				else
+				{
+					printf("Tnow.T1_update = %d, T1LSpeedin = %02d\r\n", Tnow.T1_update, T1LSpeedin);
+				}
+
+				side = 2;
+			}
+			
+			flag = 1;
+			
+			
+			printf("T1 start************\r\n");
+			Tnow.T1_update = 2;
+			//printf("re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		else
+		{
+			//printf("SB, re = %d\r\n", re);
+			goto END_T1;
+		}
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{
+		
+		if(1 == side)
+		{
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3)
+			{
+				// fail small
+				if(arr[re].dutyr < 15)
+				{
+					arr[re].dutyr++;
+				}
+				//Tnow.T1_update = 0;
+				ctrlParasPtr->FSflag = 0;
+				ctrlParasPtr->BSflag = 0;
+				printf("too small\r\n");
+				goto END_T1;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Left_0_5)
+			{
+				if(1 == flag)
+				{
+					T1RSpeedin /= 2;
+					printf("T1RSpeedin / 2 = %02d\r\n", T1RSpeedin);
+					flag = 2;
+				}
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				T1RSpeedin = 0;
+				printf("T1RSpeedin = 0\r\n");
+				Tnow.T1_update = 3;
+				recT1Tim = SystemRunningTime;
+			}
+		}
+		else if(2 == side)
+		{
+			if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3)
+			{
+				// fail small
+				if(arr[re].dutyr < 15)
+				{
+					arr[re].dutyr++;
+				}
+				//Tnow.T1_update = 0;
+				ctrlParasPtr->FSflag = 0;
+				ctrlParasPtr->BSflag = 0;
+				printf("too small\r\n");
+				goto END_T1;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Right_0_5)
+			{
+				if(1 == flag)
+				{
+					T1LSpeedin /= 2;
+					printf("T1RSpeedin / 2 = %02d\r\n", T1LSpeedin);
+					flag = 2;
+				}
+				
+			}
+			else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+			{
+				T1LSpeedin = 0;
+				printf("T1LSpeedin = 0\r\n");
+				Tnow.T1_update = 3;
+				step = 1;
+				recT1Tim = SystemRunningTime;
+			}
+		}
+		
+	}
+
+	
+	if(3 == Tnow.T1_update)
+	{
+		u32 clau = 0;
+		if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_3) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_3))
+		{
+			ctrlParasPtr->FSflag = 0;
+			ctrlParasPtr->BSflag = 0;
+			//arr[re].lock = 1;
+			printf("Go to end\r\n", step);
+			goto END_T1;
+		}
+
+		clau = SystemRunningTime - recT1Tim;
+		if(1 == step)
+		{
+			
+			if(clau >= 1000)
+			{
+				arr[re].dt[arr[re].dt_head].ms1 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms1, clau);
+				step = 2;
+			}
+			
+		}
+		else if(2 == step)
+		{
+			if(clau >= 2000)
+			{
+				arr[re].dt[arr[re].dt_head].ms2 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms2, clau);
+				step = 3;
+			}
+			
+		}
+		else if(3 == step)
+		{
+			if(clau >= 3000)
+			{
+				arr[re].dt[arr[re].dt_head].ms3 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms3, clau);
+				step = 4;
+			}
+			
+		}
+		else if(4 == step)
+		{
+			if(clau >= 4000)
+			{
+				arr[re].dt[arr[re].dt_head].ms4 = FMSDS_Ptr->AgvMSLocation;
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms4, clau);
+				step = 5;
+			}
+			
+		}
+		else if(5 == step)
+		{
+			if(clau >= 5000)
+			{
+				arr[re].dt[arr[re].dt_head].ms5 = FMSDS_Ptr->AgvMSLocation;
+				//arr[re].dt[arr[re].dt_head].msabs = arr[re].dt[arr[re].dt_head].ms1 + arr[re].dt[arr[re].dt_head].ms2 + arr[re].dt[arr[re].dt_head].ms3 + arr[re].dt[arr[re].dt_head].ms4 + arr[re].dt[arr[re].dt_head].ms5;
+				arr[re].dt[arr[re].dt_head].duty = arr[re].dutyr;
+
+				if(arr[re].dt_head < MAX_ADAPT_NUM)
+				{
+					arr[re].dt_head++;
+					arr[re].dutyr++;
+				}
+				else
+				{
+					arr[re].lock = 1;
+				}
+
+				show_adapt_info2(arr);
+				printf("T1'3 step%d, ms1 = %02d, clau = %d\r\n", step, arr[re].dt[arr[re].dt_head].ms5, clau);
+								
+				step = 1;
+				goto END_T1;
+			}
+			
+		}
+		
+		
+	}
+	
+		*T1LSpeed = T1LSpeedin;
+		*T1RSpeed = T1RSpeedin;
+		return;
+	
+	END_T1:
+		Tnow.T1_update = 0;
+		side = 0;
+		flag = 0;
+		step = 1;
+		*T1LSpeed = 0;
+		*T1RSpeed = 0;
+		return;
+
+	END2_T1:
+		Tnow.T1_update = 0;
+		side = 0;
+		flag = 0;
+		step = 1;
+		*T1LSpeed = T1LSpeedin;
+		*T1RSpeed = T1RSpeedin;
+		return;
+}
+
+
 
 void show_damp_info(Damp_AutoAdapt_Info *arr)
 {
@@ -3648,7 +4473,7 @@ void scale_1_mode17(u8 gear)
 		ctrlParasPtr->comflag = 641;
 		
 		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
-	
+		
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{
@@ -3660,7 +4485,7 @@ void scale_1_mode17(u8 gear)
 	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
 	{
 		ctrlParasPtr->comflag = 634;
-	
+		
 		lmSpeed = 0;
 		rmSpeed = 0;
 		
@@ -3669,16 +4494,20 @@ void scale_1_mode17(u8 gear)
 		
 	}
 
-	
-	Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	T1_Adapter3(&lmSpeedT1, &rmSpeedT1, adaptInfo2);
 
+	
+	//Get_T1_Duty(&lmSpeedT1, &rmSpeedT1);
+	
+	//Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	
 	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
 	{
 		//Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
-		Get_T1_Duty(&lmSpeedT1, &rmSpeedT1);
+		
 	}
 	
-			
+	
 	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - lmSpeedT1;
 	
 	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
@@ -3730,13 +4559,18 @@ void scale_1_mode17_back(u8 gear)
 		
 		
 	}
+	
+	T1_Adapter3_back(&lmSpeedT1, &rmSpeedT1, adaptInfoB2);
 
-	Get_Damp_Duty_Back(&lmSpeedPull, &rmSpeedPull);
+	//Get_T1_Duty(&lmSpeedT1, &rmSpeedT1);
+	//T1_Adapter_back(&lmSpeedT1, &rmSpeedT1);
+	
+	//Get_Damp_Duty_Back(&lmSpeedPull, &rmSpeedPull);
 	
 	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
 	{
 		//Get_Damp_Duty_Back(&lmSpeedT1, &rmSpeedT1);
-		Get_T1_Duty(&lmSpeedT1, &rmSpeedT1);
+		
 	}
 	
 			
@@ -3780,9 +4614,9 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 			gS_urgency_mode();
 			
 		}
-			
+		
 	}
-	
+	ctrlParasPtr->BSflag = 0;
 }
 
 void AGV_Correct_back_ug(u8 gear)		// 3 mode
@@ -3818,7 +4652,7 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 			gS_urgency_mode();
 			
 		}
-		
+		ctrlParasPtr->FSflag = 0;
 	}
 	
 }
@@ -4913,11 +5747,24 @@ void AGV_Proc(void)
 				Delay_ns(2);
 			}
 		}
+
+		if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_8) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_8))
+		{
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->FSflag = 0;
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->BSflag = 0;
+			}
+		}
 		
-		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
 			MOTOR_RIGHT_DUTY_SET(0);
 			MOTOR_LEFT_DUTY_SET(0);
+			MOTOR_POWER_OFF();
 			if(goStraightStatus == ctrlParasPtr->agvStatus)
 			{
 				ctrlParasPtr->FSflag = 0;
@@ -4927,6 +5774,14 @@ void AGV_Proc(void)
 				ctrlParasPtr->BSflag = 0;
 			}
 			//MOTOR_POWER_OFF();
+		}
+		else
+		{
+			if(1 == PDin(15))
+			{
+				MOTOR_POWER_ON();
+			}
+			
 		}
 	}
 	
@@ -5839,7 +6694,7 @@ void SW_Gpio_Init(void)
 
 void Motion_Ctrl_Init(void)
 {
-	u8 cir = 0;
+	u8 cir = 0, cir2 = 0;
 	Motion_Ctrl_GPIO_Init();
 	
 	PG_EXTI_CFG();
@@ -5878,7 +6733,6 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->goalStation = ControlCenter;
 	ctrlParasPtr->walkingstep = step_stop;
 	ctrlParasPtr->crossRoadCount = 0;
-	
 
 	agv_walking_func[stopStatus] = walking_stopStatus;
 	agv_walking_func[goStraightStatus] = walking_goStraight;
@@ -5936,13 +6790,21 @@ void Motion_Ctrl_Init(void)
 		adaptInfo[cir].timRec = 0;
 		adaptInfo[cir].duty = 0;
 		adaptInfo[cir].goodDuty = 0;
-		adaptInfo[cir].lock = 0;
+		adaptInfo[cir].upLock = 0;
+		adaptInfo[cir].lowLock = 0;
+		adaptInfo[cir].goodLock = 0;
+		adaptInfo[cir].upLimDuty = 0;
+		adaptInfo[cir].lowLimDuty = 0;
 
 		adaptInfoB[cir].result = Good;
 		adaptInfoB[cir].timRec = 0;
-		adaptInfoB[cir].duty = 0;
+		adaptInfoB[cir].upLock = 0;
+		adaptInfoB[cir].lowLock = 0;
+		adaptInfoB[cir].goodLock = 0;
 		adaptInfoB[cir].goodDuty = 0;
-		adaptInfoB[cir].lock = 0;
+		adaptInfoB[cir].upLock = 0;
+		adaptInfoB[cir].upLimDuty = 0;
+		adaptInfoB[cir].lowLimDuty = 0;
 	}
 	
 	adaptInfo[0].timRec = 0;
@@ -6011,6 +6873,7 @@ void Motion_Ctrl_Init(void)
 
 	adaptInfoB[10].timRec = 0;
 	adaptInfoB[10].duty = 1;
+	
 
 	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
 	{
@@ -6055,6 +6918,42 @@ void Motion_Ctrl_Init(void)
 	dampAdapetInfoB[Agv_MS_Right_8 - Agv_MS_Right_1].duty = 25;
 	dampAdapetInfoB[Agv_MS_Right_9 - Agv_MS_Right_1].duty = 26;
 	dampAdapetInfoB[Agv_MS_Right_10 - Agv_MS_Right_1].duty = 26;
+
+
+	
+	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
+	{
+		adaptInfo2[cir].dt_head = 0;
+		adaptInfo2[cir].dutyr = 0;
+		adaptInfo2[cir].lock = 0;
+		adaptInfo2[cir].result = Good;
+		
+		
+		adaptInfoB2[cir].dt_head = 0;
+		adaptInfoB2[cir].dutyr = 0;
+		adaptInfoB2[cir].lock = 0;
+		adaptInfoB2[cir].result = Good;
+
+		for(cir2 = 0; cir2 < MAX_DAMP_ADAPT_NUM; cir2++)
+		{
+			adaptInfo2[cir].dt[cir2].duty = 0;
+			adaptInfo2[cir].dt[cir2].ms1 = AgvInits;
+			adaptInfo2[cir].dt[cir2].ms2 = AgvInits;
+			adaptInfo2[cir].dt[cir2].ms3 = AgvInits;
+			adaptInfo2[cir].dt[cir2].ms4 = AgvInits;
+			adaptInfo2[cir].dt[cir2].ms5 = AgvInits;
+			adaptInfo2[cir].dt[cir2].msabs = 0;
+
+			adaptInfoB2[cir].dt[cir2].duty = 0;
+			adaptInfoB2[cir].dt[cir2].ms1 = AgvInits;
+			adaptInfoB2[cir].dt[cir2].ms2 = AgvInits;
+			adaptInfoB2[cir].dt[cir2].ms3 = AgvInits;
+			adaptInfoB2[cir].dt[cir2].ms4 = AgvInits;
+			adaptInfoB2[cir].dt[cir2].ms5 = AgvInits;
+			adaptInfoB2[cir].dt[cir2].msabs = 0;
+		}
+		
+	}
 	
 }
 

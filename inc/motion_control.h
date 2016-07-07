@@ -288,8 +288,34 @@ typedef struct
 	u32 timRec;
 	u8 duty;
 	u8 goodDuty;
-	u8 lock;
+	u8 upLock;
+	u8 lowLock;
+	u8 goodLock;
+	u8 upLimDuty;
+	u8 lowLimDuty;
 }T1_AutoAdapt_Info, *T1_AutoAdapt_Info_P;
+
+typedef struct
+{
+	u8 duty;
+	Agv_MS_Location ms1;
+	Agv_MS_Location ms2;
+	Agv_MS_Location ms3;
+	Agv_MS_Location ms4;
+	Agv_MS_Location ms5;
+	u8 msabs;
+}Duty;
+
+typedef struct
+{
+	Result_Judge result;
+	//u32 timRec;
+	u8 dutyr;
+	u8 lock;
+	Duty dt[20];
+	u8 dt_head;
+}T1_AutoAdapt_Info2, *T1_AutoAdapt_Info2_P;
+
 
 
 typedef struct
