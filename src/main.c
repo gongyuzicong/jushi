@@ -76,6 +76,7 @@ int main(void)
 	//Delay_ns(5);
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
+	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	
 	ctrlParasPtr->gear = 10;

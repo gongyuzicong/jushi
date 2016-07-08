@@ -132,6 +132,11 @@
 #define WECV_UP()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
 #define WECV_DOWN()		{ECV3_DIR = 0;   ECV3_PWM = 1;  }
 #define WECV_STOP()		{ECV3_PWM = 0;					}
+
+
+#define TRIGGER_PIN_O	PEout(11)
+#define TRIGGER_PIN_I	PEin(11)
+
 /**************ECV**************/
 
 
