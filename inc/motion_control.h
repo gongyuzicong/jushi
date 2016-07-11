@@ -331,6 +331,38 @@ typedef struct
 	u8 goodDuty;
 }Damp_AutoAdapt_Info, *Damp_AutoAdapt_Info_P;
 
+typedef struct
+{
+	s16 ax;
+	s16 ay;
+	s16 az;
+	
+	s16 gx;
+	s16 gy;
+	s16 gz;
+	
+	s16 hx;
+	s16 hy;
+	s16	hz;
+	
+	s16 tempture;
+
+	s16 ayMax;
+	s16 ayMin;
+	s16 ayOffset;
+	s16 ayMid;
+	s16 ayAverage;
+
+	s32 sumPlus;
+	s32 sumMinus;
+	u16 plusCount;
+	u16 minusCount;
+
+	s32 sum;
+	u16 sumCount;
+	
+}MPU6050_Para, *MPU6050_Para_P;
+
 
 typedef struct
 {
@@ -364,6 +396,9 @@ void back_slow(u8);
 void AGV_Correct_back_ug(u8);
 void Hall_Count(void);
 void AGV_Proc(void);
+void MPU6050_Data_init(void);
+void MPU6050_Data(void);
+void MPU6050_Data1(void);
 
 
 

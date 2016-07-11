@@ -4,6 +4,7 @@
 #include "pwm_opts.h"
 #include "magn_sensor.h"
 #include "zigbee.h"
+#include "mpu6050.h"
 
 #define ABSOLU(value)	(value >= 0 ? value : (-value))
 #define MAX_ADAPT_NUM	20
@@ -32,6 +33,9 @@ Damp_AutoAdapt_Info dampAdapetInfo[MAX_DAMP_ADAPT_NUM];
 Damp_AutoAdapt_Info dampAdapetInfoB[MAX_DAMP_ADAPT_NUM];
 T1_AutoAdapt_Info2 adaptInfo2[MAX_ADAPT_NUM];
 T1_AutoAdapt_Info2 adaptInfoB2[MAX_ADAPT_NUM];
+
+MPU6050_Para mpu6050DS;
+MPU6050_Para_P mpu6050DS_ptr = &mpu6050DS;
 
 
 u8 FLG[6][MAX_GEAR_NUM] = 	  {{0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},\
@@ -5800,7 +5804,7 @@ void AGV_Change_Mode(void)
 
 void AGV_Proc(void)
 {
-	u8 flag = 3;
+	u8 flag = 4;
 
 	// 跑出去的紧急模式
 	if(1 == flag)
@@ -5942,7 +5946,31 @@ void AGV_Proc(void)
 			
 		}
 	}
-	
+
+	if(4 == flag)
+	{
+		if(0x0000 == FMSDS_Ptr->MSD_Hex)
+		{
+			if(goStraightStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->FSflag = 0;
+				ctrlParasPtr->BSflag = 0;
+				backStatus_change();
+				printf("backStatus_change\r\n");
+				Delay_ns(2);
+				
+			}
+			else if(backStatus == ctrlParasPtr->agvStatus)
+			{
+				ctrlParasPtr->FSflag = 0;
+				ctrlParasPtr->BSflag = 0;
+				goStraight_change();
+				
+				printf("goStraight_change\r\n");
+				Delay_ns(2);
+			}
+		}
+	}
 	
 }
 
@@ -6233,6 +6261,201 @@ void STATION_9AND10_WalkControl(void)
 	}
 }
 
+void SHOW_ARR(s16 *arr, int head)
+{
+	int cir = 0;
+	for(cir = 0; cir <= head; cir++)
+	{
+		printf("arr[%d] = %d\r\n", cir, arr[cir]);
+	}
+}
+
+void PUSH_INTO_ARR(s16 *arr, int head, s16 data)
+{
+	int cir = 0, cir2 = 0;
+
+	arr[head] = data;
+	//printf("arr[%d] = %d\r\n", head, data);
+	
+	for(cir = 0; cir < head; cir++)
+	{
+		if(arr[cir] > data)
+		{
+			//printf("arr[%d] = %d > data = %d\r\n", cir, arr[cir], data);
+			// 往后移以一位
+			for(cir2 = head; cir2 > cir; cir2--)
+			{
+				arr[cir2] = arr[cir2 - 1];
+				//printf("arr[%d] = %d --> arr[%d] = %d\r\n", cir2 - 1, arr[cir2 - 1], cir2, arr[cir2]);
+			}
+			// 插入空位
+			arr[cir] = data;
+			//printf("arr[%d] = %d\r\n\r\n", cir, arr[cir]);
+			//SHOW_ARR(arr, head);
+			//printf("\r\n");
+			break;
+		}
+	}
+	
+}
+
+void MPU6050_Data_init(void)
+{
+	int cir = 0;
+	s16 tempArr[1000];
+
+	for(cir = 0; cir < 1000; cir++)
+	{
+		tempArr[cir] = 0;
+	}
+
+	cir = 0;
+
+	while(cir < 1000)
+	{
+		MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+
+		if(1 == MPU6050_UPDATE)
+		{
+			s32 temp = 0;
+			MPU6050_UPDATE = 0;
+			
+			//printf("ay_%04d = %d\r\n", cir, mpu6050DS_ptr->ay);
+			mpu6050DS_ptr->sum += mpu6050DS_ptr->ay;
+			//printf("sum = %d\r\n", mpu6050DS_ptr->sum);
+			//tempArr[cir] = mpu6050DS_ptr->ay;
+			//printf("tempArr[%d] = %d\r\n", cir, tempArr[cir]);
+			PUSH_INTO_ARR(tempArr, cir, mpu6050DS_ptr->ay);
+			cir++;
+			
+			if(((cir / 100) == 1) && ((cir % 100) == 0))
+			{
+				temp = mpu6050DS_ptr->sum / 100;
+				//printf("sum = %d, temp = %d\r\n", mpu6050DS_ptr->sum, temp);
+				mpu6050DS_ptr->ayAverage = temp;
+				//printf("%d, 1, ayAverage = %d\r\n", cir, mpu6050DS_ptr->ayAverage);
+				mpu6050DS_ptr->sum = 0;
+			}
+			else if(((cir / 100) > 1) && ((cir % 100) == 0))
+			{
+				temp = mpu6050DS_ptr->sum / 100;
+				//printf("sum = %d, temp = %d\r\n", mpu6050DS_ptr->sum, temp);
+				mpu6050DS_ptr->ayAverage = (mpu6050DS_ptr->ayAverage + temp) / 2;
+				mpu6050DS_ptr->sum = 0;
+				//printf("%d, %d, ayAverage = %d\r\n", cir, (cir / 100), mpu6050DS_ptr->ayAverage);
+			}
+			
+		}
+		
+	}
+	
+	mpu6050DS_ptr->ayMax = tempArr[899];
+	mpu6050DS_ptr->ayMin = tempArr[199];
+	mpu6050DS_ptr->ayMid = tempArr[499];
+
+	printf("ayMax = %d, ayAverage = %d, ayMin = %d\r\n", mpu6050DS_ptr->ayMax, mpu6050DS_ptr->ayAverage, mpu6050DS_ptr->ayMin);
+}
+
+void MPU6050_Data_init2(void)
+{
+	int cir = 0;
+	s16 tempArr[100];
+
+	for(cir = 0; cir < 100; cir++)
+	{
+		tempArr[cir] = 0;
+	}
+
+	cir = 0;
+
+	while(cir < 100)
+	{
+		MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+
+		if(1 == MPU6050_UPDATE)
+		{
+			s32 temp = 0;
+			MPU6050_UPDATE = 0;
+			
+			printf("ay_%04d = %d\r\n", cir, mpu6050DS_ptr->ay);
+			mpu6050DS_ptr->sum += mpu6050DS_ptr->ay;
+			printf("sum = %d\r\n", mpu6050DS_ptr->sum);
+			
+			PUSH_INTO_ARR(tempArr, cir, mpu6050DS_ptr->ay);
+			cir++;
+
+			if(((cir / 100) == 1) && ((cir % 100) == 0))
+			{
+				temp = mpu6050DS_ptr->sum / 100;
+				printf("sum = %d, temp = %d\r\n", mpu6050DS_ptr->sum, temp);
+				mpu6050DS_ptr->ayAverage = temp;
+				printf("%d, 1, ayAverage = %d\r\n", cir, mpu6050DS_ptr->ayAverage);
+				mpu6050DS_ptr->sum = 0;
+			}
+			else if(((cir / 100) > 1) && ((cir % 100) == 0))
+			{
+				temp = mpu6050DS_ptr->sum / 100;
+				printf("sum = %d, temp = %d\r\n", mpu6050DS_ptr->sum, temp);
+				mpu6050DS_ptr->ayAverage = (mpu6050DS_ptr->ayAverage + temp) / 2;
+				mpu6050DS_ptr->sum = 0;
+				printf("%d, %d, ayAverage = %d\r\n", cir, (cir / 100), mpu6050DS_ptr->ayAverage);
+			}
+
+			
+		}
+		
+	}
+	
+	mpu6050DS_ptr->ayMax = tempArr[89];
+	mpu6050DS_ptr->ayMin = tempArr[19];
+
+	printf("ayMax = %d, ayAverage = %d, ayMin = %d\r\n", mpu6050DS_ptr->ayMax, mpu6050DS_ptr->ayAverage, mpu6050DS_ptr->ayMin);
+}
+
+
+void MPU6050_Data(void)
+{
+	int cir = 0;
+	s16 temp = 0;
+	
+	MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+
+	
+	if(1 == MPU6050_UPDATE)
+	{
+		MPU6050_UPDATE = 0;
+
+		if((mpu6050DS_ptr->ay >= mpu6050DS_ptr->ayMin) && (mpu6050DS_ptr->ay <= mpu6050DS_ptr->ayMax))
+		{
+			mpu6050DS_ptr->ayOffset = 0;
+		}
+		else
+		{
+			mpu6050DS_ptr->ayOffset = mpu6050DS_ptr->ay - mpu6050DS_ptr->ayAverage;
+		}
+		
+		printf("ay_adc = %d, ayOffset = %d\r\n", mpu6050DS_ptr->ay, mpu6050DS_ptr->ayOffset);
+	}
+
+}
+
+
+void MPU6050_Data1(void)
+{
+	int cir = 0;
+	s16 temp = 0;
+	
+	MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+
+	
+	if(1 == MPU6050_UPDATE)
+	{
+		MPU6050_UPDATE = 0;
+		
+		printf("%d\r\n", mpu6050DS_ptr->ay);
+	}
+
+}
 
 
 void Hall_Count(void)
@@ -6877,7 +7100,7 @@ void Motion_Ctrl_Init(void)
 
 	SW_Gpio_Init();
 
-	Trigger_Gpio_Init();
+	//Trigger_Gpio_Init();
 	
 	ctrlParasPtr->agvStatus = stopStatus;
 	ctrlParasPtr->settedSpeed = 0;
@@ -7180,7 +7403,30 @@ void Motion_Ctrl_Init(void)
 			adaptInfoB2[cir].dt[cir2].ms5 = AgvInits;
 			adaptInfoB2[cir].dt[cir2].msabs = 0;
 		}
-		
+
+
+
+		mpu6050DS_ptr->ax = 0;
+		mpu6050DS_ptr->ay = 0;
+		mpu6050DS_ptr->ayAverage = 0;
+		mpu6050DS_ptr->ayMax = 0;
+		mpu6050DS_ptr->ayMid = 0;
+		mpu6050DS_ptr->ayMin = 0;
+		mpu6050DS_ptr->ayOffset = 0;
+		mpu6050DS_ptr->az = 0;
+		mpu6050DS_ptr->gx = 0;
+		mpu6050DS_ptr->gy = 0;
+		mpu6050DS_ptr->gz = 0;
+		mpu6050DS_ptr->hx = 0;
+		mpu6050DS_ptr->hy = 0;
+		mpu6050DS_ptr->hz = 0;
+		mpu6050DS_ptr->minusCount = 0;
+		mpu6050DS_ptr->plusCount = 0;
+		mpu6050DS_ptr->sum = 0;
+		mpu6050DS_ptr->sumCount = 0;
+		mpu6050DS_ptr->sumMinus = 0;
+		mpu6050DS_ptr->sumPlus = 0;
+		mpu6050DS_ptr->tempture = 0;
 	}
 	
 }

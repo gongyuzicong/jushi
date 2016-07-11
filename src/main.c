@@ -14,6 +14,9 @@
 #include "magn_sensor.h"
 #include "zigbee.h"
 #include "rfid.h"
+#include "mpu6050.h"
+#include "i2c_opts.h"
+
 
 void SystemInit(void)
 {	
@@ -31,6 +34,9 @@ void SystemInit(void)
 	//ExtiInit();
 	Magn_Sensor_Init();
 	Zigbee_Init();
+	My_I2C_Init();
+	Delay_ns(1);
+	MPU6050_init();
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -41,7 +47,7 @@ void SystemInit(void)
 int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
-	//int cir = 1, cir2 = 0;
+	//int cir = 0, ayDec = 0;
 	u8 flag = 0;
 	//static u8 addGearFlag = 0;
 	
@@ -51,8 +57,8 @@ int main(void)
 	SystemInit();
 	
 	printf("Start\r\n");
-
-
+	
+	//MPU6050_Data_init();
 	//ECV_POWER_ON();
 	//FECV_DOWN();
 	//BECV_DOWN();
@@ -81,8 +87,16 @@ int main(void)
 	
 	ctrlParasPtr->gear = 10;
 	
+	
 	while(1)
 	{
+		//if((1 == ctrlParasPtr->FSflag) || (1 == ctrlParasPtr->BSflag))
+		if(1)
+		{
+			MPU6050_Data1();
+			
+		}
+		
 		
 		#if 1
 		
@@ -195,6 +209,7 @@ int main(void)
 			if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 			{
 				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
+				//if(1)
 				{
 					Show_Infomation();
 				}

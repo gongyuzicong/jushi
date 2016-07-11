@@ -64,6 +64,12 @@
 #define GPIOG_IDR_Addr    (GPIOG_BASE + 8) //0x40011E08 
 
 /*****************位带操作:start************************/
+
+//例如：需要定义GPIOA.01作为输出IO，定义格式为： #define PA1out	GPIOout(GPIOA, 1)
+//例如：需要定义GPIOA.01作为输入IO，定义格式为： #define PA1in	 GPIOin(GPIOA, 1)
+#define GPIOout(GPIOx,bit)				MEM_ADDR(BITBAND((u32)(&GPIOx->ODR), bit))
+#define GPIOin(GPIOx,bit)				MEM_ADDR(BITBAND((u32)(&GPIOx->IDR), bit))
+
 //IO口操作,只对单一的IO口!
 //确保n的值小于16!
 #define PAout(n)   BIT_ADDR(GPIOA_ODR_Addr, n)  //输出 
