@@ -356,6 +356,46 @@ void MPU6050_getADC(s16* ax, s16* ay, s16* az,
 		
 }
 
+void MPU6050_getADC1(s16* ax, s16* ay, s16* az,
+										s16* gx, s16* gy, s16* gz,
+										s16* temp)
+{
+	s16 MPU6050_Lastax,MPU6050_Lastay,MPU6050_Lastaz,
+					MPU6050_LastTemp,
+					MPU6050_Lastgx,MPU6050_Lastgy,MPU6050_Lastgz;
+	u8 buffer[14];
+	
+	//数据准备好
+	if(MPU6050_is_DRY())
+	{
+		//读取ADC值
+		I2C_ReadBurst(MPU6050_DevAddr, MPU6050_ACCEL_XOUT_H, buffer, 14);
+		//加速度ADC值：
+	    MPU6050_Lastax=(((s16)buffer[0]) << 8) | buffer[1];
+	    MPU6050_Lastay=(((s16)buffer[2]) << 8) | buffer[3];
+	    MPU6050_Lastaz=(((s16)buffer[4]) << 8) | buffer[5];
+		//温度ADC值：
+		MPU6050_LastTemp = (((s16)buffer[6]) << 8) | buffer[7];
+		//陀螺仪ADC值：
+	    MPU6050_Lastgx=(((s16)buffer[8]) << 8) | buffer[9];
+	    MPU6050_Lastgy=(((s16)buffer[10]) << 8) | buffer[11];
+	    MPU6050_Lastgz=(((s16)buffer[12]) << 8) | buffer[13];
+		
+		
+		MPU6050_UPDATE = 1;
+	}
+
+	*ax = MPU6050_Lastax;
+	*ay = MPU6050_Lastay;
+	*az = MPU6050_Lastaz;
+	*gx = MPU6050_Lastgx;
+	*gy = MPU6050_Lastgy;
+	*gz = MPU6050_Lastgz;
+	*temp = MPU6050_LastTemp;
+			
+}
+
+
 
 /**
 	* @brief 计算方向角

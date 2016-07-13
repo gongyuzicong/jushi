@@ -253,6 +253,10 @@ typedef struct
 
 	u8 crossRoadCount;
 	u8 crossRoadUpdate;
+
+	u8 T1DF;
+
+	u8 T1dutyRec;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -340,11 +344,7 @@ typedef struct
 	s16 gx;
 	s16 gy;
 	s16 gz;
-	
-	s16 hx;
-	s16 hy;
-	s16	hz;
-	
+
 	s16 tempture;
 
 	s16 ayMax;
@@ -352,6 +352,8 @@ typedef struct
 	s16 ayOffset;
 	s16 ayMid;
 	s16 ayAverage;
+
+	u8 ayAverageUpdate;
 
 	s32 sumPlus;
 	s32 sumMinus;
@@ -399,6 +401,7 @@ void AGV_Proc(void);
 void MPU6050_Data_init(void);
 void MPU6050_Data(void);
 void MPU6050_Data1(void);
+void MPU6050_Data_init3(void);
 
 
 
@@ -410,6 +413,8 @@ extern u8 BLeftCompDuty[101];
 extern u8 BRightCompDuty[101];
 extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
+extern MPU6050_Para_P mpu6050DS_ptr;
+
 
 #endif
 

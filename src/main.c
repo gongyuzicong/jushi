@@ -56,9 +56,9 @@ int main(void)
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
 	
-	printf("Start\r\n");
+	printf("Start?\r\n");
 	
-	//MPU6050_Data_init();
+	MPU6050_Data_init3();
 	//ECV_POWER_ON();
 	//FECV_DOWN();
 	//BECV_DOWN();
@@ -90,10 +90,10 @@ int main(void)
 	
 	while(1)
 	{
-		//if((1 == ctrlParasPtr->FSflag) || (1 == ctrlParasPtr->BSflag))
-		if(1)
+		if(1 == ctrlParasPtr->FSflag)
+		//if(0)
 		{
-			MPU6050_Data1();
+			MPU6050_Data();
 			
 		}
 		
@@ -130,7 +130,7 @@ int main(void)
 					#endif
 					ctrlParasPtr->walkingstep = step_gS;
 					CHANGE_TO_GO_STRAIGHT_MODE();
-					printf("**************recvId = %d\r\n", Zigbee_Ptr->recvId);
+					//printf("**************recvId = %d\r\n", Zigbee_Ptr->recvId);
 					//CHANGE_TO_BACK_MODE();
 				}
 				else
@@ -207,11 +207,12 @@ int main(void)
 			//LeftOrRight_Counter();
 
 			if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+			//if(0)
 			{
 				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
-				//if(1)
 				{
 					Show_Infomation();
+					
 				}
 				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
 				{

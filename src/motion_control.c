@@ -5,6 +5,7 @@
 #include "magn_sensor.h"
 #include "zigbee.h"
 #include "mpu6050.h"
+#include "i2c_opts.h"
 
 #define ABSOLU(value)	(value >= 0 ? value : (-value))
 #define MAX_ADAPT_NUM	20
@@ -3088,6 +3089,7 @@ void T1_Adapter3_back(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info2 *arr)
 
 
 
+
 void show_damp_info(Damp_AutoAdapt_Info *arr)
 {
 	u8 cir = 0;
@@ -3832,7 +3834,7 @@ void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 
 			Tnow.T1_update = 2;
 
-			TRIGGER_PIN_O = 0;
+			//TRIGGER_PIN_O = 0;
 			
 			printf("T1_Start re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
 		}
@@ -3850,14 +3852,14 @@ void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 		*/
 		if(SystemRunningTime - recT1Tim >= 3000)
 		{
-			Tnow.T1_update = 0;
+			Tnow.T1_update = 3;
 			
 			T1LSpeedin = 0;
 			T1RSpeedin = 0;
 			
-			TRIGGER_PIN_O = 1;
+			//TRIGGER_PIN_O = 1;
 
-			printf("T1_Close\r\n");
+			printf("T1_Close************\r\n");
 		}
 		
 	}
@@ -4004,6 +4006,364 @@ void Get_T1_Duty2(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	*T1LSpeed = T1LSpeedin;
 	*T1RSpeed = T1RSpeedin;
 	
+}
+
+void T1Damp(u8 *T1LSpeed, u8 *T1RSpeed)
+{
+	static u8 flag = 0;
+	u8 T1LSpeedin = 0, T1RSpeedin = 0;
+	
+	if(((FMSDS_Ptr->MaxRecoder >= Agv_MS_Left_0_5) && (FMSDS_Ptr->MaxRecoder <= Agv_MS_Center)) ||\
+		((FMSDS_Ptr->MaxRecoder >= Agv_MS_Center) && (FMSDS_Ptr->MaxRecoder <= Agv_MS_Right_0_5)))
+	{
+		ctrlParasPtr->T1DF = 0;
+		if(1 == flag)
+		{
+			printf("T1Damp close2 ******\r\n");
+		}
+		flag = 0;
+	}
+	
+	if(1 == ctrlParasPtr->T1DF)
+	{
+		if((FMSDS_Ptr->MaxRecoder >= Agv_MS_Left_2) && (FMSDS_Ptr->MaxRecoder < Agv_MS_Left_0_5))
+		{
+			T1LSpeedin = ctrlParasPtr->T1dutyRec / 2;
+			
+			if(0 == flag)
+			{
+				printf("T1Damp T1LSpeedin = %d ******\r\n", T1LSpeedin);
+				flag = 1;
+			}
+		}
+		else if((FMSDS_Ptr->MaxRecoder > Agv_MS_Right_0_5) && (FMSDS_Ptr->MaxRecoder <= Agv_MS_Right_2))
+		{
+			T1RSpeedin = ctrlParasPtr->T1dutyRec / 2;
+			
+			if(0 == flag)
+			{
+				printf("T1Damp T1RSpeedin = %d ******\r\n", T1RSpeedin);
+				flag = 1;
+			}
+		}
+		else
+		{
+			ctrlParasPtr->T1DF = 0;
+			
+			if(0 == flag)
+			{
+				printf("MaxL = %d\r\n", FMSDS_Ptr->MaxRecoder);
+				printf("T1Damp close ******\r\n");
+				flag = 1;
+			}
+		}
+		
+	}
+	
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
+void T1Damp2(u8 *T1LSpeed, u8 *T1RSpeed)
+{
+	static u8 flag = 0;
+	u8 T1LSpeedin = 0, T1RSpeedin = 0;
+	
+	if(((FMSDS_Ptr->MaxRecoder >= Agv_MS_Left_0_5) && (FMSDS_Ptr->MaxRecoder <= Agv_MS_Center)) ||\
+		((FMSDS_Ptr->MaxRecoder >= Agv_MS_Center) && (FMSDS_Ptr->MaxRecoder <= Agv_MS_Right_0_5)))
+	{
+		ctrlParasPtr->T1DF = 0;
+		if(1 == flag)
+		{
+			printf("T1Damp close2 ******\r\n");
+		}
+		flag = 0;
+	}
+	
+	if(1 == ctrlParasPtr->T1DF)
+	{
+		if(FMSDS_Ptr->MaxRecoder < Agv_MS_Left_0_5)
+		{
+			T1LSpeedin = ctrlParasPtr->T1dutyRec / 2;
+			
+			if(0 == flag)
+			{
+				printf("T1Damp T1LSpeedin = %d ******\r\n", T1LSpeedin);
+				flag = 1;
+			}
+		}
+		else if(FMSDS_Ptr->MaxRecoder > Agv_MS_Right_0_5)
+		{
+			T1RSpeedin = ctrlParasPtr->T1dutyRec / 2;
+			
+			if(0 == flag)
+			{
+				printf("T1Damp T1RSpeedin = %d ******\r\n", T1RSpeedin);
+				flag = 1;
+			}
+		}
+		else
+		{
+			ctrlParasPtr->T1DF = 0;
+			
+			if(0 == flag)
+			{
+				printf("MaxL = %d\r\n", FMSDS_Ptr->MaxRecoder);
+				printf("T1Damp close ******\r\n");
+				flag = 1;
+			}
+		}
+		
+	}
+	
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
+void Get_T1_Duty3(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
+{
+
+	static Trec Tnow;
+	
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, re = 0;
+	
+	static u32 recT1Tim = 0;
+	
+	u8 div = 100;
+
+	Agv_MS_Location max = AgvInits;
+
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		max = FMSDS_Ptr->AgvMSLocation;
+	}
+	
+	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	{
+		Tnow.T1_update = 0;
+		T1LSpeedin = 0;
+		T1RSpeedin = 0;
+		ctrlParasPtr->T1dutyRec = 0;
+	}
+	
+	if(0 == Tnow.T1_update)
+	{
+		Get_T1(&Tnow);
+	}
+
+	
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+
+		if((re >= 0) && (re < 20))
+		{
+			
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			{
+				T1LSpeedin = 0;
+				T1RSpeedin = arr[re].duty;
+				ctrlParasPtr->T1dutyRec = T1RSpeedin;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
+			{
+				T1LSpeedin = arr[re].duty;
+				T1RSpeedin = 0;
+				ctrlParasPtr->T1dutyRec = T1LSpeedin;
+			}
+			
+			recT1Tim = SystemRunningTime;
+
+			Tnow.T1_update = 2;
+
+			//TRIGGER_PIN_O = 0;
+			
+			printf("T1_Start re = %d, T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{		
+		//if((SystemRunningTime - recT1Tim >= 3000) ||\
+			//(AgvLeft2Cent == FMSDS_Ptr->agvDirection) || (AgvRight2Cent == FMSDS_Ptr->agvDirection))
+		if((AgvLeft2Cent == FMSDS_Ptr->agvDirection) || (AgvRight2Cent == FMSDS_Ptr->agvDirection))
+		{
+			Tnow.T1_update = 3;
+
+			if((AgvLeft2Cent == FMSDS_Ptr->agvDirection) || (AgvRight2Cent == FMSDS_Ptr->agvDirection))
+			{
+				ctrlParasPtr->T1DF = 1;
+				printf("ready for t1damp\r\n");
+			}
+			else
+			{
+				ctrlParasPtr->T1DF = 0;
+			}
+			
+			FMSDS_Ptr->MaxRecoder = max;
+			max = AgvInits;
+			
+			T1LSpeedin = 0;
+			T1RSpeedin = 0;
+			
+			//TRIGGER_PIN_O = 1;
+
+			printf("T1_Close************\r\n");
+		}
+		
+	}
+
+	if(1 == ctrlParasPtr->T1DF)
+	{
+		
+		T1Damp(&T1LSpeedin, &T1RSpeedin);
+	}
+	
+
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	
+}
+
+void Get_T1_Duty4(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
+{
+
+	static Trec Tnow;
+	
+	static u8 T1LSpeedin = 0, T1RSpeedin = 0, re = 0;
+	
+	static u32 recT1Tim = 0;
+	
+	u8 div = 100;
+
+	Agv_MS_Location max = AgvInits, rec = AgvInits;
+
+	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		max = FMSDS_Ptr->AgvMSLocation;
+	}
+	
+	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	{
+		//printf("clean*****\r\n");
+		goto Center;
+		
+	}
+	
+	if(0 == Tnow.T1_update)
+	{
+		Get_T1(&Tnow);
+	}
+
+	
+	if(1 == Tnow.T1_update)
+	{
+		re = Tnow.T1 / div;
+
+		if((re >= 0) && (re < 20))
+		{
+			
+			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
+			{
+				T1LSpeedin = 0;
+				T1RSpeedin = arr[re].duty;
+				ctrlParasPtr->T1dutyRec = T1RSpeedin;
+			}
+			else if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_0_5)
+			{
+				T1LSpeedin = arr[re].duty;
+				T1RSpeedin = 0;
+				ctrlParasPtr->T1dutyRec = T1LSpeedin;
+			}
+
+			recT1Tim = SystemRunningTime;
+		
+			Tnow.T1_update = 2;
+
+			ctrlParasPtr->gear = 7;
+			
+			printf("T1_Start re = %d, T1LSpeedin = %d, T1RSpeedin = %d **********\r\n", re, T1LSpeedin, T1RSpeedin);
+		}
+		
+		
+	}
+	
+	
+	if(2 == Tnow.T1_update)
+	{		
+		//if((SystemRunningTime - recT1Tim >= 3000) ||\
+			//(AgvLeft2Cent == FMSDS_Ptr->agvDirection) || (AgvRight2Cent == FMSDS_Ptr->agvDirection))
+		if((AgvLeft2Cent == FMSDS_Ptr->agvDirection) || (AgvRight2Cent == FMSDS_Ptr->agvDirection))
+		{
+			Tnow.T1_update = 3;
+			
+			printf("T1_Close************\r\n");
+
+			goto CLEANPARA;
+		}
+		else if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_9) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_9))
+		{
+			printf("too small *******\r\n");
+			goto BREAK2LOW;
+			
+		}
+		else
+		{
+			printf("ay = %d\r\n", mpu6050DS_ptr->ayOffset);
+			
+			if(mpu6050DS_ptr->ayOffset != 0)
+			{
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) || (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+				{
+					if(AGV_Pat_Ptr->Angle >= 0)
+					{
+						printf("T1_Close a************\r\n");
+						goto CLEANPARA;
+					}
+				}
+				else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) || (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+				{
+					if(AGV_Pat_Ptr->Angle <= 0)
+					{
+						printf("T1_Close a************\r\n");
+						goto CLEANPARA;
+					}
+				}
+				
+			}
+		}
+	}
+
+	
+	*T1LSpeed = T1LSpeedin;
+	*T1RSpeed = T1RSpeedin;
+	return;
+	
+	
+	CLEANPARA:
+		T1LSpeedin = 0;
+		T1RSpeedin = 0;
+		*T1LSpeed = T1LSpeedin;
+		*T1RSpeed = T1RSpeedin;
+		ctrlParasPtr->T1dutyRec = 0;
+		rec = max = AgvInits;
+		recT1Tim = 0;
+		return;
+
+	Center:
+		Tnow.T1_update = 0;
+		goto CLEANPARA;
+	
+	BREAK2LOW:
+		ctrlParasPtr->FSflag = 0;
+		goto Center;
+		
+		
 }
 
 
@@ -4498,6 +4858,56 @@ void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 }
 
 
+void Get_Damp_Duty2(u8 *lmSpeedPull, u8 *rmSpeedPull)
+{
+	static Agv_MS_Location maxRec = AgvInits;
+	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
+	u8 duty[7] = {1, 2, 4, 5, 6, 7, 8};
+	//u8 duty2[9][7] = {{}, {}, {}, {}, {}, {}, {}, {}, {}};
+
+	if(AgvLeft2Cent == FMSDS_Ptr->agvDirection)
+	{
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+		{
+			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_1))
+			{
+				if((AGV_Pat_Ptr->Angle >= 2) && (AGV_Pat_Ptr->Angle <= 8))
+				{
+					lmSpeedPullin = duty[AGV_Pat_Ptr->Angle - 2];
+				}
+
+			}			
+						
+		}
+		
+	}
+	else if(AgvRight2Cent == FMSDS_Ptr->agvDirection)
+	{
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+		{
+			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_5))
+			{
+				if((AGV_Pat_Ptr->Angle >= -8) && (AGV_Pat_Ptr->Angle <= -2))
+				{
+					rmSpeedPullin = duty[ABSOLU(AGV_Pat_Ptr->Angle) - 2];
+				}
+			}
+			
+		}
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		
+		
+		maxRec = Agv_MS_Center;
+	}
+
+
+
+	*lmSpeedPull = lmSpeedPullin;
+	*rmSpeedPull = rmSpeedPullin;
+}
 
 
 
@@ -4657,15 +5067,17 @@ void scale_1_mode17(u8 gear)
 	}
 
 	//T1_Adapter3(&lmSpeedT1, &rmSpeedT1, adaptInfo2);
-
 	
-	Get_T1_Duty(&lmSpeedT1, &rmSpeedT1, adaptInfo);
 	
-	//Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	//Get_T1_Duty4(&lmSpeedT1, &rmSpeedT1, adaptInfo);
+	
+	//T1_Adapter4(&lmSpeedT1, &rmSpeedT1, adaptInfo);
+	
+	Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
 	
 	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
 	{
-		//Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+		Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
 		
 	}
 	
@@ -4673,6 +5085,7 @@ void scale_1_mode17(u8 gear)
 	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - lmSpeedT1;
 	
 	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
+	
 	
 	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
 	
@@ -4724,14 +5137,14 @@ void scale_1_mode17_back(u8 gear)
 	
 	//T1_Adapter3_back(&lmSpeedT1, &rmSpeedT1, adaptInfoB2);
 
-	Get_T1_Duty_back(&lmSpeedT1, &rmSpeedT1, adaptInfoB);
+	//Get_T1_Duty_back(&lmSpeedT1, &rmSpeedT1, adaptInfoB);
 	//T1_Adapter_back(&lmSpeedT1, &rmSpeedT1);
 	
-	//Get_Damp_Duty_Back(&lmSpeedPull, &rmSpeedPull);
+	Get_Damp_Duty_Back(&lmSpeedPull, &rmSpeedPull);
 	
 	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
 	{
-		//Get_Damp_Duty_Back(&lmSpeedT1, &rmSpeedT1);
+		Get_Damp_Duty_Back(&lmSpeedT1, &rmSpeedT1);
 		
 	}
 	
@@ -4741,6 +5154,99 @@ void scale_1_mode17_back(u8 gear)
 	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRB[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
 	
 	damping_func(1000, gearRecod, rmSpeedSet, lmSpeedSet);
+	
+	
+}
+
+void scale_1_mode18(u8 gear)
+{
+	u8 AgvGearS1CDLF[20] = {1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,  lmSpeedT1 = 0, rmSpeedT1 = 0;
+
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];		
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+		
+		lmSpeed = 0;
+		rmSpeed = 0;
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+		if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+		{
+			ctrlParasPtr->comflag = 633;
+			
+			if(0 == startCount)
+			{
+				startCount = SystemRunningTime;
+			}
+			else
+			{
+				centCount = SystemRunningTime - startCount;
+			}
+			
+			if(centCount > 7000)
+			{
+				if(7 == ctrlParasPtr->gear)
+				{
+					ctrlParasPtr->gear = 10;
+				}
+				
+				startCount = 0;
+				
+			}
+			
+		}
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+	}
+
+	//T1_Adapter3(&lmSpeedT1, &rmSpeedT1, adaptInfo2);
+	
+	
+	//Get_T1_Duty4(&lmSpeedT1, &rmSpeedT1, adaptInfo);
+	
+	//T1_Adapter4(&lmSpeedT1, &rmSpeedT1, adaptInfo);
+	
+	Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	
+	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
+	{
+		Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+		
+	}
+	
+	
+	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - lmSpeedT1;
+	
+	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
+	
+	
+	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
 	
 	
 }
@@ -4768,6 +5274,7 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		{
 			// 偏差达到1格模式
 			scale_1_mode17(gearRecod);
+			//scale_1_mode18(gearRecod);
 			
 		}
 		else if(2 == ctrlParasPtr->FSflag)
@@ -6413,49 +6920,281 @@ void MPU6050_Data_init2(void)
 }
 
 
-void MPU6050_Data(void)
+void MPU6050_Data_init3(void)
 {
-	int cir = 0;
-	s16 temp = 0;
+	int cir = 0, cir2 = 0;
+	s16 tempArr[300], tempArr2[30];
+
+	for(cir = 0; cir < 300; cir++)
+	{
+		tempArr[cir] = 0;
+	}
+
+	for(cir = 0; cir < 30; cir++)
+	{
+		tempArr2[cir] = 0;
+	}
+
+	cir = 0;
+
+	while(cir2 < 100)
+	{
+		MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+
+		if(1 == MPU6050_UPDATE)
+		{
+
+			MPU6050_UPDATE = 0;
+						
+			cir2++;
+			
+		}
+		
+	}
+	cir2 = 0;
 	
-	MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+	for(cir = 0; cir < 300; cir++)
+	{
+		while(cir2 < 10)
+		{
+			MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+
+			if(1 == MPU6050_UPDATE)
+			{
+
+				MPU6050_UPDATE = 0;
+				
+				mpu6050DS_ptr->sum += mpu6050DS_ptr->ay;
+				
+				//printf("%d\r\n", mpu6050DS_ptr->ay);
+				
+				cir2++;
+				
+			}
+			
+		}
+		
+		tempArr[cir] = mpu6050DS_ptr->sum / 10;
+		
+		mpu6050DS_ptr->sum = 0;
+		cir2 = 0;
+		
+		mpu6050DS_ptr->ayMax = MaxValu(mpu6050DS_ptr->ayMax, tempArr[cir]);
+		mpu6050DS_ptr->ayMin = MinValu(mpu6050DS_ptr->ayMin, tempArr[cir]);
+	}
+	
+	//printf("ayMax = %d, ayMin = %d\r\n", mpu6050DS_ptr->ayMax, mpu6050DS_ptr->ayMin);
+	//printf("******************\r\n");
+
+	/*
+	for(cir = 0; cir < 300; cir++)
+	{
+		printf("%d\r\n", tempArr[cir]);
+	}
+	*/
+	
+	mpu6050DS_ptr->sum = 0;
+	
+	for(cir = 0; cir < 30; cir++)
+	{
+		for(cir2 = 0; cir2 < 10; cir2++)
+		{
+			mpu6050DS_ptr->sum += tempArr[cir * 10 + cir2];
+		}
+		
+		tempArr2[cir] = mpu6050DS_ptr->sum / 10;
+		mpu6050DS_ptr->sum = 0;
+	}
+
+	for(cir = 0; cir < 30; cir++)
+	{
+		mpu6050DS_ptr->sum += tempArr2[cir];
+	}
+
+	mpu6050DS_ptr->ayMid = mpu6050DS_ptr->sum / 30;
+	mpu6050DS_ptr->sum = 0;
+
+	//printf("ayMid = %d\r\n", mpu6050DS_ptr->ayMid);
+	printf("ayMax = %d, ayMid = %d, ayMin = %d\r\n", mpu6050DS_ptr->ayMax, mpu6050DS_ptr->ayMid, mpu6050DS_ptr->ayMin);
+	mpu6050DS_ptr->ayMax = mpu6050DS_ptr->ayMid + (mpu6050DS_ptr->ayMax - mpu6050DS_ptr->ayMid) * 2.5;
+	mpu6050DS_ptr->ayMin = mpu6050DS_ptr->ayMid - (mpu6050DS_ptr->ayMid - mpu6050DS_ptr->ayMin) * 2.5;
+	printf("ayMax = %d, ayMid = %d, ayMin = %d\r\n\r\n", mpu6050DS_ptr->ayMax, mpu6050DS_ptr->ayMid, mpu6050DS_ptr->ayMin);
+}
+
+
+void MPU6050_Get_Average_10(void)
+{
+	static u8 counter = 0;
+	static s32 sum = 0;
+	
+	MPU6050_getADC(&(mpu6050DS_ptr->ax), &(mpu6050DS_ptr->ay), &(mpu6050DS_ptr->az), &(mpu6050DS_ptr->gx), &(mpu6050DS_ptr->gy), &(mpu6050DS_ptr->gz), &(mpu6050DS_ptr->tempture));
 
 	
 	if(1 == MPU6050_UPDATE)
 	{
 		MPU6050_UPDATE = 0;
 
-		if((mpu6050DS_ptr->ay >= mpu6050DS_ptr->ayMin) && (mpu6050DS_ptr->ay <= mpu6050DS_ptr->ayMax))
+		if(counter < 10)
+		{
+			sum = sum + mpu6050DS_ptr->ay;
+			counter++;
+			//printf("%d\r\n", mpu6050DS_ptr->ay);
+		}
+		else
+		{
+			//printf("sum = %d\r\n", sum);
+			mpu6050DS_ptr->ayAverage = sum / 10;
+			mpu6050DS_ptr->ayAverageUpdate = 1;
+			counter = 0;
+			sum = 0;
+			//printf("*************\r\nayAverage = %d\r\n", mpu6050DS_ptr->ayAverage);
+		}
+		
+	}
+}
+
+void MPU6050_Get_Average_50(void)
+{
+	static u8 counter = 0;
+	static s32 sum = 0;
+	
+	MPU6050_getADC(&(mpu6050DS_ptr->ax), &(mpu6050DS_ptr->ay), &(mpu6050DS_ptr->az), &(mpu6050DS_ptr->gx), &(mpu6050DS_ptr->gy), &(mpu6050DS_ptr->gz), &(mpu6050DS_ptr->tempture));
+
+	
+	if(1 == MPU6050_UPDATE)
+	{
+		MPU6050_UPDATE = 0;
+
+		if(counter < 2)
+		{
+			sum = sum + mpu6050DS_ptr->ay;
+			counter++;
+			//printf("%d\r\n", mpu6050DS_ptr->ay);
+		}
+		else
+		{
+			//printf("sum = %d\r\n", sum);
+			mpu6050DS_ptr->ayAverage = sum / 2;
+			mpu6050DS_ptr->ayAverageUpdate = 1;
+			counter = 0;
+			sum = 0;
+			//printf("*************\r\nayAverage = %d\r\n", mpu6050DS_ptr->ayAverage);
+		}
+		
+	}
+}
+
+
+void MS_Location_Translate(void)
+{
+	float locationNum = 0;
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+		{
+			locationNum = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center) / 2.0;
+		}
+		else
+		{
+			locationNum = FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_2_5;
+		}
+		
+		printf("%.1f, ", locationNum);
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_5))
+		{
+			locationNum = (float)(FMSDS_Ptr->AgvMSLocation - Agv_MS_Center) / 2.0;
+		}
+		else
+		{
+			locationNum = FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_2_5;
+		}
+		
+		printf("%.1f, ", locationNum);
+	}
+	else if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	{
+		locationNum = 0;
+		
+		printf("%.1f, ", locationNum);
+	}
+}
+
+void MPU6050_Data(void)
+{
+	MPU6050_Get_Average_50();
+	
+#if 1
+	
+	if(1 == mpu6050DS_ptr->ayAverageUpdate)
+	{
+		if((mpu6050DS_ptr->ayAverage >= mpu6050DS_ptr->ayMin) && (mpu6050DS_ptr->ayAverage <= mpu6050DS_ptr->ayMax))
 		{
 			mpu6050DS_ptr->ayOffset = 0;
 		}
 		else
 		{
-			mpu6050DS_ptr->ayOffset = mpu6050DS_ptr->ay - mpu6050DS_ptr->ayAverage;
+			if(mpu6050DS_ptr->ayAverage > mpu6050DS_ptr->ayMax)
+			{
+				mpu6050DS_ptr->ayOffset = (mpu6050DS_ptr->ayAverage - mpu6050DS_ptr->ayMax) * 2;
+			}
+			else if(mpu6050DS_ptr->ayAverage < mpu6050DS_ptr->ayMin)
+			{
+				mpu6050DS_ptr->ayOffset = (mpu6050DS_ptr->ayAverage - mpu6050DS_ptr->ayMin) * 2;
+			}
+			
 		}
 		
-		printf("ay_adc = %d, ayOffset = %d\r\n", mpu6050DS_ptr->ay, mpu6050DS_ptr->ayOffset);
+		//MS_Location_Translate();
+		//printf("%d, %d\r\n", mpu6050DS_ptr->ayOffset, mpu6050DS_ptr->az);
+		mpu6050DS_ptr->ayAverageUpdate = 0;
+		
+	}
+	
+#else
+
+	if(1 == mpu6050DS_ptr->ayAverageUpdate)
+	{
+		if((mpu6050DS_ptr->ayAverage >= mpu6050DS_ptr->ayMin) && (mpu6050DS_ptr->ayAverage <= mpu6050DS_ptr->ayMax))
+		{
+			mpu6050DS_ptr->ayOffset = 0;
+		}
+		else
+		{
+			mpu6050DS_ptr->ayOffset = (mpu6050DS_ptr->ayAverage - mpu6050DS_ptr->ayMid);
+		}
+		
+		MS_Location_Translate();
+		printf("%d\r\n", mpu6050DS_ptr->ayOffset);
+		mpu6050DS_ptr->ayAverageUpdate = 0;
 	}
 
+#endif
+	
 }
+
 
 
 void MPU6050_Data1(void)
 {
-	int cir = 0;
-	s16 temp = 0;
 	
-	MPU6050_getADC(&mpu6050DS_ptr->ax, &mpu6050DS_ptr->ay, &mpu6050DS_ptr->az, &mpu6050DS_ptr->gx, &mpu6050DS_ptr->gy, &mpu6050DS_ptr->gz, &mpu6050DS_ptr->tempture);
+	
+	MPU6050_getADC1(&(mpu6050DS_ptr->ax), &(mpu6050DS_ptr->ay), &(mpu6050DS_ptr->az), &(mpu6050DS_ptr->gx), &(mpu6050DS_ptr->gy), &(mpu6050DS_ptr->gz), &(mpu6050DS_ptr->tempture));
 
 	
 	if(1 == MPU6050_UPDATE)
 	{
 		MPU6050_UPDATE = 0;
-		
+
+		MS_Location_Translate();
 		printf("%d\r\n", mpu6050DS_ptr->ay);
 	}
-
+	
 }
+
 
 
 void Hall_Count(void)
@@ -7130,6 +7869,8 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->goalStation = ControlCenter;
 	ctrlParasPtr->walkingstep = step_stop;
 	ctrlParasPtr->crossRoadCount = 0;
+	ctrlParasPtr->T1DF = 0;
+	ctrlParasPtr->T1dutyRec = 0;
 
 	agv_walking_func[stopStatus] = walking_stopStatus;
 	agv_walking_func[goStraightStatus] = walking_goStraight;
@@ -7203,7 +7944,7 @@ void Motion_Ctrl_Init(void)
 		adaptInfoB[cir].upLimDuty = 0;
 		adaptInfoB[cir].lowLimDuty = 0;
 	}
-	
+	/*
 	adaptInfo[0].timRec = 0;
 	adaptInfo[0].duty = 20;
 
@@ -7324,7 +8065,50 @@ void Motion_Ctrl_Init(void)
 
 	adaptInfoB[19].timRec = 0;
 	adaptInfoB[19].duty = 2;
+	*/
 	
+	adaptInfo[0].duty = 14;
+	adaptInfo[1].duty = 13;
+	adaptInfo[2].duty = 10;
+	adaptInfo[3].duty = 9;
+	adaptInfo[4].duty = 8;
+	adaptInfo[5].duty = 7;
+	adaptInfo[6].duty = 7;
+	adaptInfo[7].duty = 7;
+	adaptInfo[8].duty = 6;
+	adaptInfo[9].duty = 5;
+	adaptInfo[10].duty = 4;
+	adaptInfo[11].duty = 3;
+	adaptInfo[12].duty = 2;
+	adaptInfo[13].duty = 1;
+	adaptInfo[14].duty = 1;
+	adaptInfo[15].duty = 1;
+	adaptInfo[16].duty = 1;
+	adaptInfo[17].duty = 1;
+	adaptInfo[18].duty = 1;
+	adaptInfo[19].duty = 1;
+	
+	
+	adaptInfoB[0].duty = 10;
+	adaptInfoB[1].duty = 10;
+	adaptInfoB[2].duty = 10;
+	adaptInfoB[3].duty = 10;
+	adaptInfoB[4].duty = 10;
+	adaptInfoB[5].duty = 10;
+	adaptInfoB[6].duty = 10;
+	adaptInfoB[7].duty = 10;
+	adaptInfoB[8].duty = 10;
+	adaptInfoB[9].duty = 5;
+	adaptInfoB[10].duty = 5;
+	adaptInfoB[11].duty = 5;
+	adaptInfoB[12].duty = 5;
+	adaptInfoB[13].duty = 5;
+	adaptInfoB[14].duty = 1;
+	adaptInfoB[15].duty = 1;
+	adaptInfoB[16].duty = 1;
+	adaptInfoB[17].duty = 1;
+	adaptInfoB[18].duty = 1;
+	adaptInfoB[19].duty = 1;
 
 	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
 	{
@@ -7411,15 +8195,12 @@ void Motion_Ctrl_Init(void)
 		mpu6050DS_ptr->ayAverage = 0;
 		mpu6050DS_ptr->ayMax = 0;
 		mpu6050DS_ptr->ayMid = 0;
-		mpu6050DS_ptr->ayMin = 0;
+		mpu6050DS_ptr->ayMin = S16_MAX;
 		mpu6050DS_ptr->ayOffset = 0;
 		mpu6050DS_ptr->az = 0;
 		mpu6050DS_ptr->gx = 0;
 		mpu6050DS_ptr->gy = 0;
 		mpu6050DS_ptr->gz = 0;
-		mpu6050DS_ptr->hx = 0;
-		mpu6050DS_ptr->hy = 0;
-		mpu6050DS_ptr->hz = 0;
 		mpu6050DS_ptr->minusCount = 0;
 		mpu6050DS_ptr->plusCount = 0;
 		mpu6050DS_ptr->sum = 0;
@@ -7427,6 +8208,8 @@ void Motion_Ctrl_Init(void)
 		mpu6050DS_ptr->sumMinus = 0;
 		mpu6050DS_ptr->sumPlus = 0;
 		mpu6050DS_ptr->tempture = 0;
+		mpu6050DS_ptr->ayAverageUpdate = 0;
+		
 	}
 	
 }

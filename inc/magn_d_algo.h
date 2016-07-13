@@ -235,7 +235,7 @@ typedef struct
 
 	vu32 VelocityXt;
 
-	vs32 AcceleratedXt;
+	s32 AcceleratedXt;
 
 	s16 LeftRemain;
 
@@ -260,6 +260,7 @@ typedef struct
 
 	Agv_MS_Location MaxRecoder;
 
+	u32 MS_Two_2_One_Vx;
 	
 }Magn_Sensor_Data_Sturct, *Magn_Sensor_Data_Sturct_P;
 

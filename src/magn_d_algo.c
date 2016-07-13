@@ -1261,6 +1261,8 @@ void MSDS_Init(void)
 
 	FMSDS_Ptr->AcceleratedX = 0x00;
 
+	FMSDS_Ptr->AcceleratedXt = 0x00;
+
 	FMSDS_Ptr->LeftRemain = 0;
 
 	FMSDS_Ptr->RightRemain = 0;
@@ -1284,6 +1286,8 @@ void MSDS_Init(void)
 	FMSDS_Pre_Ptr->VelocityX = 0x00;
 
 	FMSDS_Pre_Ptr->AcceleratedX = 0x00;
+
+	FMSDS_Pre_Ptr->AcceleratedXt = 0x00;
 
 	FMSDS_Pre_Ptr->LeftRemain = 5;
 

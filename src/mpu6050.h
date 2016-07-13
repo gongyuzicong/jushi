@@ -401,6 +401,7 @@ typedef struct
 //供外部调用的API
 u8 MPU6050_init(void); //初始化
 void MPU6050_getADC(s16* ax, s16* ay, s16* az, s16* gx, s16* gy, s16* gz, s16* temp);
+void MPU6050_getADC1(s16* ax, s16* ay, s16* az, s16* gx, s16* gy, s16* gz, s16* temp);
 short MPU6050_Get_Angle(float ax,float ay,float az,u8 dir);
 u8 MPU6050_getDeviceID(void); //读取MPU6050的ID
 void MPU6050_InitGyro_Offset(void);//初始化陀螺仪偏置

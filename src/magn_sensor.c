@@ -723,15 +723,19 @@ void Magn_VelocityXt_Clau(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct
 
 void Show_Magn_VelocityXt_Clau(Magn_Sensor_Data_Sturct_P now)
 {
-	printf("VXt = %d,\t", now->VelocityXt);
+	printf("VXt = %d, AXt = %d, ay = %d\t", now->VelocityXt, now->AcceleratedXt, mpu6050DS_ptr->ay);
 }
 
 void Magn_AcceleratedXt_Clau(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)
 {
+	/*
 	if(pre->VelocityXt != 0)
 	{
 		now->AcceleratedXt = now->VelocityXt - pre->VelocityXt;	// AcceleratedXt的值越大, 则加速度越小(因为两次速度数据变化的时间间隔长)
 	}
+	*/
+	now->AcceleratedXt = now->VelocityXt - pre->VelocityXt;		// AcceleratedXt为正,则前后VelocityXt的值是增加的,也就是速度比前一个时刻是减小的,也就是A的方向跟V的方向是相反的, 并且值越大, 反向的A就越大
+																// AcceleratedXt为负, 则前后VelocityXt的值是减小的, 也就是速度比前一个时刻是增加的, 也就是A的方向跟V的方向是相同的, 并且值越大, 同向的A就越大
 }
 
 void Show_Magn_AcceleratedXt_Clau(Magn_Sensor_Data_Sturct_P now)
@@ -982,6 +986,8 @@ void Magn_Sensor_Scan(void)
 			Check_Magn_Direction(FMSDS_Ptr, FMSDS_Pre_Ptr);
 
 			Magn_VelocityXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
+
+			Magn_AcceleratedXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
 		}
 
 		if(RMSDS_Pre_Ptr->MSD_Hex != RMSDS_Ptr->MSD_Hex)
@@ -993,6 +999,8 @@ void Magn_Sensor_Scan(void)
 			Check_Magn_Direction(RMSDS_Ptr, RMSDS_Pre_Ptr);
 
 			Magn_VelocityXt_Clau(RMSDS_Ptr, RMSDS_Pre_Ptr);
+
+			Magn_AcceleratedXt_Clau(RMSDS_Ptr, RMSDS_Pre_Ptr);
 		}
 
 		if(((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)) &&\
