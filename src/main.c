@@ -35,8 +35,7 @@ void SystemInit(void)
 	Magn_Sensor_Init();
 	Zigbee_Init();
 	My_I2C_Init();
-	Delay_ns(1);
-	MPU6050_init();
+	//MPU6050_init();
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -50,18 +49,20 @@ int main(void)
 	//int cir = 0, ayDec = 0;
 	u8 flag = 0;
 	//static u8 addGearFlag = 0;
+	//u8 reset_cmd[6] = {0xFC, 0x06, 0x00, 0x00, 0x09, 0x01};
+	//u8 open_network[7] = {0xFE, 0x07, 0x00, 0x00, 0x02, 0x03, 0xFF};
+	//u8 close_network[7] = {0xFE, 0x07, 0x00, 0x00, 0x02, 0x03, 0x00};
+	//u8 key[8] = {0xFE, 0x08, 0x00, 0x00, 0x01, 0x02, 0x01, 0x01};
 	
 	CB_RCC_Config();	/*ÅäÖÃÏµÍ³Ê±ÖÓ*/
 	CB_GPIO_Config();	/*ÅäÖÃGPIO¿Ú*/
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
 	
-	printf("Start?\r\n");
-	
-	MPU6050_Data_init3();
+	//MPU6050_Data_init3();
 	//ECV_POWER_ON();
-	//FECV_DOWN();
-	//BECV_DOWN();
+	FECV_DOWN();
+	BECV_DOWN();
 	//WECV_DOWN();
 	Delay_ns(3);
 	//MOTOR_POWER_OFF();
@@ -84,19 +85,13 @@ int main(void)
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
+
+	printf("Start\r\n");
 	
 	ctrlParasPtr->gear = 10;
 	
-	
 	while(1)
 	{
-		if(1 == ctrlParasPtr->FSflag)
-		//if(0)
-		{
-			MPU6050_Data();
-			
-		}
-		
 		
 		#if 1
 		
@@ -109,63 +104,26 @@ int main(void)
 		else
 		{
 			
-			#if 1
-			if(0 == flag)
-			{
-				
-			//flag = 1;
-			if(step_stop == ctrlParasPtr->walkingstep)
-			{
-				if(Zigbee_Ptr->recvId < 0x0a)
-				{
-					Zigbee_Ptr->recvValidDataFlag = 1;
-					Zigbee_Ptr->recvId++;
-					#if 0
-					Zigbee_Ptr->recvId = 0x02;
-					#else
-					if(0x02 == Zigbee_Ptr->recvId)
-					{
-						Zigbee_Ptr->recvId = 0x03;
-					}
-					#endif
-					ctrlParasPtr->walkingstep = step_gS;
-					CHANGE_TO_GO_STRAIGHT_MODE();
-					//printf("**************recvId = %d\r\n", Zigbee_Ptr->recvId);
-					//CHANGE_TO_BACK_MODE();
-				}
-				else
-				{
-					Zigbee_Ptr->recvId = 0x01;
-				}
-			}
-
-			}
-			#else
-			/*
-			if(1 == Zigbee_Ptr->recvValidDataFlag)
-			{
-				Zigbee_Ptr->recvValidDataFlag = 0;
-				
-				ctrlParasPtr->gear = 5;
-				ctrlParasPtr->walkingstep = step_gS;
-				CHANGE_TO_GO_STRAIGHT_MODE();
-				
-			}
-			*/
-			#endif
-			
-			
 			Magn_Sensor_Scan();
-			
-			//Zigbee_Data_Scan();
 
-			//CrossRoad_Count();
+			Receive_handle();
+			//Zigbee_Data_Scan();
+			
+			if(CMD_Flag_Ptr->cmdFlag == GoodReq)
+			{
+				CMD_Flag_Ptr->cmdFlag = NcNone;
+				CHANGE_TO_GO_STRAIGHT_MODE();
+				Zigbee_Ptr->recvValidDataFlag = 1;
+				Zigbee_Ptr->recvId = 0x0007;
+			}
+			
+			CrossRoad_Count();
 			
 			//Hall_Count();
 			
-			//RFID_Goal_Node_Analy();
+			RFID_Goal_Node_Analy();
 			
-			//Walking_Step_Controler();
+			Walking_Step_Controler();
 			
 			//AGV_Walking();
 			

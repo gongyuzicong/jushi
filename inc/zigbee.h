@@ -31,15 +31,36 @@ typedef struct
 	u16 recvId;
 }Zigbee_Info, *Zigbee_Info_P;
 
+typedef enum
+{
+	NcNone = 0,
+	GoodReq,
+	GoodReqCancel,
+	GetTheGood,
+	ArrGoal,
+	GoodLeav,
+}NC_Flag;
+
+typedef struct
+{
+	NC_Flag cmdFlag;
+}RecvCmdFlag, *RecvCmdFlag_P;
+
 extern Zigbee_Info_P Zigbee_Ptr;
-extern u8 NC_send_1[8];
+extern RecvCmdFlag_P CMD_Flag_Ptr;
 
 void Protocol_analysis(u8 rec_dat);
 void Zigbee_Init(void);
-void send_cmd(u8 cmd[]);
+//void send_cmd(u8 cmd[]);
+void send_cmd(u8 *);
 u8 SendChar_Zigbee(u8);
 void Zigbee_Data_Scan(void);
-
+void send_N_char(u8 *, u8);
+void UART2_REC_IRQ(u8);
+void Receive_handle(void);
+void Send_Arrive(void);
+void Send_WaitForGoods(void);
+void Send_GettedGoods(void);
 
 
 #endif

@@ -199,6 +199,7 @@ typedef enum
 	step_weigh,
 	step_bVeer,
 	step_gB,
+	step_standBy,
 	step_stop,
 }WalkStep;
 
@@ -251,8 +252,11 @@ typedef struct
 
 	WalkStep walkingstep;
 
-	u8 crossRoadCount;
-	u8 crossRoadUpdate;
+	u8 crossRoadCountF;
+	u8 crossRoadUpdateF;
+
+	u8 crossRoadCountR;
+	u8 crossRoadUpdateR;
 
 	u8 T1DF;
 

@@ -748,10 +748,10 @@ void USART2_IRQHandler(void)
 	else if(0 != (USART2->SR & (0x01 << 5)))	// ÅÐ¶ÏÊÇ·ñÎªRXNEÖÐ¶Ï
 	{
 		u8 recvD = USART2_RECV_DATA;
-		printf("D = %x\r\n", recvD);
-
-		Protocol_analysis(recvD);
+		//printf("U2D = %x\r\n", recvD);
 		
+		//Protocol_analysis(recvD);
+		UART2_REC_IRQ(recvD);
 	}
 	
 }
@@ -799,7 +799,8 @@ void USART3_IRQHandler(void)
 		{
 			RFID_Info_Ptr->updateFlag = 1;
 			RFID_Info_Ptr->rfidData = recvD;
-			ctrlParasPtr->crossRoadCount = recvD;
+			ctrlParasPtr->crossRoadCountF = recvD;
+			ctrlParasPtr->crossRoadCountR = recvD - 1;
 			printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);
 		}
 		

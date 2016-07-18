@@ -493,7 +493,8 @@ u8 MPU6050_init(void)
 {
 	s16 temp[7];
 	u8 i;
-
+	Delay_ns(1);
+	
 	MPU6050_GPIO_init();
 	
 	if(MPU6050_getDeviceID() != 0x68)

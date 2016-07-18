@@ -196,6 +196,7 @@ void CB_USART_Config(void)
 	
 	USART_Init(USART1, &USART_InitStructure);
 	USART_Cmd(USART1, ENABLE);
+	USART_ClearFlag(USART1, USART_FLAG_TC);
 	/***USART1 初始化 END***/
 #endif
 
@@ -232,12 +233,6 @@ void CB_USART_Config(void)
 	USART3->CR1 |= (1 << 5);	// RXNE(接收缓冲区)非空中断使能
 	//My_Nvic_Init(node);
 
-#ifdef USE_TC
-	
-	//USART_ITConfig(USART1, USART_IT_TC, ENABLE);
-	//USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-	
-#endif
 	
 }
 

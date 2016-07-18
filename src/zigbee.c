@@ -1,19 +1,31 @@
 #include "zigbee.h"
 #include "cfg_gpio.h"
 
+#define USART2_TC					((USART2->SR >> 6) & 0x0001)
+
 Zigbee_Info Zigbee;
 Zigbee_Info_P Zigbee_Ptr = &Zigbee;
 
-#if 0
-/******************发送命令****************/
-u8 ZD_send_1[8]  = {0xfe,0x08,0x00,0x00,0x01,0x02,0x7F,0x01};	//短按，呼叫
-u8 ZD_send_2[8]  = {0xfe,0x08,0x00,0x00,0x01,0x02,0x7F,0x02};	//长按，取消
-u8 ZD_send_3[15] = {0xfe,0x0e,0x00,0x00,0x01,0x02,0x7F,0x03,
-                          0x00,0x00,0x05,0x17,0x00,0x00,0x00};	//发送时间
-#endif
+RecvCmdFlag CMD_Flag;
+RecvCmdFlag_P CMD_Flag_Ptr = &CMD_Flag;
 
-u8 NC_send_1[8] = {0xfe, 0x08, 0x58, 0xd3, 0x01, 0x02, 0x7F, 0x01};		//led off
-#define USART2_TC					((USART2->SR >> 6) & 0x0001)
+/////////////////uart波特率115200，八位数据，一位停止位
+///////变量声明//////////////
+u8 receive_state=0;		//接收完成标志
+u8 receive_count=0;		//接收数据计数
+u8 i;									//循环体变量
+u8 flag1=0;						//记录串口接收字节
+
+
+u8 nc_send1[8]=
+	{0xfe, 0x08, 0x05, 0x74, 0x01, 0x02, 0x7F, 0x01};//小车已取物请龙门准备
+u8 nc_send2[8]=
+	{0xfe, 0x08, 0x05, 0x74, 0x01, 0x02, 0x7F, 0x02};//小车到达龙门请龙门取物
+u8 nc_send3[8]=
+	{0xfe, 0x08, 0x05, 0x74, 0x01, 0x02, 0x7F, 0x03};//小车离开龙门
+u8 nc_send4[8]=
+	{0xfe, 0x08, 0x40, 0x47, 0x01, 0x02, 0x7F, 0x01};//小车已取物，发送给按钮使其停止亮灯
+u8 nc_receive[8];		//接收数据缓存
 
 
 void Protocol_analysis(u8 rec_dat)
@@ -80,10 +92,31 @@ void Protocol_analysis(u8 rec_dat)
 
 u8 SendChar_Zigbee(u8 ch)  //发送单个数据 
 {
-	USART_SendData(USART2, ch); 
-	while (!(USART2->SR & USART_FLAG_TXE));
+	//u16 timeout = U16_MAX;
+	u32 timeout = 0;
+	u32 cir = 0;
+	USART_SendData(USART2, ch);
+	
+	#if 0
+	
+	//while (!(USART2->SR & USART_FLAG_TXE));
+	while(USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);//等待串口发送完成
+	
+	#else
+	
+	timeout = SystemRunningTime;
+	while(!(USART2->SR & USART_FLAG_TXE))
+	{
+		if(SystemRunningTime - timeout > 100)
+		{
+			printf("timeout\r\n");
+			break;
+		}
+	}
+
+	#endif
 	return (ch); 
-} 
+}
 
 #else
 
@@ -125,80 +158,195 @@ u8 SendChar_Zigbee(u8 ch)  //发送单个数据
 
 #endif
 
-
+#if 0
 void send_cmd(u8 cmd[])
 {
-  u8 i;
-  frmFmt *ptr;
-  
-  ptr = (frmFmt *)cmd;
-  
-  if(SendChar_Zigbee(ptr->startID) == ptr->startID)
-  {
-  	printf("%d\r\n", ptr->startID);
-  }
-  
-  SendChar_Zigbee(ptr->length);
-  SendChar_Zigbee(ptr->decID0);
-  SendChar_Zigbee(ptr->decID1);
-  SendChar_Zigbee(ptr->cmd1);
-  SendChar_Zigbee(ptr->cmd2);
-  
-  for(i = 0; i < ptr->length - 6; i++)
- 	SendChar_Zigbee(ptr->buf[i]);  
+	u8 i;
+	frmFmt *ptr;
+
+	ptr = (frmFmt *)cmd;
+
+	if(SendChar_Zigbee(ptr->startID) == ptr->startID)
+	{
+		printf("%d\r\n", ptr->startID);
+	}
+
+	SendChar_Zigbee(ptr->length);
+	SendChar_Zigbee(ptr->decID0);
+	SendChar_Zigbee(ptr->decID1);
+	SendChar_Zigbee(ptr->cmd1);
+	SendChar_Zigbee(ptr->cmd2);
+
+	for(i = 0; i < ptr->length - 6; i++)
+		SendChar_Zigbee(ptr->buf[i]);  
   
 }
 
+#else
 
-void Zigbee_Usart_Init(void)
+void send_cmd(u8 *cmd)
 {
-	USART_InitTypeDef USART_InitStructure;
-	USART_ClockInitTypeDef USART_ClockInitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
-	GPIO_InitTypeDef GPIO_InitStructure;
-	
-	/*设置UART3的TX脚(PB.10)为第二功能推挽输出模式*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	u8 i;
+	frmFmt *ptr;
 
-	/*设置UART3的RX脚(PB.11)为第二功能推挽输出模式*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	ptr = (frmFmt *)cmd;
+
+	if(SendChar_Zigbee(ptr->startID) == ptr->startID)
+	{
+		printf("%d\r\n", ptr->startID);
+	}
+
+	SendChar_Zigbee(ptr->length);
+	SendChar_Zigbee(ptr->decID0);
+	SendChar_Zigbee(ptr->decID1);
+	SendChar_Zigbee(ptr->cmd1);
+	SendChar_Zigbee(ptr->cmd2);
+
+	for(i = 0; i < ptr->length - 6; i++)
+		SendChar_Zigbee(ptr->buf[i]);  
+  
+}
+
+void send_N_char(u8 *cmd, u8 num)
+{
+	u8 cir = 0;
 	
-	/***USART3 初始化 BEGIN***/
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
-	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQChannel;		//选择中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
-	NVIC_Init(&NVIC_InitStructure);								//初始化
+	for(cir = 0; cir < num; cir++)
+	{
+		SendChar_Zigbee(cmd[cir]);
+	}
+}
+
+#endif
+
+void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
+{
+	nc_receive[receive_count] = UART2_DR;
 	
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+	receive_count++;
 	
-	/*
-	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
-	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
-	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
-	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
-	USART_ClockInit(USART2, &USART_ClockInitStructure);
-	*/
+	if(receive_count == 2)
+	{
+		if(nc_receive[1] == 0x07)
+		{
+			flag1 = 7;
+		}
+		
+		if(nc_receive[1] == 0x08)
+		{
+			flag1 = 8;
+		}
+	}
 	
-	USART_InitStructure.USART_BaudRate = 19200;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
+	if(flag1==7)
+	{
+		if(receive_count == 7)
+		{
+			for(i = 0; i < 8; i++)
+			{
+				nc_receive[i] = 0x00;
+			}
+			
+			receive_count=0;
+		}
+	}
 	
-	USART_Init(USART2, &USART_InitStructure);
-	USART_Cmd(USART2, ENABLE);
+	if(flag1 == 8)
+	{
+		if(receive_count == 8)
+		{
+			receive_count = 0;
+			receive_state = 1;
+		}
+	}
+}
+
+
+void Receive_handle(void)
+{
+	if(receive_state == 1)
+	{
+		receive_state = 0;
+		if((nc_receive[6] == 0x7f) && (nc_receive[7] == 0x01))
+		{
+			for(i = 0; i < 8; i++)
+			{
+				nc_receive[i] = 0x00;
+			}
+			///终端请求取物////
+			CMD_Flag_Ptr->cmdFlag = GoodReq;
+			//printf("req\r\n");
+			/////////////////
+		}
+		if((nc_receive[6] == 0x7f) && (nc_receive[7] == 0x02))
+		{ 
+			for(i=0;i<8;i++)
+			{
+				nc_receive[i] = 0x00;
+			}
+			///////终端请求停止取物/////////
+			CMD_Flag_Ptr->cmdFlag = GoodReqCancel;
+			
+			//////////////////////////////
+		}
+		if((nc_receive[6] == 0x7f) && (nc_receive[7] == 0x03))
+		{
+			for(i = 0; i < 8; i++)
+			{
+				nc_receive[i] = 0x00;
+			}
+			/////龙门已经将货物取走//////
+			CMD_Flag_Ptr->cmdFlag = GoodLeav;
+			
+			////////////////////////////
+		}
+		
+	}
+}
+
+void Send_GettedGoods(void)
+{
+	u8 cir = 8;
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_GettedGoods\r\n");
+		}
+		SendChar_Zigbee(nc_send4[cir]);
+		
+	}
 	
-	USART2->CR1 |= (1 << 5);	// RXNE(接收缓冲区)非空中断使能
-	/***USART3 初始化 END***/
+}
+
+void Send_WaitForGoods(void)
+{
+	u8 cir = 8;
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_WaitForGoods\r\n");
+		}
+		SendChar_Zigbee(nc_send1[cir]);
+		
+	}
+	
+}
+
+void Send_Arrive(void)
+{
+	u8 cir = 8;
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_Arrive\r\n");
+		}
+		SendChar_Zigbee(nc_send2[cir]);
+		
+	}
+	
 }
 
 
@@ -228,22 +376,71 @@ void Zigbee_Data_Scan(void)
 	
 }
 
-
-
-void Zigbee_GPIO_Init(void)
+void Zigbee_Usart_GPIOInit(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	/****TIM3 CH1 CH2 CH3 CH4 PWM输出 GPIO分别为 PA6 PA7 PB0 PB1*****/
-	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+	/* 开启GPIO时钟和复用功能时钟RCC_APB2Periph_AFIO */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* 配置 USART Tx 复用推挽输出 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	//复用推挽输出
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	/* 配置 USART Rx 浮空输入 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
-	
+	//GPIO_SetBits(GPIOA, GPIO_Pin_2 | GPIO_Pin_3);
 }
+
+
+
+void Zigbee_Usart_Init(void)
+{
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	USART_ClockInitTypeDef USART_ClockInitStructure;
+
+	Zigbee_Usart_GPIOInit();
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+
+	
+	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
+	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
+	USART_ClockInitStructure.USART_CPHA = USART_CPHA_1Edge;
+	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
+	USART_ClockInit(USART2, &USART_ClockInitStructure);
+	
+	
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_Init(USART2, &USART_InitStructure);
+	
+	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+	USART_Cmd(USART2, ENABLE);
+	USART_ClearFlag(USART2, USART_FLAG_TC);
+}
+
+
+
+
 
 
 void Zigbee_Init(void)
@@ -253,6 +450,8 @@ void Zigbee_Init(void)
 	Zigbee_Ptr->receive_end = 0;
 	Zigbee_Ptr->recvValidDataFlag = 0;
 	Zigbee_Ptr->recvId = 0x0000;
+
+	CMD_Flag_Ptr->cmdFlag = NcNone;
 }
 
 
