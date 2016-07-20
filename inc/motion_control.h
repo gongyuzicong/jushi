@@ -406,6 +406,7 @@ void MPU6050_Data_init(void);
 void MPU6050_Data(void);
 void MPU6050_Data1(void);
 void MPU6050_Data_init3(void);
+void CrossRoad_Count(void);
 
 
 

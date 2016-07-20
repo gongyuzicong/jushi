@@ -785,8 +785,8 @@ void Midpoint_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct
 
 void Angle_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
 {
-	PTR->Angle = (FMS->AgvMSLocation - Agv_MS_Center) - (RMS->AgvMSLocation - Agv_MS_Center);
-	
+	//PTR->Angle = (FMS->AgvMSLocation - Agv_MS_Center) - (RMS->AgvMSLocation - Agv_MS_Center);
+	PTR->Angle = FMS->AgvMSLocation - RMS->AgvMSLocation;
 }
 
 void Get_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
@@ -1201,7 +1201,13 @@ void Get_AngleDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
 
 void Get_MidpointDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
 {
-	now->MidpointDirection = (now->Midpoint - pre->Midpoint) * now->Midpoint;
+	// 注意! 此值有可能为0! 0代表在原地转!
+	if(0 != now->Midpoint)
+	{
+		now->MidpointDirection = (now->Midpoint - pre->Midpoint) * now->Midpoint;	// 负数中点向中线靠近, 正数中点远离中线
+		//printf("mpp %d - %d = %d, %d\r\n", now->Midpoint, pre->Midpoint, (now->Midpoint - pre->Midpoint), now->MidpointDirection);
+	}
+	
 }
 
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)

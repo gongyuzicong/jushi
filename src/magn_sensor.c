@@ -774,7 +774,7 @@ void Show_Infomation(void)
 	Show_Resualt_Analy(RMSDS_Ptr);
 	printf("\r\n");
 	
-	printf("Angle = %d, Mp = %d,\t", AGV_Pat_Ptr->Angle, AGV_Pat_Ptr->Midpoint);
+	printf("Ang = %d, AngD = %d, Mp = %d, MpD = %d,\t", AGV_Pat_Ptr->Angle, AGV_Pat_Ptr->AngleDirection, AGV_Pat_Ptr->Midpoint, AGV_Pat_Ptr->MidpointDirection);
 	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
 	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
 	printf("f = %d, \t", ctrlParasPtr->comflag);
@@ -937,15 +937,8 @@ void Magn_Sensor_Scan(void)
 	
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 	{
-		//static u16 tempFMS = 0x00, tempRMS = 0x00;
-		//u32 TimeNow = 0;
-		//static u8 lineCounter = 0x00;
+		u8 MSDS_UpdateFlag = 0;
 		
-#if 1
-
-		*FMSDS_Pre_Ptr = *FMSDS_Ptr;
-		*RMSDS_Pre_Ptr = *RMSDS_Ptr;
-		*AGV_Pat_Pre_Ptr = *AGV_Pat_Ptr;
 
 		#if 1
 		if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
@@ -979,6 +972,8 @@ void Magn_Sensor_Scan(void)
 		
 		if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
 		{
+			*FMSDS_Pre_Ptr = *FMSDS_Ptr;
+			
 			FMSDS_Ptr->TimeRecoder = SystemRunningTime;
 			
 			MSD_Analy(FMSDS_Ptr);
@@ -988,10 +983,14 @@ void Magn_Sensor_Scan(void)
 			Magn_VelocityXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
 
 			Magn_AcceleratedXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
+
+			MSDS_UpdateFlag = 1;
 		}
 
 		if(RMSDS_Pre_Ptr->MSD_Hex != RMSDS_Ptr->MSD_Hex)
 		{
+			*RMSDS_Pre_Ptr = *RMSDS_Ptr;
+			
 			RMSDS_Ptr->TimeRecoder = SystemRunningTime;
 			
 			MSD_Analy(RMSDS_Ptr);
@@ -1001,8 +1000,11 @@ void Magn_Sensor_Scan(void)
 			Magn_VelocityXt_Clau(RMSDS_Ptr, RMSDS_Pre_Ptr);
 
 			Magn_AcceleratedXt_Clau(RMSDS_Ptr, RMSDS_Pre_Ptr);
+
+			MSDS_UpdateFlag = 1;
 		}
 
+		/*
 		if(((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)) &&\
 			((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End)))
 		{
@@ -1012,24 +1014,19 @@ void Magn_Sensor_Scan(void)
 
 			Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 		}
+		*/
 		
-#else
-
-		if(tempFMS != FMSDS_Ptr->MSD_Hex)
+		if(1 == MSDS_UpdateFlag)
 		{
-			*FMSDS_Pre_Ptr = *FMSDS_Ptr;
-			tempFMS = FMSDS_Ptr->MSD_Hex;
-			MSD_Analy(FMSDS_Ptr);
+			*AGV_Pat_Pre_Ptr = *AGV_Pat_Ptr;
+			
+			Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
+
+			Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+
+			Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 		}
 
-		if(tempRMS != RMSDS_Ptr->MSD_Hex)
-		{
-			*RMSDS_Pre_Ptr = *RMSDS_Ptr;
-			tempRMS = RMSDS_Ptr->MSD_Hex;
-			MSD_Analy(RMSDS_Ptr);
-		}
-		
-#endif
 		
 	}
 }

@@ -106,8 +106,8 @@ typedef struct
 {
 	s16 Angle;
 	s16 Midpoint;
-	s16 AngleDirection;
-	s16 MidpointDirection;
+	s16 AngleDirection;		// 负数为靠近0, 正数为远离0
+	s16 MidpointDirection;	// 负数中点向中线靠近, 正数中点远离中线, 注意! 此值有可能为0! 0代表在原地转!, 还有无论从那个方向进入中点, 都会让此值为0
 }Pattern_Num_Para, *Pattern_Num_Para_P;
 
 

@@ -47,12 +47,7 @@ int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 0, ayDec = 0;
-	u8 flag = 0;
-	//static u8 addGearFlag = 0;
-	//u8 reset_cmd[6] = {0xFC, 0x06, 0x00, 0x00, 0x09, 0x01};
-	//u8 open_network[7] = {0xFE, 0x07, 0x00, 0x00, 0x02, 0x03, 0xFF};
-	//u8 close_network[7] = {0xFE, 0x07, 0x00, 0x00, 0x02, 0x03, 0x00};
-	//u8 key[8] = {0xFE, 0x08, 0x00, 0x00, 0x01, 0x02, 0x01, 0x01};
+	static u16 hexF = 0, hexR = 0;	
 	
 	CB_RCC_Config();	/*配置系统时钟*/
 	CB_GPIO_Config();	/*配置GPIO口*/
@@ -89,6 +84,9 @@ int main(void)
 	printf("Start\r\n");
 	
 	ctrlParasPtr->gear = 10;
+	CHANGE_TO_GO_STRAIGHT_MODE();
+	Zigbee_Ptr->recvValidDataFlag = 1;
+	Zigbee_Ptr->recvId = 0x0007;
 	
 	while(1)
 	{
@@ -164,9 +162,12 @@ int main(void)
 			
 			//LeftOrRight_Counter();
 
-			if(FMSDS_Pre_Ptr->MSD_Hex != FMSDS_Ptr->MSD_Hex)
+			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
 			//if(0)
 			{
+				hexF = FMSDS_Ptr->MSD_Hex;
+				hexR = RMSDS_Ptr->MSD_Hex;
+				
 				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
 				{
 					Show_Infomation();
@@ -178,7 +179,6 @@ int main(void)
 				}
 				
 			}
-
 			
 			
 		}
