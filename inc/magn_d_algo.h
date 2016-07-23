@@ -108,6 +108,8 @@ typedef struct
 	s16 Midpoint;
 	s16 AngleDirection;		// 负数为靠近0, 正数为远离0
 	s16 MidpointDirection;	// 负数中点向中线靠近, 正数中点远离中线, 注意! 此值有可能为0! 0代表在原地转!, 还有无论从那个方向进入中点, 都会让此值为0
+	u32 MidpointVxt;
+	u32 MidpointTimRec;
 }Pattern_Num_Para, *Pattern_Num_Para_P;
 
 
@@ -281,6 +283,7 @@ void Get_Pattern_Num(Magn_Sensor_Data_Sturct_P, Magn_Sensor_Data_Sturct_P, Patte
 void Get_Pattern_Scale(Magn_Sensor_Data_Sturct_P, Magn_Sensor_Data_Sturct_P, Pattern_Scale_Para_P);
 void Get_AngleDirection(Pattern_Num_Para_P, Pattern_Num_Para_P);
 void Get_MidpointDirection(Pattern_Num_Para_P, Pattern_Num_Para_P);
+void Get_MidpointVxt(Pattern_Num_Para_P, Pattern_Num_Para_P);
 
 
 

@@ -84,6 +84,7 @@ void Magn_Sensor_Init(void);
 void Magn_Sensor_Scan(void);
 void Show_Infomation(void);
 void Check_Max_MSLocation(void);
+void show_Excel_Analysis_Info(void);
 
 
 #endif

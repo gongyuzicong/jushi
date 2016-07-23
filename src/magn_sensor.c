@@ -19,7 +19,7 @@ u8 station = 0x00;
 
 #define CROSSROAD		0x8001
 
-
+#define OutPut_ZeroOrOne(valu)	(valu >= 0 ? 1 : 0)
 
 
 /**********************************
@@ -804,6 +804,15 @@ void Show_Infomation(void)
 	printf("\r\n");
 }
 
+
+void show_Excel_Analysis_Info(void)
+{
+	printf("%d,%d,%d,%d,%d,", OutPut_ZeroOrOne(AGV_Pat_Ptr->MidpointDirection), AGV_Pat_Ptr->Midpoint, (AGV_Pat_Ptr->MidpointVxt) / 100, AGV_Pat_Ptr->Angle, OutPut_ZeroOrOne(AGV_Pat_Ptr->AngleDirection));
+	printf("%d,%d,%d,%d,", ctrlParasPtr->LP_duty, ctrlParasPtr->RP_duty, ctrlParasPtr->LD_duty, ctrlParasPtr->RD_duty);
+	printf("%d,%d\r\n", (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center), (RMSDS_Ptr->AgvMSLocation - Agv_MS_Center));
+}
+
+
 u16 hex_reload(u16 hex)
 {
 	u8 cir = 0;
@@ -1025,6 +1034,8 @@ void Magn_Sensor_Scan(void)
 			Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 
 			Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+
+			Get_MidpointVxt(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 		}
 
 		

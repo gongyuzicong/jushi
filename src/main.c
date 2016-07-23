@@ -170,12 +170,13 @@ int main(void)
 				
 				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
 				{
-					Show_Infomation();
-					
+					//Show_Infomation();
+					show_Excel_Analysis_Info();
 				}
 				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
 				{
-					Show_Infomation();
+					//Show_Infomation();
+					show_Excel_Analysis_Info();
 				}
 				
 			}

@@ -116,7 +116,7 @@
 #define LMT_IN2			PCin(4)			// 响应为 0
 
 #define LMT_SW			PEin(0)			// 响应为 1
-
+#define Ready_SW		PEin(1)			//
 
 #define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0; ECV3_POWER = 0;}
 #define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1; ECV3_POWER = 1;}
@@ -199,7 +199,8 @@ typedef enum
 	step_weigh,
 	step_bVeer,
 	step_gB,
-	step_standBy,
+	step_wFTans,
+	step_origin,
 	step_stop,
 }WalkStep;
 
@@ -261,6 +262,11 @@ typedef struct
 	u8 T1DF;
 
 	u8 T1dutyRec;
+
+	u8 LP_duty;
+	u8 RP_duty;
+	u8 LD_duty;
+	u8 RD_duty;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 

@@ -9,13 +9,17 @@ BufferControl dht11DataBufCtrl;
 BufferControl nrfRecvDataBufCtrl;
 BufferControl nrfSendDataBufCtrl;
 
+BufferControl zigbeeQueueCtrl;
+
 CmdRecvFromFYT fytCmdBuf[MAX_FYT_CMD_BUF_NUM];
 CanRxMsg canDataBuf[MAX_CAN_DATA_BUF_NUM];
-DataInfo sendUsartBuf[MAX_USART_SEND_BUF_NUM]; 
+DataInfo sendUsartBuf[MAX_USART_SEND_BUF_NUM];
 CanTxMsg sendToCanBuf[MAX_CAN_SEND_BUF_NUM];
 
 u8 nrfRecvBuf[MAX_NRF_RECV_BUF_NUM][32];
 u8 nrfSendBuf[MAX_NRF_SEND_BUF_NUM][32];
+
+u16 zigbeeInfoQueueBuf[20];
 
 Dht11_DataInfoStruct dht11DataBuf[MAX_DHT11_DATA_BUF_NUM];
 RqcpCtrlStruct rqcpCtrl;

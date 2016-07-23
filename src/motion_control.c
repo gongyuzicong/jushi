@@ -4388,6 +4388,7 @@ void Get_T1_Duty4(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 }
 
 
+
 void Get_Damp_Duty(u8 *lmSpeedPull, u8 *rmSpeedPull)
 {
 	static u8  flag = 0, flag2 = 0, cir = 0, flag3 = 0, index = 0;
@@ -6332,10 +6333,21 @@ void scale_1_mode18_back(u8 gear)
 	
 }
 
+
+void Get_Pat_P_T1_Duty(void)
+{
+	
+}
+
+
 void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 {	
-	u8 AgvPatAngOut[21] = {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16};
-	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0;
+	//u8 AgvPatAngOut[21] = {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16};
+	//u8 AgvPatAngOut[MAX_OUT] = {1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10};
+	//u8 AgvPatAngOut[21] = {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+	u8 AgvPatAngOut[21] = {1, 1, 1, 2, 2, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 15, 15};
+	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0, lmSpeedPat_T1 = 0, rmSpeedPat_T1 = 0;
+	u8 maxLimt = MAX_OUT - 1;
 
 	// 1.判别车体的运动方向, 区分控制逻辑(正数:车体往远离磁条方向; 负数:车体靠近磁条方向)
 	if(AGV_Pat_Ptr->MidpointDirection >= 0)		// 1.2 车体中点为远离磁条方向
@@ -6343,22 +6355,39 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 		// 2.判别车体在左边/右边,然后区分控制逻辑
 		if(AGV_Pat_Ptr->Midpoint > 0)	// 2.1 车体中点在磁条右边, 远离磁条方向
 		{
-				
+			
 			if(AGV_Pat_Ptr->Angle >= 0)		// 中点在磁条右边并且方向远离磁条, 角度是正数/与磁条平行
 			{
-				if(AGV_Pat_Ptr->Angle <= 20)		// 角度偏差极限值
+				if(AGV_Pat_Ptr->Angle < MAX_OUT)		// 角度偏差极限值
 				{
 					lmSpeedPat_P = AgvPatAngOut[AGV_Pat_Ptr->Angle];
 				}
 				else
 				{
-					lmSpeedPat_P = AgvPatAngOut[20];
+					lmSpeedPat_P = AgvPatAngOut[maxLimt];
 				}
 				
 			}
 			else	// 中点方向继续远离磁条, 但是角度已经为负数, 除了"甩尾"我真的想不出有什么词可以形容此时的情况了
 			{
-				lmSpeedPat_P = AgvPatAngOut[1];
+				if((AGV_Pat_Ptr->Angle < 0) && (AGV_Pat_Ptr->Angle > -MAX_OUT))
+				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
+
+					if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					{
+						lmSpeedPat_P = AgvPatAngOut[tempAngle];
+					}
+					else
+					{
+						printf("error code 5: %d, %d\r\n", tempAngle, AGV_Pat_Ptr->Angle);
+					}
+				}
+				else
+				{
+					lmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+				
 			}
 			
 		}
@@ -6366,31 +6395,39 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 		{
 			if(AGV_Pat_Ptr->Angle > 0)			// 车体中点在磁条上, 并且方向为远离磁条方向, 角度为正数
 			{
-				if(AGV_Pat_Ptr->Angle <= 20)		// 角度偏差极限值
+				if(AGV_Pat_Ptr->Angle < MAX_OUT)		// 角度偏差极限值
 				{
 					lmSpeedPat_P = AgvPatAngOut[AGV_Pat_Ptr->Angle];
 				}
 				else
 				{
-					lmSpeedPat_P = AgvPatAngOut[20];
+					lmSpeedPat_P = AgvPatAngOut[maxLimt];
 				}
 			}
-			else if(AGV_Pat_Ptr->Angle == 0)	// 车体中点在磁条上, 并且方向为远离磁条方向, 与磁条平行
+			else if(0 == AGV_Pat_Ptr->Angle)	// 车体中点在磁条上, 并且方向为远离磁条方向, 与磁条平行
 			{
 				
 			}
 			else if(AGV_Pat_Ptr->Angle < 0)		// 车体中点在磁条上, 并且方向为远离磁条方向, 角度为负数
 			{
-
-				tempAngle = -AGV_Pat_Ptr->Angle;
 				
-				if(tempAngle <= 20)		// 角度偏差极限值
+				if(AGV_Pat_Ptr->Angle > -MAX_OUT)		// 角度偏差极限值
 				{
-					rmSpeedPat_P = AgvPatAngOut[tempAngle];
+					tempAngle = -AGV_Pat_Ptr->Angle;
+					
+					if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					{
+						rmSpeedPat_P = AgvPatAngOut[tempAngle];
+					}
+					else
+					{
+						printf("error code 3: %d, %d\r\n", tempAngle, AGV_Pat_Ptr->Angle);
+					}
+					
 				}
 				else
 				{
-					rmSpeedPat_P = AgvPatAngOut[20];
+					rmSpeedPat_P = AgvPatAngOut[maxLimt];
 				}
 			}
 			
@@ -6399,29 +6436,52 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 		{
 			if(AGV_Pat_Ptr->Angle <= 0)
 			{
-				tempAngle = -AGV_Pat_Ptr->Angle;
 				
-				if(tempAngle <= 20)		// 角度偏差极限值
+				if(AGV_Pat_Ptr->Angle > -MAX_OUT)		// 角度偏差极限值
 				{
-					rmSpeedPat_P = AgvPatAngOut[tempAngle];
+					tempAngle = -AGV_Pat_Ptr->Angle;
+					
+					if((tempAngle >= 0) && (tempAngle < MAX_OUT))
+					{
+						rmSpeedPat_P = AgvPatAngOut[tempAngle];
+					}
+					else
+					{
+						printf("error code 4: %d, %d\r\n", tempAngle, AGV_Pat_Ptr->Angle);
+					}	
+					
 				}
 				else
 				{
-					rmSpeedPat_P = AgvPatAngOut[20];
+					rmSpeedPat_P = AgvPatAngOut[maxLimt];
 				}
 			}
 			else		// 甩尾
 			{
-				rmSpeedPat_P = AgvPatAngOut[1];
+				if((AGV_Pat_Ptr->Angle > 0) && (AGV_Pat_Ptr->Angle < MAX_OUT))
+				{
+					rmSpeedPat_P = AgvPatAngOut[AGV_Pat_Ptr->Angle];
+				}
+				else
+				{
+					rmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+				
 			}
 			
 		}
 		
 	}
 
+	//Get_T1_Duty4(&lmSpeedPat_T1, &rmSpeedPat_T1, adaptInfo);
+
+	ctrlParasPtr->LP_duty = lmSpeedPat_P;
+	ctrlParasPtr->RP_duty = rmSpeedPat_P;
+	
 	*lmSpeedPat_PP = lmSpeedPat_P;
 	*rmSpeedPat_PP = rmSpeedPat_P;
 }
+
 
 void so_This_is_D(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 {
@@ -6602,7 +6662,17 @@ void so_This_is_D2(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 {
 	u8 lmSpeedPat_D = 0, rmSpeedPat_D = 0, tempAngle = 0;
 	u8 AgvPatAngIn[MAX_IN] = {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16};
-	u8 limt1 = 2;
+	//u8 AgvPatAngIn[MAX_IN] = {2, 3, 3, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 18, 18};
+	u8 limt1 = 0;
+
+	if(0 == AGV_Pat_Ptr->Midpoint)
+	{
+		limt1 = 1;
+	}
+	else
+	{
+		limt1 = 2;
+	}
 	
 	if(AGV_Pat_Ptr->MidpointDirection < 0)	// 1.2 车体中点方向是往磁条靠拢
 	{
@@ -6610,32 +6680,185 @@ void so_This_is_D2(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 		{
 			if(AGV_Pat_Ptr->Angle < 0)		
 			{
-				tempAngle = -AGV_Pat_Ptr->Angle;
 				
-				if(AGV_Pat_Ptr->Angle >= -limt1)
+				if((AGV_Pat_Ptr->Angle < -limt1) && (AGV_Pat_Ptr->Angle > -MAX_IN))
 				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
 					
-				}
-				else
-				{
-					if((AGV_Pat_Ptr->Angle < -limt1) && (AGV_Pat_Ptr->Angle > -MAX_IN))
+					if((tempAngle > limt1) && (tempAngle < MAX_IN))
 					{
-						if((tempAngle > limt1) && (tempAngle < MAX_IN))
-						{
-							rmSpeedPat_D = AgvPatAngIn[tempAngle];
-						}
-						else
-						{
-							printf("error code 1: %d\r\n", tempAngle);
-						}
-						
+						rmSpeedPat_D = AgvPatAngIn[tempAngle];
 					}
 					else
 					{
-						rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+						printf("error code 1: %d\r\n", tempAngle);
 					}
 					
 				}
+				else if(AGV_Pat_Ptr->Angle <= -MAX_IN)
+				{
+					rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
+				
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)
+			{
+				rmSpeedPat_D = 1;
+			}
+			else if(AGV_Pat_Ptr->Angle > 0)		// 甩尾
+			{
+				if(AGV_Pat_Ptr->Angle < MAX_IN)
+				{
+					lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
+				}
+				else
+				{
+					lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
+				
+				//printf("MpDir < 0 && Mp > 0 && Angle < 0\r\n");
+			}
+			
+		}
+
+		
+		else if(0 == AGV_Pat_Ptr->Midpoint)
+		{
+			if(AGV_Pat_Ptr->Angle > 0)
+			{
+				if((AGV_Pat_Ptr->Angle > limt1) && (AGV_Pat_Ptr->Angle < MAX_IN))
+				{
+					lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
+				}
+				else if(AGV_Pat_Ptr->Angle >= MAX_IN)
+				{
+					lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
+				
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)
+			{
+				
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)
+			{
+				
+				if((AGV_Pat_Ptr->Angle < -limt1) && (AGV_Pat_Ptr->Angle > -MAX_IN))
+				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
+					
+					if((tempAngle > limt1) && (tempAngle < MAX_IN))
+					{
+						rmSpeedPat_D = AgvPatAngIn[tempAngle];
+					}
+					else
+					{
+						printf("error code 2: %d\r\n", tempAngle);
+					}
+					
+				}
+				else if(AGV_Pat_Ptr->Angle <= -MAX_IN)
+				{
+					rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
+			}
+		}
+
+		
+		else if(AGV_Pat_Ptr->Midpoint < 0)
+		{
+			if(AGV_Pat_Ptr->Angle > 0)
+			{
+				if((AGV_Pat_Ptr->Angle > limt1) && (AGV_Pat_Ptr->Angle < MAX_IN))
+				{
+					lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
+				}
+				else if(AGV_Pat_Ptr->Angle >= MAX_IN)
+				{
+					lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
+				
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)
+			{
+				lmSpeedPat_D = 1;
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)		// 甩尾
+			{
+				tempAngle = -AGV_Pat_Ptr->Angle;
+				
+				if((tempAngle > 0) && (tempAngle < MAX_IN))
+				{
+					rmSpeedPat_D = AgvPatAngIn[tempAngle];
+				}
+				else
+				{
+					rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+					printf("tempAngle = %d\r\n", tempAngle);
+				}
+				
+				//printf("MpDir < 0 && Mp < 0 && Angle < 0\r\n");
+			}
+		}
+		
+	}
+
+	
+	ctrlParasPtr->LD_duty = lmSpeedPat_D;
+	ctrlParasPtr->RD_duty = rmSpeedPat_D;
+
+	*lmSpeedPat_DP = lmSpeedPat_D;
+	*rmSpeedPat_DP = rmSpeedPat_D;
+}
+
+void so_This_is_D3(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
+{
+	u8 lmSpeedPat_D = 0, rmSpeedPat_D = 0, tempAngle = 0;
+	u8 AgvPatAngIn[MAX_IN] = {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16};
+	//u8 AgvPatAngIn[MAX_IN] = {2, 3, 3, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 18, 18};
+	/*
+	u8 AgvPatAngIn[5][MAX_IN] = {{1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16},\
+								 {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16},\
+								 {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16},\
+								 {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16},\
+								 {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16}};*/
+	u8 limt1 = 0;
+
+	if(0 == AGV_Pat_Ptr->Midpoint)
+	{
+		limt1 = 1;
+	}
+	else
+	{
+		limt1 = 2;
+	}
+	
+	if(AGV_Pat_Ptr->MidpointDirection < 0)	// 1.2 车体中点方向是往磁条靠拢
+	{
+		if(AGV_Pat_Ptr->Midpoint > 0)
+		{
+			if(AGV_Pat_Ptr->Angle < 0)		
+			{
+				
+				if((AGV_Pat_Ptr->Angle < -limt1) && (AGV_Pat_Ptr->Angle > -MAX_IN))
+				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
+					
+					if((tempAngle > limt1) && (tempAngle < MAX_IN))
+					{
+						rmSpeedPat_D = AgvPatAngIn[tempAngle];
+					}
+					else
+					{
+						printf("error code 1: %d\r\n", tempAngle);
+					}
+					
+				}
+				else if(AGV_Pat_Ptr->Angle <= -MAX_IN)
+				{
+					rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
+				
 			}
 			else if(0 == AGV_Pat_Ptr->Angle)
 			{
@@ -6656,24 +6879,19 @@ void so_This_is_D2(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 			}
 			
 		}
+
+		
 		else if(0 == AGV_Pat_Ptr->Midpoint)
 		{
 			if(AGV_Pat_Ptr->Angle > 0)
 			{
-				if(AGV_Pat_Ptr->Angle <= limt1)
+				if((AGV_Pat_Ptr->Angle > limt1) && (AGV_Pat_Ptr->Angle < MAX_IN))
 				{
-					
+					lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
 				}
-				else
+				else if(AGV_Pat_Ptr->Angle >= MAX_IN)
 				{
-					if((AGV_Pat_Ptr->Angle > limt1) && (AGV_Pat_Ptr->Angle < MAX_IN))
-					{
-						lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
-					}
-					else
-					{
-						lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
-					}
+					lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
 				}
 				
 			}
@@ -6683,52 +6901,40 @@ void so_This_is_D2(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 			}
 			else if(AGV_Pat_Ptr->Angle < 0)
 			{
-				tempAngle = -AGV_Pat_Ptr->Angle;
 				
-				if(AGV_Pat_Ptr->Angle >= -limt1)
+				if((AGV_Pat_Ptr->Angle < -limt1) && (AGV_Pat_Ptr->Angle > -MAX_IN))
 				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
 					
-				}
-				else
-				{
-					if((AGV_Pat_Ptr->Angle < -limt1) && (AGV_Pat_Ptr->Angle > -MAX_IN))
+					if((tempAngle > limt1) && (tempAngle < MAX_IN))
 					{
-						if((tempAngle > limt1) && (tempAngle < MAX_IN))
-						{
-							rmSpeedPat_D = AgvPatAngIn[tempAngle];
-						}
-						else
-						{
-							printf("error code 2: %d\r\n", tempAngle);
-						}
-						
+						rmSpeedPat_D = AgvPatAngIn[tempAngle];
 					}
 					else
 					{
-						rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+						printf("error code 2: %d\r\n", tempAngle);
 					}
 					
 				}
+				else if(AGV_Pat_Ptr->Angle <= -MAX_IN)
+				{
+					rmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
+				}
 			}
 		}
+
+		
 		else if(AGV_Pat_Ptr->Midpoint < 0)
 		{
 			if(AGV_Pat_Ptr->Angle > 0)
 			{
-				if(AGV_Pat_Ptr->Angle <= limt1)
+				if((AGV_Pat_Ptr->Angle > limt1) && (AGV_Pat_Ptr->Angle < MAX_IN))
 				{
-					
+					lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
 				}
-				else
+				else if(AGV_Pat_Ptr->Angle >= MAX_IN)
 				{
-					if((AGV_Pat_Ptr->Angle > limt1) && (AGV_Pat_Ptr->Angle < MAX_IN))
-					{
-						lmSpeedPat_D = AgvPatAngIn[AGV_Pat_Ptr->Angle];
-					}
-					else
-					{
-						lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
-					}
+					lmSpeedPat_D = AgvPatAngIn[MAX_IN - 1];
 				}
 				
 			}
@@ -6756,16 +6962,71 @@ void so_This_is_D2(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 		
 	}
 
+
+	
+
 	*lmSpeedPat_DP = lmSpeedPat_D;
 	*rmSpeedPat_DP = rmSpeedPat_D;
 }
 
 
+
+void Pat_ShowAs_Symble(void)
+{
+	if(AGV_Pat_Ptr->Midpoint > 0)
+	{
+		if(AGV_Pat_Ptr->MidpointDirection > 0)
+		{
+			printf("*** |-->\t");
+		}
+		else if(AGV_Pat_Ptr->MidpointDirection < 0)
+		{
+			printf("*** |<--\t");
+		}
+		
+	}
+	else if(AGV_Pat_Ptr->Midpoint < 0)
+	{
+		if(AGV_Pat_Ptr->MidpointDirection > 0)
+		{
+			printf("*** <--|\t");
+		}
+		else if(AGV_Pat_Ptr->MidpointDirection < 0)
+		{
+			printf("*** -->|\t");
+		}
+	}
+	else if(0 == AGV_Pat_Ptr->Midpoint)
+	{
+		if(AGV_Pat_Pre_Ptr->Midpoint > 0)
+		{
+			printf("*** |<--\t|");
+		}
+		else if(AGV_Pat_Pre_Ptr->Midpoint < 0)
+		{
+			printf("*** -->|\t|");
+		}
+	}
+
+	if(AGV_Pat_Ptr->Angle > 0)
+	{
+		printf("/ ***\r\n");
+	}
+	else if(0 == AGV_Pat_Ptr->Angle)
+	{
+		printf("| ***\r\n");
+	}
+	else if(AGV_Pat_Ptr->Angle < 0)
+	{
+		printf("\\ ***\r\n");
+	}
+}
+
 void scale_1_mode19(u8 gear)
 {
-	//u8 AgvPatAngIn[21] = {1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 16, 16};
 	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeedPat_P = 0, rmSpeedPat_P = 0, lmSpeedPat_D = 0, rmSpeedPat_D = 0;
+	static Agv_MS_Location msfRec = AgvInits, msrRec = AgvInits;
 		
 	gearRecod = gear;
 	
@@ -6775,14 +7036,145 @@ void scale_1_mode19(u8 gear)
 	
 	so_This_is_D2(&lmSpeedPat_D, &rmSpeedPat_D);
 
+	if((msfRec != FMSDS_Ptr->AgvMSLocation) || (msrRec != RMSDS_Ptr->AgvMSLocation))
+	{
+		
+		msfRec = FMSDS_Ptr->AgvMSLocation;
+		
+		msrRec = RMSDS_Ptr->AgvMSLocation;
+		
+		//printf("*** P: lm = %d, rm = %d ***\r\n", lmSpeedPat_P, rmSpeedPat_P);
+		//printf("*** D: lm = %d, rm = %d ***\r\n", lmSpeedPat_D, rmSpeedPat_D);
+		
+		//Pat_ShowAs_Symble();
+		
+	}
 	
 	lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
 	
 	rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
 	
-	
-	//damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
 	set_duty(lmSpeedSet, rmSpeedSet);
+	
+}
+
+
+void scale_1_mode20(u8 gear)
+{
+	//u8 AgvGearS1CDLF[20] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10};
+	u8 gearRecod = 0;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,	lmSpeedT1 = 0, rmSpeedT1 = 0, lmSpeedPat = 0, rmSpeedPat = 0;
+	u8 softwarePWML = 0, softwarePWMR = 0;
+	u32 centCount = 0;
+	static u32 startCount = 0;
+	// 普通模式,偏差在1格之内调整
+	u8 AgvGearS1CDLF[20] = {1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10};
+	gearRecod = gear;
+	
+	ctrlParasPtr->comflag = 64;
+	
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		
+		ctrlParasPtr->comflag = 641;
+		
+		if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_4)
+		{
+			//ctrlParasPtr->gear = 8;
+		}
+		
+		rmSpeed = AgvGearS1CDLF[Agv_MS_Left_0_5 - FMSDS_Ptr->AgvMSLocation];
+		
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		ctrlParasPtr->comflag = 642;
+		
+		if(FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_4)
+		{
+			//ctrlParasPtr->gear = 8;
+		}
+		
+		lmSpeed = AgvGearS1CDLF[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_0_5];		
+		
+	}
+	else if(FMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+	{
+		ctrlParasPtr->comflag = 634;
+		
+		lmSpeed = 0;
+		rmSpeed = 0;
+		
+		if(RMSDS_Ptr->AgvMSLocation == Agv_MS_Center)
+		{
+			ctrlParasPtr->comflag = 633;
+			
+			if(0 == startCount)
+			{
+				startCount = SystemRunningTime;
+			}
+			else
+			{
+				centCount = SystemRunningTime - startCount;
+			}
+			
+			if(centCount > 7000)
+			{
+				ctrlParasPtr->comflag = 6331;
+				
+				if(10 != ctrlParasPtr->gear)
+				{
+					//ctrlParasPtr->gear = 10;
+				}
+				
+				startCount = 0;
+				
+			}
+			
+		}
+		
+		FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
+		
+	}
+	
+	//Get_T1_Duty3(&lmSpeedT1, &rmSpeedT1, adaptInfo);
+	
+	Pattern_ctrl3(&lmSpeedPat, &rmSpeedPat);
+	
+	//Software_PWM(&softwarePWML, &softwarePWMR);
+
+	//get_Pull_Duty(&lmSpeedPull, &rmSpeedPull, adaptInfo);
+	
+	//T1_Adapter3(&lmSpeedT1, &rmSpeedT1, adaptInfo2);
+	
+	//T1_Adapter4(&lmSpeedT1, &rmSpeedT1, adaptInfo);
+	
+	//Get_Damp_Duty(&lmSpeedPull, &rmSpeedPull);
+	
+	if((0 == lmSpeedPull) && (0 == rmSpeedPull))
+	{
+		//Get_Damp_Duty(&lmSpeedT1, &rmSpeedT1);
+		
+	}
+	
+
+	if((AgvRight2Cent == FMSDS_Ptr->agvDirection) || (AgvLeft2Cent == FMSDS_Ptr->agvDirection))
+	{
+		lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeedPull - lmSpeedT1 - lmSpeedPat - softwarePWML;
+	
+		rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeedPull - rmSpeedT1 - rmSpeedPat - softwarePWMR;
+	}
+	else if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
+	{
+		lmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeed - lmSpeedPull - lmSpeedT1;
+	
+		rmSpeedSet = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeed - rmSpeedPull - rmSpeedT1;
+	}
+	
+	
+	damping_func(1000, gearRecod, lmSpeedSet, rmSpeedSet);
+	
 	
 }
 
@@ -8030,8 +8422,8 @@ void AGV_Walking_Test(void)
 	#if 1
 	//MOTOR_RIGHT_CR_PIN_SET();
 	//MOTOR_LEFT_CR_PIN_SET();
-	//CHANGE_TO_GO_STRAIGHT_MODE();
-	CHANGE_TO_TEST_MODE();
+	CHANGE_TO_GO_STRAIGHT_MODE();
+	//CHANGE_TO_TEST_MODE();
 	//CHANGE_TO_CIR_LEFT_MODE();
 	//CHANGE_TO_CIR_LEFT_MODE();
 	#else
@@ -8062,7 +8454,16 @@ void STATION_1AND2_WalkControl(void)
 		//CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 10;
+		if(1 == ctrlParasPtr->crossRoadCountF)
+		{
+			ctrlParasPtr->agvStatus = gSslow;
+			ctrlParasPtr->gear = 3;
+			//printf("ctrlParasPtr->gear = 3\r\n");
+		}
+		else
+		{
+			ctrlParasPtr->gear = 10;
+		}
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8113,7 +8514,16 @@ void STATION_3AND4_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 10;
+		if(2 == ctrlParasPtr->crossRoadCountF)
+		{
+			ctrlParasPtr->agvStatus = gSslow;
+			ctrlParasPtr->gear = 3;
+			//printf("ctrlParasPtr->gear = 3\r\n");
+		}
+		else
+		{
+			ctrlParasPtr->gear = 10;
+		}
 		
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8164,7 +8574,16 @@ void STATION_5AND6_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 		
-		ctrlParasPtr->gear = 10;
+		if(3 == ctrlParasPtr->crossRoadCountF)
+		{
+			ctrlParasPtr->agvStatus = gSslow;
+			ctrlParasPtr->gear = 3;
+			//printf("ctrlParasPtr->gear = 3\r\n");
+		}
+		else
+		{
+			ctrlParasPtr->gear = 10;
+		}
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -8788,15 +9207,28 @@ void CrossRoad_Count(void)
 						ctrlParasPtr->leftHallCounter = 0;
 						ctrlParasPtr->crossRoadCountF++;
 						ctrlParasPtr->crossRoadUpdateF = 1;
-						printf("1Hclean\r\n");
-						printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadCountF);
+						//printf("1Hclean\r\n");
+						//printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadCountF);
 					}
 					else
 					{
-						printf("crossRoadCount error\r\n");
+						printf("crossRoadCountF error\r\n");
 					}
 				}
-				
+				else if(Agv_MS_CrossRoad == RMSDS_Ptr->AgvMSLocation)
+				{
+					if(ctrlParasPtr->crossRoadCountR < 5)
+					{
+						ctrlParasPtr->crossRoadCountR++;
+						ctrlParasPtr->crossRoadUpdateR = 1;
+						//printf("1Hclean\r\n");
+						//printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadUpdateR);
+					}
+					else
+					{
+						printf("crossRoadCountR error\r\n");
+					}
+				}
 			}
 			else if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
 			{
@@ -8807,13 +9239,27 @@ void CrossRoad_Count(void)
 						ctrlParasPtr->rightHallCounter = 0;
 						ctrlParasPtr->leftHallCounter = 0;
 						ctrlParasPtr->crossRoadCountF--;
-						ctrlParasPtr->crossRoadUpdateR = 1;
-						printf("2Hclean\r\n");
-						printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadCountF);
+						ctrlParasPtr->crossRoadUpdateF = 1;
+						//printf("2Hclean\r\n");
+						//printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadCountF);
 					}
 					else
 					{
 						printf("crossRoadCountF error\r\n");
+					}
+				}
+				else if(Agv_MS_CrossRoad == RMSDS_Ptr->AgvMSLocation)
+				{
+					if(ctrlParasPtr->crossRoadCountR > 0)
+					{
+						ctrlParasPtr->crossRoadCountR--;
+						ctrlParasPtr->crossRoadUpdateR = 1;
+						//printf("2Hclean\r\n");
+						//printf("crossRoadCount = %d\r\n", ctrlParasPtr->crossRoadUpdateR);
+					}
+					else
+					{
+						printf("crossRoadCountR error\r\n");
 					}
 				}
 				
@@ -8888,6 +9334,401 @@ void CrossRoad_Count2(void)
 }
 
 
+void step_gVeer_Func(void)
+{
+	static u8 stepFlag = 0;
+	
+	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
+		(SpinStation_3 == ctrlParasPtr->goalStation) || \
+		(SpinStation_5 == ctrlParasPtr->goalStation) || \
+		(SpinStation_7 == ctrlParasPtr->goalStation) || \
+		(SpinStation_9 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_LEFT_MODE();
+		//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
+		printf("info1: %d, %d, %d, %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->crossRoadCountF, ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+	}
+	else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
+			(SpinStation_4 == ctrlParasPtr->goalStation) || \
+			(SpinStation_6 == ctrlParasPtr->goalStation) || \
+			(SpinStation_8 == ctrlParasPtr->goalStation) || \
+			(SpinStation_10 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_RIGHT_MODE();
+		//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
+		printf("info2: %d, %d, %d, %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->crossRoadCountF, ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+	}
+
+	if(0 == stepFlag)
+	{
+		ctrlParasPtr->gear = 3;
+		stepFlag = 1;
+	}
+	else if(1 == stepFlag)
+	{
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+		{
+			ctrlParasPtr->gear = 2;
+			stepFlag = 2;
+		}
+	}
+	else if(2 == stepFlag)
+	{	
+		if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
+		{
+			if(cirLeft == ctrlParasPtr->agvStatus)
+			{
+				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+				{
+					CHANGE_TO_CIR_RIGHT_MODE();
+					
+					Delay_ms(100);
+					CleanAllSpeed();
+					
+					CHANGE_TO_STOP_MODE();
+					//Delay_ms(500);
+					stepFlag = 0;
+					ctrlParasPtr->walkingstep = step_entry;
+				}
+				
+			}
+			else if(cirRight == ctrlParasPtr->agvStatus)
+			{
+				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
+				{
+					CHANGE_TO_CIR_LEFT_MODE();
+					
+					Delay_ms(100);
+					CleanAllSpeed();
+					
+					CHANGE_TO_STOP_MODE();
+					//Delay_ms(500);
+					stepFlag = 0;
+					ctrlParasPtr->walkingstep = step_entry;
+				}
+				
+			}
+		
+			
+		}
+	}
+	
+}
+
+
+void step_entry_Func(void)
+{
+	static u8 flag = 0;
+
+	
+	CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
+	
+
+#if 0
+	
+	if(0x0000 == FMSDS_Ptr->MSD_Hex)
+	{
+		CHANGE_TO_STOP_MODE();
+		Delay_ms(500);
+		
+		ctrlParasPtr->walkingstep = step_catch;
+	}
+	
+#else
+
+	if(0x0000 == FMSDS_Ptr->MSD_Hex)
+	{
+		flag = 1;
+	}
+	
+	if(0 == flag)
+	{
+		ctrlParasPtr->gear = 2;
+	}
+	else
+	{
+		ctrlParasPtr->gear = 1;
+	}
+	
+	//if((0 == LMT_IN1) || (0 == LMT_IN2))		// 接近开关响应或者是超过磁条了
+	if((0 == LMT_IN1) || (0 == LMT_IN2) || (0x0000 == FMSDS_Ptr->MSD_Hex))
+	{
+		CHANGE_TO_STOP_MODE();
+		//Delay_ns(1);
+		
+		RFID_Info_Ptr->rfidData = 0;
+		flag = 0;
+		ctrlParasPtr->walkingstep = step_catch;
+	}
+
+#endif	
+}
+
+void step_catch_Func(void)
+{
+#if 1
+	
+	if(1 == LMT_SW) 	// 已经抓到货物了
+	{
+		//Delay_ns(3);
+		
+		ECV_POWER_OFF();
+		
+		RFID_Info_Ptr->updateFlag = 0;
+		
+		Send_GettedGoods();
+
+		printf("change to exit\r\n");
+		
+		ctrlParasPtr->walkingstep = step_exit;
+		
+		printf("change to back\r\n");
+		
+		CHANGE_TO_BACK_SLOW_MODE();
+	}
+	else
+	{
+		
+		BECV_UP();
+		FECV_UP();
+		
+		ECV_POWER_ON();
+
+		//Delay_ns(1);
+		
+	}
+	
+#else
+	
+	FECV_UP();
+	BECV_UP();
+	ECV_POWER_ON();
+	Delay_ns(3);
+	ECV_POWER_OFF();
+	RFID_Info_Ptr->updateFlag = 0;
+	printf("change to back\r\n");
+	ctrlParasPtr->walkingstep = step_exit;
+	CHANGE_TO_BACK_SLOW_MODE();
+	
+#endif
+	
+}
+
+void step_exit_Func(void)
+{
+	
+	ctrlParasPtr->gear = 3;
+	
+	if(1 == RFID_Info_Ptr->updateFlag)
+	{
+		RFID_Info_Ptr->updateFlag = 0;
+		//printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
+
+		if(ctrlParasPtr->goalRFIDnode == RFID_Info_Ptr->rfidData)
+		{
+			CHANGE_TO_STOP_MODE();
+			//Delay_ns(1);
+			ctrlParasPtr->walkingstep = step_weigh;
+		}
+	}
+	else
+	{
+		static Agv_MS_Location mslRec = AgvInits;
+		static u8 fla = 0;
+
+		if(mslRec != FMSDS_Ptr->AgvMSLocation)
+		{
+			mslRec = FMSDS_Ptr->AgvMSLocation;
+			
+			if(Agv_MS_CrossRoad == FMSDS_Ptr->AgvMSLocation)
+			{
+				fla = 1;
+				printf("Agv_MS_CrossRoad\r\n");
+			}
+		}	
+		
+
+		if(2 == fla)
+		{
+			//printf("LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+			if((ctrlParasPtr->rightHallCounter >= CrossRoadHallCountArrGB[ctrlParasPtr->crossRoadCountF].HallCountRight) ||\
+			(ctrlParasPtr->leftHallCounter >= CrossRoadHallCountArrGB[ctrlParasPtr->crossRoadCountF].HallCountLeft))
+			{
+				fla = 0;
+				CHANGE_TO_STOP_MODE();
+				//Delay_ns(1);
+				ctrlParasPtr->walkingstep = step_weigh;
+			}
+		}
+		
+		
+	}
+}
+
+
+void step_weigh_Func(void)
+{
+	ECV_POWER_ON();
+	//FECV_STOP();
+	BECV_DOWN();
+	//WECV_UP();
+	Delay_ns(3);
+	
+	//FECV_UP();
+	//BECV_UP();
+
+	//Delay_ns(3);
+	//WECV_STOP();
+
+	//WECV_DOWN();
+	//Delay_ns(6);
+
+	if(1 == Ready_SW)
+	{
+		ECV_POWER_OFF();
+		ctrlParasPtr->walkingstep = step_bVeer;
+	}
+	
+}
+
+void step_bVeer_Func(void)
+{
+	static u8 stepFlag = 0;
+	
+	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
+		(SpinStation_3 == ctrlParasPtr->goalStation) || \
+		(SpinStation_5 == ctrlParasPtr->goalStation) || \
+		(SpinStation_7 == ctrlParasPtr->goalStation) || \
+		(SpinStation_9 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_RIGHT_MODE();
+	}
+	else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
+			(SpinStation_4 == ctrlParasPtr->goalStation) || \
+			(SpinStation_6 == ctrlParasPtr->goalStation) || \
+			(SpinStation_8 == ctrlParasPtr->goalStation) || \
+			(SpinStation_10 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_LEFT_MODE();
+	}
+
+	if(0 == stepFlag)
+	{
+		ctrlParasPtr->gear = 4;
+		stepFlag = 1;
+	}
+	else if(1 == stepFlag)
+	{
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+		{
+			ctrlParasPtr->gear = 2;
+			stepFlag = 2;
+		}
+	}
+	else if(2 == stepFlag)
+	{	
+		if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
+		{
+			if(cirLeft == ctrlParasPtr->agvStatus)
+			{
+				if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+				{
+					CHANGE_TO_CIR_RIGHT_MODE();
+					
+					Delay_ms(100);
+					CleanAllSpeed();
+					
+					CHANGE_TO_STOP_MODE();
+					//Delay_ms(500);
+					Send_WaitForGoods();
+					stepFlag = 0;
+					ctrlParasPtr->BSflag = 0;
+					ctrlParasPtr->walkingstep = step_gB;
+				}
+			}
+			else if(cirRight == ctrlParasPtr->agvStatus)
+			{
+				if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
+				{
+					CHANGE_TO_CIR_LEFT_MODE();
+					
+					Delay_ms(100);
+					CleanAllSpeed();
+					
+					CHANGE_TO_STOP_MODE();
+					//Delay_ms(500);
+					Send_WaitForGoods();
+					stepFlag = 0;
+					ctrlParasPtr->BSflag = 0;
+					ctrlParasPtr->walkingstep = step_gB;
+				}
+			}
+			
+			
+		}
+	}
+	
+}
+
+
+void step_gB_Func(void)
+{
+	CHANGE_TO_BACK_MODE();
+	FECV_DOWN();
+	BECV_DOWN();
+	ECV_POWER_ON();
+	//ctrlParasPtr->BSflag = 1;
+
+	if((0 == ctrlParasPtr->crossRoadCountF) && (0 == ctrlParasPtr->crossRoadCountR))
+	{
+		ctrlParasPtr->agvStatus = bSslow;
+		ctrlParasPtr->gear = 3;
+	}
+	
+	
+	if(0x0000 == FMSDS_Ptr->MSD_Hex)
+	{
+		CHANGE_TO_STOP_MODE();
+		ECV_POWER_OFF();
+		ctrlParasPtr->gear = 10;
+		RFID_Info_Ptr->updateFlag = 0;
+		ctrlParasPtr->walkingstep = step_wFTans;
+				
+	}
+}
+
+void step_wFTans_Func(void)
+{
+	MOTOR_POWER_OFF();
+	Send_Arrive();
+	
+	ctrlParasPtr->crossRoadCountF = 0;
+	ctrlParasPtr->crossRoadCountR = 0;
+
+	if(GoodLeav == CMD_Flag_Ptr->cmdFlag)
+	{
+		Delay_ns(2);
+		MOTOR_POWER_ON();
+		ctrlParasPtr->walkingstep = step_origin;
+	}
+	
+}
+
+void step_origin_Func(void)
+{
+	ctrlParasPtr->FSflag = 0;
+	
+	
+}
+
+void step_stop_Func(void)
+{
+	ctrlParasPtr->FSflag = 0;
+	ctrlParasPtr->goalStation = ControlCenter;
+	ctrlParasPtr->goalRFIDnode = 0x0000;
+	ctrlParasPtr->walkingstep = step_stop;
+}
+
 void Walking_Step_Controler(void)
 {
 	if(STATION_1AND2_RFID == ctrlParasPtr->goalRFIDnode)
@@ -8918,353 +9759,44 @@ void Walking_Step_Controler(void)
 
 	if(step_gVeer == ctrlParasPtr->walkingstep)
 	{
-		static u8 stepFlag = 0;
-		
-		if((SpinStation_1 == ctrlParasPtr->goalStation) || \
-			(SpinStation_3 == ctrlParasPtr->goalStation) || \
-			(SpinStation_5 == ctrlParasPtr->goalStation) || \
-			(SpinStation_7 == ctrlParasPtr->goalStation) || \
-			(SpinStation_9 == ctrlParasPtr->goalStation))
-		{
-			CHANGE_TO_CIR_LEFT_MODE();
-			//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
-			printf("info1: %d, %d, %d, %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->crossRoadCountF, ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
-		}
-		else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
-				(SpinStation_4 == ctrlParasPtr->goalStation) || \
-				(SpinStation_6 == ctrlParasPtr->goalStation) || \
-				(SpinStation_8 == ctrlParasPtr->goalStation) || \
-				(SpinStation_10 == ctrlParasPtr->goalStation))
-		{
-			CHANGE_TO_CIR_RIGHT_MODE();
-			//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
-			printf("info2: %d, %d, %d, %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->crossRoadCountF, ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
-		}
-
-		if(0 == stepFlag)
-		{
-			ctrlParasPtr->gear = 3;
-			stepFlag = 1;
-		}
-		else if(1 == stepFlag)
-		{
-			if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-			{
-				ctrlParasPtr->gear = 2;
-				stepFlag = 2;
-			}
-		}
-		else if(2 == stepFlag)
-		{	
-			if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
-			{
-				if(cirLeft == ctrlParasPtr->agvStatus)
-				{
-					if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
-					{
-						CHANGE_TO_CIR_RIGHT_MODE();
-						
-						Delay_ms(100);
-						CleanAllSpeed();
-						
-						CHANGE_TO_STOP_MODE();
-						//Delay_ms(500);
-						stepFlag = 0;
-						ctrlParasPtr->walkingstep = step_entry;
-					}
-					
-				}
-				else if(cirRight == ctrlParasPtr->agvStatus)
-				{
-					if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
-					{
-						CHANGE_TO_CIR_LEFT_MODE();
-						
-						Delay_ms(100);
-						CleanAllSpeed();
-						
-						CHANGE_TO_STOP_MODE();
-						//Delay_ms(500);
-						stepFlag = 0;
-						ctrlParasPtr->walkingstep = step_entry;
-					}
-					
-				}
-			
-				
-			}
-		}
-		
+		step_gVeer_Func();
 	}
 	else if(step_entry == ctrlParasPtr->walkingstep)
 	{
-		static u8 flag = 0;
-
-		
-		CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
-		
-
-		#if 0
-		
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			CHANGE_TO_STOP_MODE();
-			Delay_ms(500);
-			
-			ctrlParasPtr->walkingstep = step_catch;
-		}
-		
-		#else
-
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			flag = 1;
-		}
-		
-		if(0 == flag)
-		{
-			ctrlParasPtr->gear = 2;
-		}
-		else
-		{
-			ctrlParasPtr->gear = 1;
-		}
-		
-		//if((0 == LMT_IN1) || (0 == LMT_IN2))		// 接近开关响应或者是超过磁条了
-		if((0 == LMT_IN1) || (0 == LMT_IN2) || (0x0000 == FMSDS_Ptr->MSD_Hex))
-		{
-			CHANGE_TO_STOP_MODE();
-			//Delay_ns(1);
-			
-			RFID_Info_Ptr->rfidData = 0;
-			flag = 0;
-			ctrlParasPtr->walkingstep = step_catch;
-		}
-
-		#endif	
+		step_entry_Func();
 	}
 	else if(step_catch == ctrlParasPtr->walkingstep)
 	{
-		#if 1
-		
-		if(1 == LMT_SW)		// 已经抓到货物了
-		{
-			//Delay_ns(3);
-			
-			ECV_POWER_OFF();
-			
-			RFID_Info_Ptr->updateFlag = 0;
-			
-			Send_GettedGoods();
-
-			printf("change to exit\r\n");
-			
-			ctrlParasPtr->walkingstep = step_exit;
-			
-			printf("change to back\r\n");
-			
-			CHANGE_TO_BACK_SLOW_MODE();
-		}
-		else
-		{
-			
-			BECV_UP();
-			FECV_UP();
-			
-			ECV_POWER_ON();
-
-			//Delay_ns(1);
-			
-		}
-		
-		#else
-		
-		FECV_UP();
-		BECV_UP();
-		ECV_POWER_ON();
-		Delay_ns(3);
-		ECV_POWER_OFF();
-		RFID_Info_Ptr->updateFlag = 0;
-		printf("change to back\r\n");
-		ctrlParasPtr->walkingstep = step_exit;
-		CHANGE_TO_BACK_SLOW_MODE();
-		
-		#endif
-		
+		step_catch_Func();
 	}
 	else if(step_exit == ctrlParasPtr->walkingstep)
 	{
-		
-		ctrlParasPtr->gear = 3;
-		
-		if(1 == RFID_Info_Ptr->updateFlag)
-		{
-			RFID_Info_Ptr->updateFlag = 0;
-			//printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
-
-			if(ctrlParasPtr->goalRFIDnode == RFID_Info_Ptr->rfidData)
-			{
-				CHANGE_TO_STOP_MODE();
-				//Delay_ns(1);
-				ctrlParasPtr->walkingstep = step_weigh;
-			}
-		}
-		else
-		{
-			static Agv_MS_Location mslRec = AgvInits;
-			static u8 fla = 0;
-
-			if(mslRec != FMSDS_Ptr->AgvMSLocation)
-			{
-				mslRec = FMSDS_Ptr->AgvMSLocation;
-				
-				if(Agv_MS_CrossRoad == FMSDS_Ptr->AgvMSLocation)
-				{
-					fla = 1;
-					printf("Agv_MS_CrossRoad\r\n");
-				}
-			}	
-			
-
-			if(2 == fla)
-			{
-				//printf("LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
-				if((ctrlParasPtr->rightHallCounter >= CrossRoadHallCountArrGB[ctrlParasPtr->crossRoadCountF].HallCountRight) ||\
-				(ctrlParasPtr->leftHallCounter >= CrossRoadHallCountArrGB[ctrlParasPtr->crossRoadCountF].HallCountLeft))
-				{
-					fla = 0;
-					CHANGE_TO_STOP_MODE();
-					//Delay_ns(1);
-					ctrlParasPtr->walkingstep = step_weigh;
-				}
-			}
-			
-			
-		}
+		step_exit_Func();
 	}
 	else if(step_weigh == ctrlParasPtr->walkingstep)
 	{
-		ECV_POWER_ON();
-		//FECV_STOP();
-		BECV_DOWN();
-		//WECV_UP();
-		Delay_ns(3);
-		
-		//FECV_UP();
-		//BECV_UP();
-
-		//Delay_ns(3);
-		//WECV_STOP();
-
-		//WECV_DOWN();
-		//Delay_ns(6);
-
-		
-		ECV_POWER_OFF();
-		ctrlParasPtr->walkingstep = step_bVeer;
+		step_weigh_Func();
 	}
 	else if(step_bVeer == ctrlParasPtr->walkingstep)
 	{
-		static u8 stepFlag = 0;
-		
-		if((SpinStation_1 == ctrlParasPtr->goalStation) || \
-			(SpinStation_3 == ctrlParasPtr->goalStation) || \
-			(SpinStation_5 == ctrlParasPtr->goalStation) || \
-			(SpinStation_7 == ctrlParasPtr->goalStation) || \
-			(SpinStation_9 == ctrlParasPtr->goalStation))
-		{
-			CHANGE_TO_CIR_RIGHT_MODE();
-		}
-		else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
-				(SpinStation_4 == ctrlParasPtr->goalStation) || \
-				(SpinStation_6 == ctrlParasPtr->goalStation) || \
-				(SpinStation_8 == ctrlParasPtr->goalStation) || \
-				(SpinStation_10 == ctrlParasPtr->goalStation))
-		{
-			CHANGE_TO_CIR_LEFT_MODE();
-		}
-
-		if(0 == stepFlag)
-		{
-			ctrlParasPtr->gear = 4;
-			stepFlag = 1;
-		}
-		else if(1 == stepFlag)
-		{
-			if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-			{
-				ctrlParasPtr->gear = 2;
-				stepFlag = 2;
-			}
-		}
-		else if(2 == stepFlag)
-		{	
-			if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
-			{
-				if(cirLeft == ctrlParasPtr->agvStatus)
-				{
-					if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
-					{
-						CHANGE_TO_CIR_RIGHT_MODE();
-						
-						Delay_ms(100);
-						CleanAllSpeed();
-						
-						CHANGE_TO_STOP_MODE();
-						//Delay_ms(500);
-						Send_WaitForGoods();
-						stepFlag = 0;
-						ctrlParasPtr->BSflag = 0;
-						ctrlParasPtr->walkingstep = step_gB;
-					}
-				}
-				else if(cirRight == ctrlParasPtr->agvStatus)
-				{
-					if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
-					{
-						CHANGE_TO_CIR_LEFT_MODE();
-						
-						Delay_ms(100);
-						CleanAllSpeed();
-						
-						CHANGE_TO_STOP_MODE();
-						//Delay_ms(500);
-						Send_WaitForGoods();
-						stepFlag = 0;
-						ctrlParasPtr->BSflag = 0;
-						ctrlParasPtr->walkingstep = step_gB;
-					}
-				}
-				
-				
-			}
-		}
-		
+		step_bVeer_Func();
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
-		CHANGE_TO_BACK_MODE();
-		FECV_DOWN();
-		BECV_DOWN();
-		ECV_POWER_ON();
-		//ctrlParasPtr->BSflag = 1;
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			CHANGE_TO_STOP_MODE();
-			Send_Arrive();
-			Delay_ns(3);
-			ctrlParasPtr->FSflag = 0;
-			ctrlParasPtr->crossRoadCountF = 0;
-			//Delay_ns(5);
-			ECV_POWER_OFF();
-			RFID_Info_Ptr->updateFlag = 0;
-			ctrlParasPtr->walkingstep = step_stop;
-			
-			ctrlParasPtr->goalStation = ControlCenter;
-			ctrlParasPtr->goalRFIDnode = 0x0000;
-		}
+		step_gB_Func();
 	}
-	
+	else if(step_wFTans == ctrlParasPtr->walkingstep)
+	{
+		step_wFTans_Func();
+	}
+	else if(step_origin == ctrlParasPtr->walkingstep)
+	{
+		step_origin_Func();
+	}
+	else if(step_stop == ctrlParasPtr->walkingstep)
+	{
+		step_stop_Func();
+	}
 }
 
 
@@ -9439,7 +9971,7 @@ void SW_Gpio_Init(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
 	
 	
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -9464,8 +9996,8 @@ void Motion_Ctrl_Init(void)
 {
 	u8 cir = 0, cir2 = 0;
 	
-	Trigger_Gpio_Init();
-	Delay_ns(1);
+	//Trigger_Gpio_Init();
+	//Delay_ns(1);
 	Motion_Ctrl_GPIO_Init();
 	
 	PG_EXTI_CFG();
@@ -9508,6 +10040,11 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->crossRoadCountF = 0;
 	ctrlParasPtr->T1DF = 0;
 	ctrlParasPtr->T1dutyRec = 0;
+	ctrlParasPtr->LP_duty = 0;
+	ctrlParasPtr->RP_duty = 0;
+	ctrlParasPtr->LD_duty = 0;
+	ctrlParasPtr->RD_duty = 0;
+	
 
 	agv_walking_func[stopStatus] = walking_stopStatus;
 	agv_walking_func[goStraightStatus] = walking_goStraight;

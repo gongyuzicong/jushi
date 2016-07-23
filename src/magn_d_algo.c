@@ -779,6 +779,7 @@ void Show_Resualt_Analy(Magn_Sensor_Data_Sturct_P ptr)
 
 void Midpoint_Pattern_Num(Magn_Sensor_Data_Sturct_P FMS, Magn_Sensor_Data_Sturct_P RMS, Pattern_Num_Para_P PTR)
 {
+	PTR->MidpointTimRec = SystemRunningTime;
 	PTR->Midpoint = (FMS->AgvMSLocation - Agv_MS_Center) + (RMS->AgvMSLocation - Agv_MS_Center);
 	
 }
@@ -1210,6 +1211,15 @@ void Get_MidpointDirection(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
 	
 }
 
+void Get_MidpointVxt(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
+{
+	if(now->MidpointTimRec != 0)
+	{
+		now->MidpointVxt = now->MidpointTimRec - pre->MidpointTimRec;
+	}
+	
+}
+
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {
 	if(0 == (ptr->MSD_Hex & 0x8001))
@@ -1320,6 +1330,7 @@ void MSDS_Init(void)
 
 	AGV_Pat_Ptr->Angle = 0;
 	AGV_Pat_Ptr->Midpoint = 0;
+	AGV_Pat_Ptr->MidpointVxt = 0;
 }
 
 
