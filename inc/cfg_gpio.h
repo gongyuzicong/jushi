@@ -106,15 +106,9 @@
 #define PG_PIN_NOT(PIN)			GPIO_PIN_NOT(GPIOG, PIN)
 /***********GPIO ·­×ª end**********************/
 
-#define LED1_ON 	GPIOA_X_ON(4)
-#define LED1_OFF	GPIOA_X_OFF(4)
-#define LED4_ON 	GPIOA_X_ON(7)
-#define LED4_OFF	GPIOA_X_OFF(7)
-
-//#define LED1		PAout(4)
-#define LED2		PAout(1)
-//#define LED3		PAout(6)
-//#define LED4		PAout(7)
+#define Warning_LED		PDout(3)
+#define ProtectSW_F		PEin(4)
+#define ProtectSW_R		PDin(5)
 
 void CB_GPIO_Config(void);
 

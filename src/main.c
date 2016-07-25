@@ -16,7 +16,7 @@
 #include "rfid.h"
 #include "mpu6050.h"
 #include "i2c_opts.h"
-
+#include "buffer.h"
 
 void SystemInit(void)
 {	
@@ -55,7 +55,7 @@ int main(void)
 	SystemInit();
 	
 	//MPU6050_Data_init3();
-	//ECV_POWER_ON();
+	ECV_POWER_ON();
 	FECV_DOWN();
 	BECV_DOWN();
 	//WECV_DOWN();
@@ -70,7 +70,6 @@ int main(void)
 	//FECV_DOWN();
 	//Delay_ns(20);
 	//FECV_DOWN();
-	//Delay_ns(20);
 	//Delay_ns(3);
 	//WECV_UP();
 	//Delay_ns(7);
@@ -84,12 +83,14 @@ int main(void)
 	printf("Start\r\n");
 	
 	ctrlParasPtr->gear = 10;
-	CHANGE_TO_GO_STRAIGHT_MODE();
-	Zigbee_Ptr->recvValidDataFlag = 1;
-	Zigbee_Ptr->recvId = 0x0007;
+	CHANGE_TO_BACK_MODE();
+	//Zigbee_Ptr->recvValidDataFlag = 1;
+	//Zigbee_Ptr->recvId = 0x0007;
+	//ctrlParasPtr->FSflag = 1;
 	
 	while(1)
-	{
+	{		
+		
 		
 		#if 1
 		
@@ -103,32 +104,25 @@ int main(void)
 		{
 			
 			Magn_Sensor_Scan();
-
-			Receive_handle();
-			//Zigbee_Data_Scan();
 			
-			if(CMD_Flag_Ptr->cmdFlag == GoodReq)
-			{
-				CMD_Flag_Ptr->cmdFlag = NcNone;
-				CHANGE_TO_GO_STRAIGHT_MODE();
-				Zigbee_Ptr->recvValidDataFlag = 1;
-				Zigbee_Ptr->recvId = 0x0007;
-			}
+			//Receive_handle();
+			//Zigbee_Data_Scan();
 			
 			CrossRoad_Count();
 			
 			//Hall_Count();
 			
-			RFID_Goal_Node_Analy();
+			//Get_Zigbee_Info_From_Buf();
 			
-			Walking_Step_Controler();
+			//RFID_Goal_Node_Analy();
 			
-			//AGV_Walking();
-			
+			//Walking_Step_Controler();	
 			
 			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
-				
+			#if 0
+				AGV_Walking();
+			#else
 				if(goStraightStatus == ctrlParasPtr->agvStatus)
 				{
 					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
@@ -153,10 +147,12 @@ int main(void)
 				{
 					back_slow(ctrlParasPtr->gear);
 				}
-				
+			#endif
 			}
 			
 			//AGV_Change_Mode();
+			//ProtectFunc();
+			
 			AGV_Proc();
 			
 			
@@ -167,22 +163,31 @@ int main(void)
 			{
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
-				
+
+			#if 0
 				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
 				{
-					//Show_Infomation();
-					show_Excel_Analysis_Info();
+					Show_Infomation();
+					//show_Excel_Analysis_Info();
 				}
 				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
 				{
-					//Show_Infomation();
-					show_Excel_Analysis_Info();
+					Show_Infomation();
+					//show_Excel_Analysis_Info();
 				}
+			#else
+
+				Show_Infomation();
+
+			#endif
 				
 			}
 			
 			
 		}
+
+		#else
+
 		
 		#endif
 		

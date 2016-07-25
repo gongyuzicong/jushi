@@ -19,7 +19,7 @@ CanTxMsg sendToCanBuf[MAX_CAN_SEND_BUF_NUM];
 u8 nrfRecvBuf[MAX_NRF_RECV_BUF_NUM][32];
 u8 nrfSendBuf[MAX_NRF_SEND_BUF_NUM][32];
 
-u16 zigbeeInfoQueueBuf[20];
+u16 zigbeeInfoQueueBuf[MAX_ZIGBEE_QUEUE_NUM];
 
 Dht11_DataInfoStruct dht11DataBuf[MAX_DHT11_DATA_BUF_NUM];
 RqcpCtrlStruct rqcpCtrl;
@@ -170,28 +170,8 @@ void FytBuf_Delete(void)
 /********************CANΩ” ’buffer**************************/
 void CanBuf_Append(CanRxMsg node)
 {
-	if(canBufCtrl.Total < MAX_CAN_DATA_BUF_NUM)
-	{
-		
-		canDataBuf[canBufCtrl.TailVernier] = node;
-		
-
-		if(canBufCtrl.TailVernier < MAX_FYT_CMD_BUF_NUM - 1)
-		{
-			canBufCtrl.TailVernier++;
-		}
-		else
-		{
-			canBufCtrl.TailVernier = 0;
-		}
-		
-		canBufCtrl.Total++;
-	}
-	else
-	{
-		errorInfo.errorType = recvCanDataBufOverFlow;
-		errorFunc();
-	}
+	//Buf_Append_Common();
+	
 }
 
 void CanBuf_Delete(void)
@@ -400,6 +380,60 @@ void NrfRecvDataBuf_Delete(void)
 	
 //}
 
+
+void zigbeeRecvDataBuf_Append(u16 data)
+{
+	if(zigbeeQueueCtrl.Total < MAX_ZIGBEE_QUEUE_NUM)
+	{
+		
+		zigbeeInfoQueueBuf[zigbeeQueueCtrl.TailVernier] = data;
+		
+		if(zigbeeQueueCtrl.TailVernier < MAX_ZIGBEE_QUEUE_NUM - 1)
+		{
+			zigbeeQueueCtrl.TailVernier++;
+		}
+		else
+		{
+			zigbeeQueueCtrl.TailVernier = 0;
+		}
+		
+		zigbeeQueueCtrl.Total++;
+		
+	}
+	else
+	{
+		errorInfo.errorType = recvZigbeeBufOverFlow;
+		errorFunc();
+		
+	}
+
+}
+
+
+void zigbeeRecvDataBuf_Delete(void)
+{
+	if(zigbeeQueueCtrl.Total > 0)
+	{
+		if(zigbeeQueueCtrl.HeadVernier < MAX_ZIGBEE_QUEUE_NUM - 1)
+		{
+			zigbeeQueueCtrl.HeadVernier++;
+		}
+		else
+		{
+			zigbeeQueueCtrl.HeadVernier = 0;
+		}
+		
+		zigbeeQueueCtrl.Total--;
+		
+	}
+}
+
+void get_zigbeeData(u16 *data)
+{
+	*data = zigbeeInfoQueueBuf[zigbeeQueueCtrl.HeadVernier];
+}
+
+
 /********************************************************************/
 
 
@@ -451,16 +485,26 @@ void NRF24L01_Buf_Init(void)
 	nrfSendDataBufCtrl.MaxNum = MAX_NRF_SEND_BUF_NUM;
 }
 
+void Zigbee_Buf_Init(void)
+{
+	zigbeeQueueCtrl.HeadVernier = 0;
+	zigbeeQueueCtrl.TailVernier = 0;
+	zigbeeQueueCtrl.Total = 0;
+	zigbeeQueueCtrl.MaxNum = MAX_ZIGBEE_QUEUE_NUM;
+}
+
 void BufferOpts_Init(void)
 {
-	CAN_Buf_Init();
-	DHT11_Buf_Init();
-	NRF24L01_Buf_Init();
-	
+	//CAN_Buf_Init();
+	//DHT11_Buf_Init();
+	//NRF24L01_Buf_Init();
+	Zigbee_Buf_Init();
+
+	/*
 	rqcpCtrl.RQCP0 = 1;
 	rqcpCtrl.RQCP1 = 1;
 	rqcpCtrl.RQCP2 = 1;
-	
+	*/
 }
 
 

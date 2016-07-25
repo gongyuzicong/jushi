@@ -49,6 +49,8 @@ typedef enum
 
 	recvFytCmdBufOverFlow,
 	recvCanDataBufOverFlow,			// 0x28
+
+	recvZigbeeBufOverFlow,
 	
 	errorTypeEnd,
 }ErrorCodeType;

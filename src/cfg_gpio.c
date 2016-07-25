@@ -36,11 +36,18 @@ void CB_LED_GPIO_CFG(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
 	/*设置GPIOA.2和GPIOA.3为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOC, GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9);
+	GPIO_SetBits(GPIOC, GPIO_Pin_5);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOD, GPIO_Pin_3);
+	
 }
 
 void CB_USART_GPIO_CFG(void)
@@ -71,7 +78,7 @@ void CB_USART_GPIO_CFG(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
+	
 }
 
 void CB_OUTPUT_CLK_GPIO_CFG(void)
@@ -83,7 +90,7 @@ void CB_OUTPUT_CLK_GPIO_CFG(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	RCC_MCOConfig(RCC_MCO_PLLCLK_Div2);
-
+	
 }
 
 void CB_I2C_GPIO_CFG(void)
@@ -104,17 +111,19 @@ void CB_I2C_GPIO_CFG(void)
 
 void CB_SYNC_GPIO_CFG(void)
 {
-	GPIO_InitTypeDef  GPIO_InitStructure; 
+	GPIO_InitTypeDef  GPIO_InitStructure;
+	
 	/* Configure I2C1 pins: SCL and SDA */
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_7;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
-
+	
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
 }
 
 void PWM_GPIO_CFG(void)
@@ -128,6 +137,21 @@ void PWM_GPIO_CFG(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
+}
+
+void ProtectSW_GPIO_Config(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure; 
+	/* Configure I2C1 pins: SCL and SDA */
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_4;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
+	GPIO_Init(GPIOE, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
 }
 
 void I2C_GPIO_Config(void)
@@ -166,6 +190,7 @@ void CB_GPIO_Config(void)
 	//CB_SYNC_GPIO_CFG();
 	PWM_GPIO_CFG();
 	//I2C_GPIO_Config();
+	
 }
 
 

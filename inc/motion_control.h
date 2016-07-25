@@ -116,17 +116,17 @@
 #define LMT_IN2			PCin(4)			// 响应为 0
 
 #define LMT_SW			PEin(0)			// 响应为 1
-#define Ready_SW		PEin(1)			//
+#define Return_SW		PDin(10)			//
 
 #define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0; ECV3_POWER = 0;}
 #define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1; ECV3_POWER = 1;}
 
-#define FECV_UP()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }		//
-#define FECV_DOWN()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
+#define FECV_UP()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }		//
+#define FECV_DOWN()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }
 #define FECV_STOP()		{ECV1_PWM = 0;					}
 
-#define BECV_UP()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
-#define BECV_DOWN()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
+#define BECV_UP()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
+#define BECV_DOWN()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
 #define BECV_STOP()		{ECV2_PWM = 0;					}
 
 #define WECV_UP()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
@@ -142,7 +142,8 @@
 
 typedef enum
 {
-	stopStatus = 0,
+	StatusStart = 0,
+	stopStatus,
 	goStraightStatus,
 	backStatus,
 	cirLeft,
@@ -150,6 +151,7 @@ typedef enum
 	testStatus,
 	gSslow,
 	bSslow,
+	StatusEnd,
 }AgvStatus, *AgvStatus_P;
 
 typedef enum
@@ -413,6 +415,8 @@ void MPU6050_Data(void);
 void MPU6050_Data1(void);
 void MPU6050_Data_init3(void);
 void CrossRoad_Count(void);
+void Get_Zigbee_Info_From_Buf(void);
+void ProtectFunc(void);
 
 
 

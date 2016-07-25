@@ -39,12 +39,20 @@ typedef enum
 	GetTheGood,
 	ArrGoal,
 	GoodLeav,
+	ZigbeeACK,
 }NC_Flag;
 
 typedef struct
 {
 	NC_Flag cmdFlag;
 }RecvCmdFlag, *RecvCmdFlag_P;
+
+typedef struct
+{
+	u8 zigbee_ID1;
+	u8 zigbee_ID2;
+}ZigbeeID_Info;
+
 
 extern Zigbee_Info_P Zigbee_Ptr;
 extern RecvCmdFlag_P CMD_Flag_Ptr;
@@ -60,7 +68,7 @@ void UART2_REC_IRQ(u8);
 void Receive_handle(void);
 void Send_Arrive(void);
 void Send_WaitForGoods(void);
-void Send_GettedGoods(void);
+void Send_GettedGoods(u8);
 
 
 #endif

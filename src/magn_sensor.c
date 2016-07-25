@@ -952,28 +952,33 @@ void Magn_Sensor_Scan(void)
 		#if 1
 		if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
 		{
-			FMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
-			RMSDS_Ptr->MSD_Hex = FMS_Hex;
-			
+			FMSDS_Ptr->MSD_Hex = RMS_Hex;
+			RMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
+
+			/*
 			if((FMSDS_Ptr->MSD_Hex & 0x1F) == 0x17)
 			{
 				FMSDS_Ptr->MSD_Hex |= 0x08;
 			}
-			
+			*/
 		}
 		else
 		{
-			FMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);
-			RMSDS_Ptr->MSD_Hex = RMS_Hex;
+			FMSDS_Ptr->MSD_Hex = FMS_Hex;
+			RMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
 
+			/*
 			if((RMSDS_Ptr->MSD_Hex & 0xF800) == 0xE800)
 			{
 				RMSDS_Ptr->MSD_Hex |= 0x1000;
 			}
+			*/
 		}
 		#else
 		FMSDS_Ptr->MSD_Hex = FMS_Hex;
-		RMSDS_Ptr->MSD_Hex = RMS_Hex;
+		RMSDS_Ptr->MSD_Hex = hex_reload(RMS_Hex);
+		printf("F: ");
+		MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
 		printf("R: ");
 		MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
 		printf("\r\n");

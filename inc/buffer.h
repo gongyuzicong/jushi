@@ -17,6 +17,8 @@
 #define USE_TC
 #define SEND_IN_TC
 
+#define MAX_ZIGBEE_QUEUE_NUM	20
+
 typedef struct
 {
 	u8 RQCP0;
@@ -34,6 +36,8 @@ extern BufferControl fytCmdBufCtrl;
 extern BufferControl canBufCtrl;
 extern BufferControl usartBufCtrl;
 extern BufferControl sendCanBufCtrl;
+
+extern BufferControl zigbeeQueueCtrl;
 
 extern RqcpCtrlStruct rqcpCtrl;
 
@@ -56,6 +60,9 @@ CanTxMsg* get_sendToCan_Data(void);
 void DHT11DataBuf_Append(Dht11_DataInfoStruct node);
 void DHT11DataBuf_Delete(void);
 Dht11_DataInfoStruct_P Get_DHT11_Data(void);
+void zigbeeRecvDataBuf_Append(u16);
+void zigbeeRecvDataBuf_Delete(void);
+void get_zigbeeData(u16 *);
 
 
 

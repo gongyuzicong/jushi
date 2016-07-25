@@ -63,7 +63,7 @@ u8 DHT11_Check(void)
 	
 	if(retry_counter >= 100)
 	{
-		LED4_OFF;
+		//LED4_OFF;
 		printf("check_fail1\r\n");
 		return 1;
 	}

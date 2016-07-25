@@ -512,13 +512,7 @@ void TIM2_IRQHandler(void)
 	
 	if(TIM2->SR & 0x0001)	// Òç³öÖÐ¶Ï
 	{
-		PCout(9) = ~(PCin(9));
-		//PCout(8) = ~(PCin(8));
-		//PCout(7) = ~(PCin(7));
-		//PCout(6) = ~(PCin(6));
-		//PCout(5) = ~(PCin(5));
-
-		
+		PCout(5) = ~(PCin(5));	
 
 		if(ctrlParasPtr->avgFlagCount >= 1)
 		{
