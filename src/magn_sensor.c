@@ -1085,6 +1085,7 @@ void Magn_Sensor_Init(void)
 
 	RFID_Info_Ptr->rfidData = 0;
 	RFID_Info_Ptr->updateFlag = 0;
+	RFID_Info_Ptr->lock = 0;
 }
 
 

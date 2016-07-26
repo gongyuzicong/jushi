@@ -11,6 +11,10 @@
 
 #define MAX_HALL_COUNT		1
 
+#define Warning_LED		PDout(3)
+#define Warning_LED_IN	PDin(3)
+#define ProtectSW_F		PEin(4)
+#define ProtectSW_R		PDin(5)
 
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
@@ -33,14 +37,14 @@
 #define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_STOP_PIN_SET()		{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
-#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 0; MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_STOP_PIN_SET()		{MOTOR_LEFT_BK = 0; MOTOR_LEFT_FR = 1; MOTOR_LEFT_EN = 1;}
+#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 0;  MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_STOP_PIN_SET()		{MOTOR_LEFT_BK = 0;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 1;}
 
 #define CHANGE_TO_GO_STRAIGHT_MODE()		{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus;}
 #define CHANGE_TO_BACK_MODE()				{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus;}
-#define CHANGE_TO_CIR_LEFT_MODE()			{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft;}
-#define CHANGE_TO_CIR_RIGHT_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
+#define CHANGE_TO_CIR_LEFT_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft;}
+#define CHANGE_TO_CIR_RIGHT_MODE()			{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
 #define CHANGE_TO_STOP_MODE()				{MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus;}
 #define CHANGE_TO_TEST_MODE()				{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = testStatus;}
 #define CHANGE_TO_GO_STRAIGHT_SLOW_MODE()	{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = gSslow;}
@@ -112,22 +116,25 @@
 #define ECV3_PWM		PEout(8)		// 
 #define ECV3_DIR		PEout(7)		// 
 
-#define LMT_IN1			PCin(3)			// 响应为 0
-#define LMT_IN2			PCin(4)			// 响应为 0
+#define LMT_INR			PCin(3)			// 响应为 0
+#define LMT_INL			PCin(4)			// 响应为 0
 
-#define LMT_SW			PEin(0)			// 响应为 1
-#define Return_SW		PDin(10)			//
+#define LMT_SW			PEin(0)			// 响应为 0
+#define Return_SW		PDin(10)		// 响应为 0
+
+#define BUZZER_1		PEout(9)
+#define BUZZER_2		PEout(10)
 
 #define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0; ECV3_POWER = 0;}
 #define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1; ECV3_POWER = 1;}
 
-#define FECV_UP()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }		//
-#define FECV_DOWN()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }
-#define FECV_STOP()		{ECV1_PWM = 0;					}
+#define FECV_UP()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }		//
+#define FECV_DOWN()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
+#define FECV_STOP()		{ECV2_PWM = 0;					}
 
-#define BECV_UP()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }
-#define BECV_DOWN()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
-#define BECV_STOP()		{ECV2_PWM = 0;					}
+#define BECV_UP()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
+#define BECV_DOWN()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }
+#define BECV_STOP()		{ECV1_PWM = 0;					}
 
 #define WECV_UP()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
 #define WECV_DOWN()		{ECV3_DIR = 0;   ECV3_PWM = 1;  }
@@ -378,6 +385,23 @@ typedef struct
 }MPU6050_Para, *MPU6050_Para_P;
 
 
+
+typedef struct
+{
+	u8 twinkleFlag;
+	u16 intervalTime_ms;
+	u8 twinkleNum;
+	void (*twinkleCtrlFunc)(void);
+}LED_Twinkle, *LED_Twinkle_P;
+
+typedef struct
+{
+	u8 buzzerFlag;
+	u16 buzzerTime_ms;
+	u8 buzzerNum;
+	void (*buzzerCtrlFunc)(void);
+}Buzzer_Ctrl, *Buzzer_Ctrl_P;
+
 typedef struct
 {
 	void (*motor_up)(void);
@@ -417,6 +441,8 @@ void MPU6050_Data_init3(void);
 void CrossRoad_Count(void);
 void Get_Zigbee_Info_From_Buf(void);
 void ProtectFunc(void);
+void gS_slow2(u8);
+void back_slow2(u8);
 
 
 
@@ -429,7 +455,8 @@ extern u8 BRightCompDuty[101];
 extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;
-
+extern LED_Twinkle_P WarningLedCtrlPtr;
+extern Buzzer_Ctrl_P BuzzerCtrlPtr;
 
 #endif
 

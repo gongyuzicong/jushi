@@ -63,6 +63,7 @@ Dht11_DataInfoStruct_P Get_DHT11_Data(void);
 void zigbeeRecvDataBuf_Append(u16);
 void zigbeeRecvDataBuf_Delete(void);
 void get_zigbeeData(u16 *);
+void zigbeeReqQueue(u16);
 
 
 

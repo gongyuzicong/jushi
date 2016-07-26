@@ -1222,7 +1222,8 @@ void Get_MidpointVxt(Pattern_Num_Para_P now, Pattern_Num_Para_P pre)
 
 void MSD_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {
-	if(0 == (ptr->MSD_Hex & 0x8001))
+	//if(0 == (ptr->MSD_Hex & 0xFFFF))
+	if(0x0000 == ptr->MSD_Hex)
 	{
 		ptr->MSDCategory = MSD_LINE;
 		ptr->AgvMSLocation = Agv_MS_CrossRoad;

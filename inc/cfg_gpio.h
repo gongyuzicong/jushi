@@ -106,9 +106,7 @@
 #define PG_PIN_NOT(PIN)			GPIO_PIN_NOT(GPIOG, PIN)
 /***********GPIO ·­×ª end**********************/
 
-#define Warning_LED		PDout(3)
-#define ProtectSW_F		PEin(4)
-#define ProtectSW_R		PDin(5)
+
 
 void CB_GPIO_Config(void);
 

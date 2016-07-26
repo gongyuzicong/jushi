@@ -53,9 +53,20 @@ typedef struct
 	u8 zigbee_ID2;
 }ZigbeeID_Info;
 
+typedef struct
+{
+	u8 resendFlag;
+	u16 intervalTime_ms;
+	u8 resendNum;
+	u8 *resendInfo;
+	void (*resendCtrlFunc)(void);
+}Zigbee_ACK_Info, *Zigbee_ACK_Info_P;
+
+
 
 extern Zigbee_Info_P Zigbee_Ptr;
 extern RecvCmdFlag_P CMD_Flag_Ptr;
+extern Zigbee_ACK_Info_P ZigbeeResendInfo_Ptr;
 
 void Protocol_analysis(u8 rec_dat);
 void Zigbee_Init(void);

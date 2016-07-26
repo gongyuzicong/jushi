@@ -50,6 +50,7 @@ typedef enum
 
 typedef struct
 {
+	u8 lock;
 	u8 updateFlag;
 	u32 rfidData;
 }RFID_Struct, *RFID_Struct_P;

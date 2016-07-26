@@ -380,6 +380,26 @@ void NrfRecvDataBuf_Delete(void)
 	
 //}
 
+u8 searchZigbeeData(u16 data, u8 *index)
+{
+	u8 cir = 0, flag = 0, inindex = 0;
+
+	for(cir = 0; cir < MAX_ZIGBEE_QUEUE_NUM; cir++)
+	{
+		if(data == zigbeeInfoQueueBuf[cir])
+		{
+			flag = 1;
+			inindex = cir;
+			break;
+		}
+		
+	}
+
+	*index = inindex;
+	
+	return flag;
+}
+
 
 void zigbeeRecvDataBuf_Append(u16 data)
 {
@@ -409,6 +429,15 @@ void zigbeeRecvDataBuf_Append(u16 data)
 
 }
 
+void zigbeeReqQueue(u16 data)
+{
+	u8 index = 0;
+
+	if(0 == searchZigbeeData(data, &index))		// 还无数据存在
+	{
+		zigbeeRecvDataBuf_Append(data);
+	}
+}
 
 void zigbeeRecvDataBuf_Delete(void)
 {
