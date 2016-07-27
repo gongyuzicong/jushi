@@ -2,6 +2,7 @@
 #include "cfg_gpio.h"
 #include "buffer.h"
 #include "timer_opts.h"
+#include "motion_control.h"
 
 #define USART2_TC					((USART2->SR >> 6) & 0x0001)
 
@@ -292,6 +293,7 @@ void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
 		{
 			receive_count = 0;
 			receive_state = 1;
+			//Send_Zigbee_ACK();
 		}
 	}
 }
@@ -309,16 +311,21 @@ void Receive_handle(void)
 				nc_receive[i] = 0x00;
 			}
 			///终端请求取物////
-			zigbeeReqQueue(0x0008);
+			if(ZBandRFIDmapping[SpinStation_1] != Zigbee_Ptr->recvId)
+			{
+				zigbeeReqQueue(0x0008);
+				zigbeeAck[2] = Id_Arr[1].zigbee_ID1;
+				zigbeeAck[3] = Id_Arr[1].zigbee_ID2;
+				Send_Zigbee_ACK();
+				CMD_Flag_Ptr->cmdFlag = GoodReq;
+				WarningLedCtrlPtr->twinkleFlag = 1;
+			}
+			
 			printf("0x0001\r\n");
-			//zigbeeAck[2] = Id_Arr[1].zigbee_ID1;
-			//zigbeeAck[3] = Id_Arr[1].zigbee_ID2;
-			zigbeeAck[2] = 0x71;
-			zigbeeAck[3] = 0xdc;
-			Send_Zigbee_ACK();
-			CMD_Flag_Ptr->cmdFlag = GoodReq;
-			//Delay_ns(1);
-			//Send_GettedGoods(1);
+			
+			//zigbeeAck[2] = 0x71;
+			//zigbeeAck[3] = 0xdc;
+			
 			/////////////////
 		}
 		else if((nc_receive[6] == 0x7f) && (nc_receive[7] == 0x11))
@@ -414,11 +421,12 @@ void Receive_handle(void)
 			{
 				nc_receive[i] = 0x00;
 			}
-			zigbeeReqQueue(0x000b);
+			//zigbeeReqQueue(0x000b);
 			zigbeeAck[2] = Id_Arr[0].zigbee_ID1;
 			zigbeeAck[3] = Id_Arr[0].zigbee_ID2;
 			Send_Zigbee_ACK();
 			printf("GoodLeav\r\n");
+			WarningLedCtrlPtr->twinkleFlag = 1;
 			/////龙门已经将货物取走//////
 			CMD_Flag_Ptr->cmdFlag = GoodLeav;
 			////////////////////////////

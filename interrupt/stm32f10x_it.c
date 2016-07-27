@@ -797,11 +797,19 @@ void USART3_IRQHandler(void)
 				RFID_Info_Ptr->updateFlag = 1;
 				RFID_Info_Ptr->rfidData = recvD;
 				WarningLedCtrlPtr->twinkleFlag = 1;
+				BuzzerCtrlPtr->buzzerFlag = 1;
 				
 				if(goStraightStatus == ctrlParasPtr->agvStatus)
 				{
-					//ctrlParasPtr->crossRoadCountF = recvD;
-					//ctrlParasPtr->crossRoadCountR = recvD - 1;
+					ctrlParasPtr->crossRoadCountF = recvD;
+					ctrlParasPtr->crossRoadCountR = recvD - 1;					
+					printf("\r\nIT GcrossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
+				}
+				else if(backStatus == ctrlParasPtr->agvStatus)
+				{
+					ctrlParasPtr->crossRoadCountF = recvD;
+					ctrlParasPtr->crossRoadCountR = recvD + 1;
+					printf("\r\nIT BcrossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
 				}
 
 				printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);

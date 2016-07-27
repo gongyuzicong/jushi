@@ -382,17 +382,26 @@ void NrfRecvDataBuf_Delete(void)
 
 u8 searchZigbeeData(u16 data, u8 *index)
 {
-	u8 cir = 0, flag = 0, inindex = 0;
+	u8 cir = 0, flag = 0, inindex = 0, searchIndex = 0;
 
-	for(cir = 0; cir < MAX_ZIGBEE_QUEUE_NUM; cir++)
+	for(cir = 0; cir < zigbeeQueueCtrl.Total; cir++)
 	{
-		if(data == zigbeeInfoQueueBuf[cir])
+
+		if(zigbeeQueueCtrl.HeadVernier + cir < MAX_ZIGBEE_QUEUE_NUM)
+		{
+			searchIndex = zigbeeQueueCtrl.HeadVernier + cir;
+		}
+		else
+		{
+			searchIndex = zigbeeQueueCtrl.HeadVernier + cir - MAX_ZIGBEE_QUEUE_NUM;
+		}
+
+		if(data == zigbeeInfoQueueBuf[searchIndex])
 		{
 			flag = 1;
 			inindex = cir;
 			break;
 		}
-		
 	}
 
 	*index = inindex;

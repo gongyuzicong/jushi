@@ -125,7 +125,7 @@ int main(void)
 			
 			RFID_Goal_Node_Analy();
 			
-			Walking_Step_Controler();	
+			Walking_Step_Controler();
 			
 			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
@@ -207,7 +207,7 @@ int main(void)
 
 		#else
 
-		
+		/*
 		Receive_handle();
 
 		Get_Zigbee_Info_From_Buf();
@@ -231,8 +231,23 @@ int main(void)
 			}
 			
 		}
-		
-		
+		*/
+		//BUZZER_1 = 1;
+		//BUZZER_2 = 1;
+
+		//Delay_ns(1);
+
+		//BUZZER_1 = 0;
+		//BUZZER_2 = 0;
+
+		//Delay_ns(1);
+
+		if(1 != BuzzerCtrlPtr->buzzerFlag)
+		{
+			BuzzerCtrlPtr->buzzerFlag = 1;
+		}
+
+		BuzzerCtrlPtr->buzzerCtrlFunc();
 		
 		#endif
 		
