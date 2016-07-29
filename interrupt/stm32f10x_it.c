@@ -512,18 +512,7 @@ void TIM2_IRQHandler(void)
 	
 	if(TIM2->SR & 0x0001)	// 溢出中断
 	{
-		PCout(5) = ~(PCin(5));	
-
-		if(ctrlParasPtr->avgFlagCount >= 1)
-		{
-			ctrlParasPtr->avgFlag = 1;
-			ctrlParasPtr->avgFlagCount = 0;
-			//printf("sysT = %d\r\n", SystemRunningTime);
-		}
-		else
-		{
-			ctrlParasPtr->avgFlagCount++;
-		}
+		//PCout(5) = ~(PCin(5));
 		
 	}
 	
@@ -615,19 +604,8 @@ void TIM4_IRQHandler(void)
 	// 1ms
 	if(TIM4->SR & 0x0001)	// 溢出中断
 	{
-		SystemRunningTime++;
-		PCout(6) = ~(PCin(6));
-		//printf("123\r\n");
-		/*
-		if(FMSDS_Ptr->zflag)
-		{
-			FMSDS_Ptr->zeropointfive++;
-		}
-		else
-		{
-			FMSDS_Ptr->zeropointfive = 0;
-		}
-		*/
+		//SystemRunningTime++;
+		
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM4->SR &= ~(1 << 0);	// 清除中断标志位
@@ -1057,18 +1035,8 @@ void TIM5_IRQHandler(void)
 	if(TIM5->SR & 0x0001)	// 溢出中断
 	{
 		SystemRunningTime++;
-		PCout(7) = ~(PCin(7));
-		//printf("123\r\n");
-		/*
-		if(FMSDS_Ptr->zflag)
-		{
-			FMSDS_Ptr->zeropointfive++;
-		}
-		else
-		{
-			FMSDS_Ptr->zeropointfive = 0;
-		}
-		*/
+		
+		
 	}
 	//printf("%d\r\n", SystemRunningTime);
 	TIM5->SR &= ~(1 << 0);	// 清除中断标志位
@@ -1117,7 +1085,18 @@ void UART5_IRQHandler(void)
 *******************************************************************************/
 void TIM6_IRQHandler(void)
 {
+	
+	// 0.1ms
+	if(TIM6->SR & 0x0001)	// 溢出中断
+	{
+		SystemRunningTime++;
+		//PCout(5) = ~(PCin(5));
+		
+	}
+	//printf("%d\r\n", SystemRunningTime);
+	TIM6->SR &= ~(1 << 0);	// 清除中断标志位
 }
+
 
 /*******************************************************************************
 * Function Name  : TIM7_IRQHandler

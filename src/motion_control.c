@@ -8,7 +8,8 @@
 #include "i2c_opts.h"
 #include "zigbee.h"
 #include "buffer.h"
-
+#include "rtc.h" 
+#include "ads1256.h"
 
 #define ABSOLU(value)	(value >= 0 ? value : (-value))
 #define MAX_ADAPT_NUM	20
@@ -8346,105 +8347,25 @@ void AGV_Correct_1(void)
 	static u8 duty = 0;
 	static u8 lcompduty = 0, rcompduty = 0;
 	static u8 gear = 10;
+	static u32 timRec = 0;
 
 	duty = AgvGear[gear];
+
 	// 延时一秒, 重新检测速度
-	if(ctrlParasPtr->avgFlag)
+	if(0 == timRec)
 	{
-	#if 0
-		
-		result = ctrlParasPtr->leftHallIntervalTime - ctrlParasPtr->rightHallIntervalTime;
+		timRec = SystemRunningTime;
+	}
+	else
+	{
+		if(SystemRunningTime - timRec >= 10000)
+		{
+		#if 0
+			
+			result = ctrlParasPtr->leftHallIntervalTime - ctrlParasPtr->rightHallIntervalTime;
 
-		// 目前设定的范围值为 ±5, 如果左右两边时间在这个范围内, 则认定两边速度是相等的
-		if(result > range)			// 左边速度比右变速度大的时候
-		{
-			if(lcompduty > 0)
-			{
-				lcompduty--;
-			}
-			else
-			{
-				rcompduty++;
-			}
-			
-		}
-		else if(result < -range)	// 左边的速度比右边速度小的时候
-		{
-			if(rcompduty > 0)
-			{
-				rcompduty--;
-			}
-			else
-			{
-				lcompduty++;
-			}
-			
-		}
-		else					//	在误差范围内, 则打印数据, 然后换挡		
-		{
-			
-			
-			printf("d = %d, lcd = %d, rcd = %d\r\n", duty, lcompduty, rcompduty);
-			
-			lcompduty = 0;
-			rcompduty = 0;
-			
-			duty++;
-			
-		}
-
-		lmSpeed = duty + lcompduty;
-		rmSpeed = duty + rcompduty;
-		
-		if((lmSpeed > 100) || (rmSpeed > 100))
-		{
-			CHANGE_TO_STOP_MODE();
-			MOTOR_LEFT_DUTY_SET(0);
-			MOTOR_RIGHT_DUTY_SET(0);
-			printf("ok!!!!!!!!\r\n");
-		}
-		else
-		{
-			MOTOR_LEFT_DUTY_SET(duty + lcompduty);
-			MOTOR_RIGHT_DUTY_SET(duty + rcompduty);
-		}
-		
-	#else
-		
-		
-	
-		if(duty <= 25)
-		{
-			range = 10;
-		}
-		else if((duty > 25) && (range <= 35))
-		{
-			range = 5;
-		}
-		else
-		{
-			range = 3;
-		}
-		//result = ctrlParasPtr->leftHallIntervalTime - ctrlParasPtr->rightHallIntervalTime;
-		result = SubAbsV(ctrlParasPtr->HLavg, ctrlParasPtr->HRavg);
-		
-		printf("res = %d, HLavg = %d, HRavg = %d\r\n", result, ctrlParasPtr->HLavg, ctrlParasPtr->HRavg);
-
-		// 目前设定的范围值为 ±5, 如果左右两边时间在这个范围内, 则认定两边速度是相等的
-		if(result > range)			// 如果两个时间大于偏差范围
-		{
-			if(ctrlParasPtr->HLavg > ctrlParasPtr->HRavg)	// 如果是左边时间大于右边时间, 则左边转速比右边慢, 则需要左边加速/右边减速
-			{
-				if(rcompduty > 0)
-				{
-					rcompduty--;
-				}
-				else
-				{
-					lcompduty++;
-				}
-			}
-			else											// 如果是左边时间小于右边时间, 否则是左边转速比右边快, 则需要左边减速/右边加速
+			// 目前设定的范围值为 ±5, 如果左右两边时间在这个范围内, 则认定两边速度是相等的
+			if(result > range)			// 左边速度比右变速度大的时候
 			{
 				if(lcompduty > 0)
 				{
@@ -8454,51 +8375,138 @@ void AGV_Correct_1(void)
 				{
 					rcompduty++;
 				}
+				
+			}
+			else if(result < -range)	// 左边的速度比右边速度小的时候
+			{
+				if(rcompduty > 0)
+				{
+					rcompduty--;
+				}
+				else
+				{
+					lcompduty++;
+				}
+				
+			}
+			else					//	在误差范围内, 则打印数据, 然后换挡		
+			{
+				
+				
+				printf("d = %d, lcd = %d, rcd = %d\r\n", duty, lcompduty, rcompduty);
+				
+				lcompduty = 0;
+				rcompduty = 0;
+				
+				duty++;
+				
+			}
+
+			lmSpeed = duty + lcompduty;
+			rmSpeed = duty + rcompduty;
+			
+			if((lmSpeed > 100) || (rmSpeed > 100))
+			{
+				CHANGE_TO_STOP_MODE();
+				MOTOR_LEFT_DUTY_SET(0);
+				MOTOR_RIGHT_DUTY_SET(0);
+				printf("ok!!!!!!!!\r\n");
+			}
+			else
+			{
+				MOTOR_LEFT_DUTY_SET(duty + lcompduty);
+				MOTOR_RIGHT_DUTY_SET(duty + rcompduty);
 			}
 			
-		}
-		else	// 如果速度在偏差范围内
-		{
-			//printf("d = %d, lcd = %d, rcd = %d\r\n", duty, lcompduty, rcompduty);
-			printf("%d,%d,%d\r\n", duty, lcompduty, rcompduty);
-			//lcompduty = 0;
-			//rcompduty = 0;
+		#else
 			
-			//duty--;
-			//gear++;
 			
-		}
+		
+			if(duty <= 25)
+			{
+				range = 10;
+			}
+			else if((duty > 25) && (range <= 35))
+			{
+				range = 5;
+			}
+			else
+			{
+				range = 3;
+			}
+			//result = ctrlParasPtr->leftHallIntervalTime - ctrlParasPtr->rightHallIntervalTime;
+			result = SubAbsV(ctrlParasPtr->HLavg, ctrlParasPtr->HRavg);
+			
+			printf("res = %d, HLavg = %d, HRavg = %d\r\n", result, ctrlParasPtr->HLavg, ctrlParasPtr->HRavg);
 
-		duty = AgvGear[gear];
-		
-		lmSpeed = duty + lcompduty;
-		rmSpeed = duty + rcompduty;
-		
-		printf("gear = %d\r\n", gear);
-		printf("ls = %d, duty = %d, lcd = %d\r\n", lmSpeed, duty, lcompduty);
-		printf("rs = %d, duty = %d, rcd = %d\r\n\r\n", rmSpeed, duty, rcompduty);
-		
+			// 目前设定的范围值为 ±5, 如果左右两边时间在这个范围内, 则认定两边速度是相等的
+			if(result > range)			// 如果两个时间大于偏差范围
+			{
+				if(ctrlParasPtr->HLavg > ctrlParasPtr->HRavg)	// 如果是左边时间大于右边时间, 则左边转速比右边慢, 则需要左边加速/右边减速
+				{
+					if(rcompduty > 0)
+					{
+						rcompduty--;
+					}
+					else
+					{
+						lcompduty++;
+					}
+				}
+				else											// 如果是左边时间小于右边时间, 否则是左边转速比右边快, 则需要左边减速/右边加速
+				{
+					if(lcompduty > 0)
+					{
+						lcompduty--;
+					}
+					else
+					{
+						rcompduty++;
+					}
+				}
+				
+			}
+			else	// 如果速度在偏差范围内
+			{
+				//printf("d = %d, lcd = %d, rcd = %d\r\n", duty, lcompduty, rcompduty);
+				printf("%d,%d,%d\r\n", duty, lcompduty, rcompduty);
+				//lcompduty = 0;
+				//rcompduty = 0;
+				
+				//duty--;
+				//gear++;
+				
+			}
 
-		
-		if(gear >= 19)
-		{
-			//CHANGE_TO_STOP_MODE();
-			//MOTOR_LEFT_DUTY_SET(0);
-			//MOTOR_RIGHT_DUTY_SET(0);
-			printf("ok!!!!!!!!\r\n");
-		}
-		else
-		{
-			MOTOR_LEFT_DUTY_SET(duty + lcompduty);
-			MOTOR_RIGHT_DUTY_SET(duty + rcompduty);
-		}
+			duty = AgvGear[gear];
+			
+			lmSpeed = duty + lcompduty;
+			rmSpeed = duty + rcompduty;
+			
+			printf("gear = %d\r\n", gear);
+			printf("ls = %d, duty = %d, lcd = %d\r\n", lmSpeed, duty, lcompduty);
+			printf("rs = %d, duty = %d, rcd = %d\r\n\r\n", rmSpeed, duty, rcompduty);
+			
 
-	#endif
-		
-		
-		ctrlParasPtr->avgFlag = 0;
+			
+			if(gear >= 19)
+			{
+				//CHANGE_TO_STOP_MODE();
+				//MOTOR_LEFT_DUTY_SET(0);
+				//MOTOR_RIGHT_DUTY_SET(0);
+				printf("ok!!!!!!!!\r\n");
+			}
+			else
+			{
+				MOTOR_LEFT_DUTY_SET(duty + lcompduty);
+				MOTOR_RIGHT_DUTY_SET(duty + rcompduty);
+			}
+
+		#endif
+			
+			timRec = 0;
+		}
 	}
-	
 	
 	
 }
@@ -8614,7 +8622,6 @@ void RFID_Goal_Node_Analy(void)
 			ctrlParasPtr->walkingstep = step_stop;
 		}
 
-
 		printf("goalRFIDnode = %d, goalStation = %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->goalStation);
 	}
 	
@@ -8669,7 +8676,6 @@ void AGV_Change_Mode(void)
 			if(0xFFFF == FMSDS_Ptr->MSD_Hex)
 			{
 				flag = 0;
-				FMSDS_Ptr->zflag = 1;
 			}
 		}
 		else
@@ -8693,7 +8699,6 @@ void AGV_Change_Mode(void)
 
 				flag = 1;
 				
-				FMSDS_Ptr->zflag = 0;
 			}
 			
 		}
@@ -10510,9 +10515,29 @@ void Walking_Step_Controler(void)
 
 void ProtectFunc(void)
 {
+	static u32 timRec = 0;
+	static u8 flag = 0;
+	
 	if((0 == ProtectSW_F) || (0 == ProtectSW_R))
 	{
-		//MOTOR_POWER_OFF();
+		MOTOR_POWER_OFF();
+		flag = 1;
+	}
+
+	if(1 == flag)
+	{
+		if(0 == timRec)
+		{
+			timRec = SystemRunningTime;
+		}
+		else
+		{
+			if(SystemRunningTime - timRec >= 100000)
+			{
+				flag = 0;
+				MOTOR_POWER_ON();
+			}
+		}
 	}
 }
 
@@ -10609,7 +10634,12 @@ void BuzzerCtrlFunc(void)
 	
 }
 
-void SIMU_PWM_Breath_Ctrl(void)
+void Origin_PatCtrl(void)
+{
+	
+}
+
+void SIMU_PWM_BreathWarningLED_Ctrl(void)
 {
 	static u32 timRec = 0;
 	static u8 step = 0, flag = 0, counter = 0;
@@ -10675,6 +10705,160 @@ void SIMU_PWM_Breath_Ctrl(void)
 }
 
 
+void SIMU_PWM_BreathLED_Ctrl(void)
+{
+	static u32 timRec = 0;
+	static u8 step = 0, flag = 0, counter = 0;
+	static u16 dutyTime = 0;
+	
+	if(0 == timRec)
+	{
+		timRec = SystemRunningTime;
+		PCout(5) = 0;
+		step = 0;
+	}
+	else
+	{
+		
+		if(0 == step)
+		{
+			if(SystemRunningTime - timRec >= dutyTime)
+			{
+				PCout(5) = 1;
+				step = 1;
+				timRec = SystemRunningTime;
+			}
+		}
+		else if(1 == step)
+		{
+			if(SystemRunningTime - timRec >= (100 - dutyTime))
+			{
+				timRec = 0;
+				step = 0;
+
+				if(counter < 1)
+				{
+					counter++;
+				}
+				else
+				{
+					counter = 0;
+					if(0 == dutyTime)
+					{
+						flag = 0;
+					}
+					else if(dutyTime >= 100)
+					{
+						flag = 1;
+					}
+
+					if(0 == flag)
+					{
+						dutyTime++;
+					}
+					else if(1 == flag)
+					{
+						dutyTime--;
+					}
+				}
+				
+				
+			}
+		}
+		
+	}
+	
+}
+
+
+void Read_RTC_Data(void)
+{
+	static u32 timRec = 0;
+	u8 date[3], time[3];
+
+	if(0 == timRec)
+	{
+		timRec = SystemRunningTime;
+		
+	}
+	else
+	{
+		if(SystemRunningTime - timRec >= 10000)
+		{
+			READ_datetime(date, time);
+			timRec = 0;
+			date[0] &= 0x7F;
+			date[1] &= 0x1F;
+			date[2] &= 0x3F;
+
+			time[0] &= 0x3F;
+			time[1] &= 0x7F;
+			time[2] &= 0x7F;
+			
+			printf("20%02x-%02x-%02x, %02x:%02x:%02x\r\n", date[0], date[1], date[2], time[0], time[1], time[2]);
+		}
+		
+	}
+}
+
+void Get_Weight_Data(void)
+{
+	u8 cir=0;
+	int Adc;
+	float Volts;
+	static u32 timRec = 0;
+	
+	#if 0
+	
+	for(cir = 0; cir < 8; cir++)
+	{
+
+		Adc = ADS1256ReadData( (cir << 4) | ADS1256_MUXN_AINCOM);// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM);		
+
+		 /*差分采集方式*/
+		//Adc = ADS1256ReadData( ADS1256_MUXP_AIN0|ADS1256_MUXN_AIN1); //P = AIN0 ,N = AIN1 差分方式*/
+		Volts = Adc*0.000000598;
+			
+
+		printf(" %.4fV  ",Volts);
+		
+	}
+	printf("\r\n");
+	
+	#else
+	if(0 == timRec)
+	{
+		timRec = SystemRunningTime;
+	}
+	else
+	{
+		if(SystemRunningTime - timRec >= 10000)
+		{
+			Adc = ADS1256ReadData( ADS1256_MUXP_AIN1 | ADS1256_MUXN_AINCOM );// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM);	
+			Volts = Adc*0.000000598;
+			printf(" %.4fV\r\n", Volts);
+
+			timRec = 0;
+		}
+	}
+	
+	#endif
+}
+
+void ProtectSW_GPIO_Config(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure; 
+	/* Configure I2C1 pins: SCL and SDA */
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_4;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
+	GPIO_Init(GPIOE, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+}
 
 
 void Motion_Ctrl_GPIO_Init(void)
@@ -10914,8 +11098,6 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->rightHallIntervalTime = 0x00;
 	ctrlParasPtr->HLavg = 0x00;
 	ctrlParasPtr->HRavg = 0x00;
-	ctrlParasPtr->avgFlag = 0;
-	ctrlParasPtr->avgFlagCount = 0;
 	ctrlParasPtr->gear = 0;
 	ctrlParasPtr->FSflag = 0;
 	ctrlParasPtr->BSflag = 0;

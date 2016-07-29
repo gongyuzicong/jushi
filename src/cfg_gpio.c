@@ -139,21 +139,6 @@ void PWM_GPIO_CFG(void)
 	
 }
 
-void ProtectSW_GPIO_Config(void)
-{
-	GPIO_InitTypeDef  GPIO_InitStructure; 
-	/* Configure I2C1 pins: SCL and SDA */
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_4;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
-	GPIO_Init(GPIOD, &GPIO_InitStructure);
-}
-
 void I2C_GPIO_Config(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure; 

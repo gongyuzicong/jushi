@@ -258,7 +258,6 @@ typedef struct
 	u8 bruce_crossroads_counter;
 
 	u16 zeropointfive;
-	u8 zflag;
 
 	Agv_MS_Location MaxRecoder;
 

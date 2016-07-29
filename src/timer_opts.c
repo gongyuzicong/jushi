@@ -154,7 +154,56 @@ void Timer5_Init(u16 arr, u16 psc)
 	
 }
 
+void Timer6_Init(u16 arr, u16 psc)
+{
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 			//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 			//使能中断
+	NVIC_Init(&NVIC_InitStructure);//初始化
+	
+	//RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+	TIMx_2_7_ENABLE(6);					// TIM4时钟使能
+	TIM6->ARR = arr;					// 自动装载值
+	TIM6->PSC = psc;					// 分频系数
+	TIM6->DIER |= (1 << 0);				// 允许更新中断
+	TIM6->DIER |= (1 << 6);				// 允许触发中断
+	TIMx_ON(TIM6);
+	
+}
 
+/*
+void Timer6_Init2(u16 arr, u16 psc)
+{
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE); //使能外设时钟
+	
+	TIM_TimeBaseStructure.TIM_Period = arr;							//设置在下一个更新事件装入活动的自动重装载寄存器周期的值	
+	TIM_TimeBaseStructure.TIM_Prescaler = psc;						//设置用来作为TIMx时钟频率除数的预分频值
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;			//设置时钟分割:TDTS = Tck_tim
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;		//TIM向下计数模式
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);					//根据指定的参数初始化TIMx的时间基数单位
+	
+	TIM_ARRPreloadConfig(TIM3,ENABLE);								//使能ARR预装载，防止向上计数时更新事件异常延迟
+ 
+	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE );	//允许更新中断
+
+	//中断优先级NVIC设置
+	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;					//TIM3中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;		//先占优先级0级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;				//从优先级3级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;					//IRQ通道被使能
+	NVIC_Init(&NVIC_InitStructure);									//初始化NVIC寄存器
+
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);					//设置NVIC中断分组2:2位抢占优先级，2位响应优先级
+
+	TIM_Cmd(TIM3, ENABLE);  //使能TIM3
+}
+*/
 
 /*
 	函数参数: 

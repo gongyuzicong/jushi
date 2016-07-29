@@ -9,9 +9,10 @@
 #define I2C_SPEED_1K		5000	//根据处理器速度设置，这里处理器速度是72MHz
 
 //I2C端口定义
-#define I2C_SCL    GPIOout(GPIOB, 6)	//SCL
-#define I2C_SDA    GPIOout(GPIOB, 7)	//SDA	 
-#define READ_SDA   GPIOin(GPIOB, 7)	//输入SDA
+#define I2C_SCL    	GPIOout(GPIOB, 6)	//SCL
+#define I2C_SDA    	GPIOout(GPIOB, 7)	//SDA	 
+#define READ_SDA   	GPIOin(GPIOB, 7)	//输入SDA
+#define I2C_WP		GPIOout(GPIOD, 12)
 
 //设置PB7输入输出
 #define SDA_IN()  {GPIOB->CRL &= 0x0FFFFFFF; GPIOB->CRL |= 8 << 28;}

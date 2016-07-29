@@ -1321,7 +1321,6 @@ void MSDS_Init(void)
 	FMSDS_Pre_Ptr->MSDCategory = MSD_NORMAL;
 
 	FMSDS_Ptr->zeropointfive = 0;
-	FMSDS_Ptr->zflag = 0;
 
 	FMSDS_Ptr->MaxRecoder = Agv_MS_Center;
 	

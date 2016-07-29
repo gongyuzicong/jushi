@@ -2,7 +2,6 @@
 #include "cfg_gpio.h"
 
 
-
 // I2C访问速度 = I2C_SPEED_1K / i2c_speed
 u32	i2c_speed = I2C_SPEED_1K / 100;
 
@@ -26,8 +25,16 @@ void My_I2C_Init(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	//开漏输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOB, GPIO_Pin_6 | GPIO_Pin_7);//根据以上配置初始化GPIO
 
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	//开漏输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	
+	GPIO_SetBits(GPIOB, GPIO_Pin_6 | GPIO_Pin_7);//根据以上配置初始化GPIO
+	GPIO_ResetBits(GPIOD, GPIO_Pin_12);//根据以上配置初始化GPIO
+
+	I2C_WP = 0;
 	//设置SCL和SDA空闲状态为高电平
 	I2C_SCL = 1;
 	I2C_SDA = 1;
@@ -62,11 +69,11 @@ void Change_SDA_OUT(void)
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
-/**
+/****
 	* @brief 产生I2C起始信号
-  * @param  None
-  * @retval None
-  * @note
+    * @param  None
+    * @retval None
+    * @note
 	*		请参考I2C通信协议，I2C起始信号：当SCL为高电平时，SDA由高变低
 	*		如下图所示:方框部分表示I2C起始信号
 	*           _____     |
@@ -93,11 +100,11 @@ void I2C_Start(void)
 	I2C_SCL = 0;	//SCL变低，钳住I2C总线，准备发送或接收数据 
 }
 
-/**
+/****
 	* @brief 产生I2C停止信号
-  * @param  None
-  * @retval None
-  * @note
+    * @param  None
+    * @retval None
+    * @note
 	*		请参考I2C通信协议，I2C停止信号：当SCL为高电平时，SDA由低变高
 	*		发送完STOP信号后，SCL和SDA都为高电平，即释放了I2C总线
 	*		如下图所示:方框部分表示I2C停止信号
@@ -124,11 +131,11 @@ void I2C_Stop(void)
 	while(i2c_delay--){}//延时>4.7us						   	
 }
 
-/**
+/****
 	* @brief  等待ACK应答信号
-  * @param  None
-  * @retval 1 - 未接收到应答信号ACK；0 - 接收到应答信号ACK
-  * @note
+    * @param  None
+    * @retval 1 - 未接收到应答信号ACK；0 - 接收到应答信号ACK
+    * @note
 	*		请参考I2C通信协议，检测ACK应答信号：当SCL为高电平时，读取SDA为低电平
 	*		如下图所示:方框部分表示I2C收到应答信号
 	*                             ________     _____
@@ -165,11 +172,11 @@ u8 I2C_Wait_ACK(void)
 }
 
 
-/**
+/****
 	* @brief  产生ACK应答信号
-  * @param  None
-  * @retval None
-  * @note
+    * @param  None
+    * @retval None
+    * @note
 	*		请参考I2C通信协议，产生ACK应答信号: 在SDA为低电平时，SCL产生一个正脉冲
 	*		如下图所示:方框部分表示I2C应答信号
 	*                             _____     _____
@@ -197,11 +204,11 @@ void I2C_ACK(void)
 }
 
 
-/**
+/****
 	* @brief  产生非应答信号NACK
-  * @param  None
-  * @retval None
-  * @note
+    * @param  None
+    * @retval None
+    * @note
 	*		请参考I2C通信协议，产生ACK非应答信号: 在SDA为高电平时，SCL产生一个正脉冲
 	*		如下图所示:方框部分表示I2C非应答信号
 	*                             _____      ______
@@ -229,11 +236,11 @@ void I2C_NACK(void)
 }
 
 
-/**
+/****
 	* @brief  I2C发送一个字节
-  * @param  None
-  * @retval None
-  * @note
+    * @param  None
+    * @retval None
+    * @note
 	*		请参考I2C通信协议，产生ACK应答信号: 在SDA为高电平时，SCL产生一个正脉冲
 	*		如下图所示:方框部分表示I2C起始信号
 	*
@@ -273,11 +280,11 @@ void I2C_Send_Byte(u8 data)
 }
 
 
-/**
+/****
 	* @brief  从I2C读取一个字节
-  * @param  ack : 0 - NACK; 1 - ACK
-  * @retval 接收到的数据
-  * @note
+    * @param  ack : 0 - NACK; 1 - ACK
+    * @retval 接收到的数据
+    * @note
 	*		请参考I2C通信协议，产生ACK应答信号: 在SDA为高电平时，SCL产生一个正脉冲
 	*		如下图所示:方框部分表示I2C起始信号
 	*
@@ -347,12 +354,12 @@ u16 I2C_SetSpeed(u16 speed)
 //具体到某一个器件，请仔细阅读器件规格书关于I2C部分的说明，因为某些器件I2C的读写操作会
 //有一些差异，下面的代码我们在绝大多数的I2C器件中，都是验证OK的！
 
-/**
-  * @brief  向设备指定地址写入单一Byte数据
-  * @param  DevAddr : I2C从设备地址
-  * @param  DataAddr: 需要访问的设备内地址(如寄存器地址，EEPROM地址等)
-  * @param  Data    : 写入的数据
-  * @retval I2C访问的结果: I2C_SUCCESS / I2C_TIMEOUT / I2C_ERROR
+/****
+    * @brief  向设备指定地址写入单一Byte数据
+    * @param  DevAddr : I2C从设备地址
+    * @param  DataAddr: 需要访问的设备内地址(如寄存器地址，EEPROM地址等)
+    * @param  Data    : 写入的数据
+    * @retval I2C访问的结果: I2C_SUCCESS / I2C_TIMEOUT / I2C_ERROR
 	* @note   
 	*   1 - 设备地址DevAddr高7bit是固定的，最低为是读/写(R/W)位，1为读，0为写
 	*		2 - 时序：
@@ -378,14 +385,14 @@ I2C_StatusTypeDef I2C_WriteOneByte(u8 DevAddr, u8 DataAddr, u8 Data)
 	return I2C_SUCCESS;
 }
 
-/**
-  * @brief  向设备指定地址连续写入数据(Burst写模式)
-  * @param  DevAddr : I2C从设备地址
-  * @param  DataAddr: 需要访问的设备内地址(如寄存器地址，EEPROM地址等)
+/****
+    * @brief  向设备指定地址连续写入数据(Burst写模式)
+    * @param  DevAddr : I2C从设备地址
+    * @param  DataAddr: 需要访问的设备内地址(如寄存器地址，EEPROM地址等)
 	*                   对于Burst模式，DataAddr一般是设备的FIFO,缓存，或存储设备的数据地址
-  * @param  *pData  : 写入的数据首地址
-  * @param     Num  : 连续写入的数据个数
-  * @retval I2C访问的结果: I2C_SUCCESS / I2C_TIMEOUT / I2C_ERROR
+    * @param  *pData  : 写入的数据首地址
+    * @param     Num  : 连续写入的数据个数
+    * @retval I2C访问的结果: I2C_SUCCESS / I2C_TIMEOUT / I2C_ERROR
 	* @note   
 	*   1 - 设备地址DevAddr高7bit是固定的，最低为是读/写(R/W)位，1为读，0为写
 	*		2 - 时序：

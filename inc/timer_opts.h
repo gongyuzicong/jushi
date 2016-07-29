@@ -17,6 +17,7 @@ u8 Delay_ms(u32 nms);
 void Timer4_Init(u16 arr, u16 psc);
 void TIM3_Init(u16 Arr, u16 Psc);
 void Delay_ns(u32 ns);
+void Timer6_Init(u16 arr, u16 psc);
 
 
 //extern u8 fac_us;

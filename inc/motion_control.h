@@ -13,8 +13,8 @@
 
 #define Warning_LED		PDout(3)
 #define Warning_LED_IN	PDin(3)
-#define ProtectSW_F		PEin(4)
-#define ProtectSW_R		PDin(5)
+#define ProtectSW_F		PDin(5)
+#define ProtectSW_R		PEin(4)
 
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
@@ -245,8 +245,6 @@ typedef struct
 	
 	u32 HLavg;
 	u32 HRavg;
-	u8 avgFlag;
-	u8 avgFlagCount;
 	u8 gear;
 
 
@@ -449,7 +447,11 @@ void back_slow2(u8);
 void step_origin_Func(void);
 void startup_origin_Func(void);
 void originP(void);
-void SIMU_PWM_Breath_Ctrl(void);
+void SIMU_PWM_BreathWarningLED_Ctrl(void);
+void SIMU_PWM_BreathLED_Ctrl(void);
+void Read_RTC_Data(void);
+void ProtectSW_GPIO_Config(void);
+void Get_Weight_Data(void);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

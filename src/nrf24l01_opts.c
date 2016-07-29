@@ -397,7 +397,7 @@ void NRF24L01_GPIO_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;  // PC0 1 推挽 
- 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;      //推挽输出
+ 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;      		//复用推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
  	GPIO_Init(GPIOA, &GPIO_InitStructure);
  	GPIO_SetBits(GPIOA, GPIO_Pin_11 | GPIO_Pin_12);			  //上拉 取消SPI总线片选
@@ -527,7 +527,7 @@ void NFR24L01_Init(void)
 	int i = 0;
 	
 	NRF24L01_GPIO_Init();
-	//NRF24L01_SPI_Init();
+	NRF24L01_SPI_Init();
 	if(0 != NRF24L01_Check())
 	{
 		printf("NRF24L01 Check Error!\r\n");

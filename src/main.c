@@ -17,15 +17,18 @@
 #include "mpu6050.h"
 #include "i2c_opts.h"
 #include "buffer.h"
+#include "eeprom.h" 
+#include "ads1256.h"
 
 void SystemInit(void)
 {	
 	//keyConfig();
 	BufferOpts_Init();
 	Delay_Init(72);
-	Timer2_Init(10000, 7199);	// 1s
+	//Timer2_Init(10000, 7199);	// 1s
 	TIM3_Init(65535, 35999);		
-	Timer4_Init(9, 719);		// 0.1ms
+	//Timer4_Init(9, 719);		// 0.1ms
+	Timer6_Init(9, 719);
 	//Timer5_Init(9, 719);
 	Motion_Ctrl_Init();
 	Pwm_Init();
@@ -35,7 +38,9 @@ void SystemInit(void)
 	Magn_Sensor_Init();
 	Zigbee_Init();
 	My_I2C_Init();
+	ProtectSW_GPIO_Config();
 	//MPU6050_init();
+	ADS1256_Init();
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -84,8 +89,8 @@ int main(void)
 	//WECV_DOWN();
 	//Delay_ns(5);
 	ECV_POWER_OFF();
-	MOTOR_POWER_ON();
-	//MOTOR_POWER_OFF();
+	//MOTOR_POWER_ON();
+	MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 
 	printf("Start\r\n");
@@ -100,8 +105,7 @@ int main(void)
 	while(1)
 	{		
 		
-		
-		#if 1
+		#if 0
 		
 		if(testStatus == ctrlParasPtr->agvStatus)
 		{
@@ -183,7 +187,7 @@ int main(void)
 				}
 				
 				//AGV_Change_Mode();
-				//ProtectFunc();
+				ProtectFunc();
 				
 				//AGV_Proc();
 				
@@ -193,9 +197,12 @@ int main(void)
 
 				if(ControlCenter == ctrlParasPtr->goalStation)
 				{
-					SIMU_PWM_Breath_Ctrl();
+					SIMU_PWM_BreathWarningLED_Ctrl();
 				}
 				
+				SIMU_PWM_BreathLED_Ctrl();
+
+				Read_RTC_Data();
 				//LeftOrRight_Counter();
 
 				if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
@@ -264,12 +271,23 @@ int main(void)
 
 		//Delay_ns(1);
 
-		if(1 != BuzzerCtrlPtr->buzzerFlag)
+		//Read_RTC_Data();
+		/*
+		u8 data1[9] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+		u8 data2[9] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+		u8 cir = 9;
+		
+		EEPROM_Write_Data(1, data1, 9);
+		Delay_ms(10);
+		EEPROM_Read_Data(1, data2, 9);
+		for(cir = 0; cir < 9; cir++)
 		{
-			BuzzerCtrlPtr->buzzerFlag = 1;
+			printf("%02x ", data2[cir]);
 		}
-
-		BuzzerCtrlPtr->buzzerCtrlFunc();
+		printf("\r\n");
+		Delay_ns(1);
+		*/
+		Get_Weight_Data();
 		
 		#endif
 		
