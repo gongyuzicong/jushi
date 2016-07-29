@@ -797,7 +797,7 @@ void USART3_IRQHandler(void)
 				RFID_Info_Ptr->updateFlag = 1;
 				RFID_Info_Ptr->rfidData = recvD;
 				WarningLedCtrlPtr->twinkleFlag = 1;
-				BuzzerCtrlPtr->buzzerFlag = 1;
+				//BuzzerCtrlPtr->buzzerFlag = 1;
 				
 				if(goStraightStatus == ctrlParasPtr->agvStatus)
 				{

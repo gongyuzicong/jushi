@@ -95,7 +95,7 @@ int main(void)
 	//Zigbee_Ptr->recvValidDataFlag = 1;
 	//Zigbee_Ptr->recvId = 0x0008;
 	//ctrlParasPtr->FSflag = 1;
-	
+	CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
 	
 	while(1)
 	{		
@@ -111,97 +111,119 @@ int main(void)
 		}
 		else
 		{
-			
 			Magn_Sensor_Scan();
 			
-			Receive_handle();
-			//Zigbee_Data_Scan();
-			
-			CrossRoad_Count();
-			
-			//Hall_Count();
-			
-			Get_Zigbee_Info_From_Buf();
-			
-			RFID_Goal_Node_Analy();
-			
-			Walking_Step_Controler();
-			
-			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
+			if(0 == ctrlParasPtr->start_origin_mode)
 			{
-				if(((mslRecF - FMSDS_Ptr->AgvMSLocation <= 2) || (mslRecF - FMSDS_Ptr->AgvMSLocation >= -2)) &&\
-					((mslRecR - RMSDS_Ptr->AgvMSLocation <= 2) || (mslRecR - RMSDS_Ptr->AgvMSLocation >= -2)))
-				{
-					mslRecF = FMSDS_Ptr->AgvMSLocation;
-					mslRecR = FMSDS_Ptr->AgvMSLocation;
-					
-				#if 0
-					AGV_Walking();
-				#else
-					if(goStraightStatus == ctrlParasPtr->agvStatus)
-					{
-						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-					}
-					else if(backStatus == ctrlParasPtr->agvStatus)
-					{
-						AGV_Correct_back_ug(ctrlParasPtr->gear);
-					}
-					else if(cirLeft == ctrlParasPtr->agvStatus)
-					{
-						walking_cirLeft(ctrlParasPtr->gear);
-					}
-					else if(cirRight == ctrlParasPtr->agvStatus)
-					{
-						walking_cirRight(ctrlParasPtr->gear);
-					}
-					else if(gSslow == ctrlParasPtr->agvStatus)
-					{
-						gS_slow2(ctrlParasPtr->gear);
-					}
-					else if(bSslow == ctrlParasPtr->agvStatus)
-					{
-						back_slow2(ctrlParasPtr->gear);
-					}
-				#endif
-				}
-			}
-			
-			//AGV_Change_Mode();
-			//ProtectFunc();
-			
-			//AGV_Proc();
-			
-			WarningLedCtrlPtr->twinkleCtrlFunc();
-			ZigbeeResendInfo_Ptr->resendCtrlFunc();
-			BuzzerCtrlPtr->buzzerCtrlFunc();
-			
-			//LeftOrRight_Counter();
-
-			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
-			//if(0)
-			{
-				hexF = FMSDS_Ptr->MSD_Hex;
-				hexR = RMSDS_Ptr->MSD_Hex;
-
-			#if 1
-				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
-				{
-					//Show_Infomation();
-					//show_Excel_Analysis_Info();
-				}
-				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
-				{
-					//Show_Infomation();
-					//show_Excel_Analysis_Info();
-				}
-			#else
-
-				Show_Infomation();
-
-			#endif
 				
+				if(gSslow == ctrlParasPtr->agvStatus)
+				{
+					gS_slow2(3);
+				}
+				else if(bSslow == ctrlParasPtr->agvStatus)
+				{
+					back_slow2(3);
+				}
+
+				startup_origin_Func();
 			}
-			
+			else
+			{
+				//originP();
+				
+				Receive_handle2();
+				
+				CrossRoad_Count();
+				
+				//Hall_Count();
+				
+				Get_Zigbee_Info_From_Buf();
+				
+				RFID_Goal_Node_Analy();
+				
+				Walking_Step_Controler();
+				
+				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
+				{
+					if(((mslRecF - FMSDS_Ptr->AgvMSLocation <= 2) || (mslRecF - FMSDS_Ptr->AgvMSLocation >= -2)) &&\
+						((mslRecR - RMSDS_Ptr->AgvMSLocation <= 2) || (mslRecR - RMSDS_Ptr->AgvMSLocation >= -2)))
+					{
+						mslRecF = FMSDS_Ptr->AgvMSLocation;
+						mslRecR = FMSDS_Ptr->AgvMSLocation;
+						
+					#if 0
+						AGV_Walking();
+					#else
+						if(goStraightStatus == ctrlParasPtr->agvStatus)
+						{
+							AGV_Correct_gS_8ug(ctrlParasPtr->gear);
+						}
+						else if(backStatus == ctrlParasPtr->agvStatus)
+						{
+							AGV_Correct_back_ug(ctrlParasPtr->gear);
+						}
+						else if(cirLeft == ctrlParasPtr->agvStatus)
+						{
+							walking_cirLeft(ctrlParasPtr->gear);
+						}
+						else if(cirRight == ctrlParasPtr->agvStatus)
+						{
+							walking_cirRight(ctrlParasPtr->gear);
+						}
+						else if(gSslow == ctrlParasPtr->agvStatus)
+						{
+							gS_slow2(ctrlParasPtr->gear);
+						}
+						else if(bSslow == ctrlParasPtr->agvStatus)
+						{
+							back_slow2(ctrlParasPtr->gear);
+						}
+					#endif
+					}
+				}
+				
+				//AGV_Change_Mode();
+				//ProtectFunc();
+				
+				//AGV_Proc();
+				
+				WarningLedCtrlPtr->twinkleCtrlFunc();
+				ZigbeeResendInfo_Ptr->resendCtrlFunc();
+				BuzzerCtrlPtr->buzzerCtrlFunc();
+
+				if(ControlCenter == ctrlParasPtr->goalStation)
+				{
+					SIMU_PWM_Breath_Ctrl();
+				}
+				
+				//LeftOrRight_Counter();
+
+				if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
+				//if(0)
+				{
+					hexF = FMSDS_Ptr->MSD_Hex;
+					hexR = RMSDS_Ptr->MSD_Hex;
+
+				#if 1
+					if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
+					{
+						//Show_Infomation();
+						//show_Excel_Analysis_Info();
+					}
+					else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
+					{
+						//Show_Infomation();
+						//show_Excel_Analysis_Info();
+					}
+				#else
+
+					Show_Infomation();
+
+				#endif
+					
+				}
+					
+			}
 			
 		}
 

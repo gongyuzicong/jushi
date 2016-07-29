@@ -80,6 +80,9 @@ void Receive_handle(void);
 void Send_Arrive(void);
 void Send_WaitForGoods(void);
 void Send_GettedGoods(u8);
+void Receive_handle2(void);
+void Send_GettedGoods2(u16);
+void Send_GettedGoods3(void);
 
 
 #endif

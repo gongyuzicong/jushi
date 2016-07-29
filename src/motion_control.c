@@ -8506,7 +8506,7 @@ void AGV_Correct_1(void)
 
 void Get_Zigbee_Info_From_Buf(void)
 {
-	if((0x0000 == ctrlParasPtr->goalRFIDnode) && (zigbeeQueueCtrl.Total > 0))
+	if(((step_origin == ctrlParasPtr->walkingstep) || (step_stop == ctrlParasPtr->walkingstep)) && (zigbeeQueueCtrl.Total > 0))
 	{
 		u16 data = 0;
 		
@@ -8534,7 +8534,7 @@ void RFID_Goal_Node_Analy(void)
 	if(1 == Zigbee_Ptr->recvValidDataFlag)
 	{
 		Zigbee_Ptr->recvValidDataFlag = 0;
-		
+		Warning_LED = 0;
 		if((ZBandRFIDmapping[SpinStation_1] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_2] == Zigbee_Ptr->recvId))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_1AND2_RFID;
@@ -8547,6 +8547,12 @@ void RFID_Goal_Node_Analy(void)
 			{
 				ctrlParasPtr->goalStation = SpinStation_2;
 			}
+
+			if(step_stop == ctrlParasPtr->walkingstep)
+			{
+				ctrlParasPtr->originFlag = 1;
+			}
+			
 			ctrlParasPtr->walkingstep = step_gS;
 		}
 		else if((ZBandRFIDmapping[SpinStation_3] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_4] == Zigbee_Ptr->recvId))
@@ -8986,47 +8992,56 @@ void STATION_1AND2_WalkControl(void)
 	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
-		//CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
-		CHANGE_TO_GO_STRAIGHT_MODE();
-		
-		if(1 == ctrlParasPtr->crossRoadCountF)
+		if(1 == ctrlParasPtr->originFlag)
 		{
-			ctrlParasPtr->agvStatus = gSslow;
-			ctrlParasPtr->gear = 3;
-			//printf("ctrlParasPtr->gear = 3\r\n");
+			ctrlParasPtr->originFlag = 0;
+			ctrlParasPtr->walkingstep = step_gVeer;
 		}
 		else
 		{
-			ctrlParasPtr->gear = 10;
-		}
-
-		if(1 == RFID_Info_Ptr->updateFlag)
-		{
+			//CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
+			CHANGE_TO_GO_STRAIGHT_MODE();
 			
-			RFID_Info_Ptr->updateFlag = 0;
-			printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
-			//printf("1LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
-			if(ctrlParasPtr->goalRFIDnode == RFID_Info_Ptr->rfidData)
+			if(1 == ctrlParasPtr->crossRoadCountF)
 			{
-				CHANGE_TO_STOP_MODE();
-				//Delay_ms(500);
-				ctrlParasPtr->walkingstep = step_gVeer;
-				
+				ctrlParasPtr->agvStatus = gSslow;
+				ctrlParasPtr->gear = 3;
+				//printf("ctrlParasPtr->gear = 3\r\n");
 			}
-		}
-		/*
-		else if(1 == ctrlParasPtr->crossRoadCountF)
-		{
-			if((ctrlParasPtr->rightHallCounter >= CrossRoadHallCountArrGS[ctrlParasPtr->crossRoadCountF].HallCountRight) ||\
-				(ctrlParasPtr->leftHallCounter >= CrossRoadHallCountArrGS[ctrlParasPtr->crossRoadCountF].HallCountLeft))
+			else
 			{
-				CHANGE_TO_STOP_MODE();
-				//Delay_ms(500);
-				ctrlParasPtr->walkingstep = step_gVeer;
-				
+				ctrlParasPtr->gear = 10;
 			}
+
+			if(1 == RFID_Info_Ptr->updateFlag)
+			{
+				
+				RFID_Info_Ptr->updateFlag = 0;
+				printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
+				//printf("1LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+				if(ctrlParasPtr->goalRFIDnode == RFID_Info_Ptr->rfidData)
+				{
+					CHANGE_TO_STOP_MODE();
+					//Delay_ms(500);
+					ctrlParasPtr->walkingstep = step_gVeer;
+					
+				}
+			}
+			/*
+			else if(1 == ctrlParasPtr->crossRoadCountF)
+			{
+				if((ctrlParasPtr->rightHallCounter >= CrossRoadHallCountArrGS[ctrlParasPtr->crossRoadCountF].HallCountRight) ||\
+					(ctrlParasPtr->leftHallCounter >= CrossRoadHallCountArrGS[ctrlParasPtr->crossRoadCountF].HallCountLeft))
+				{
+					CHANGE_TO_STOP_MODE();
+					//Delay_ms(500);
+					ctrlParasPtr->walkingstep = step_gVeer;
+					
+				}
+			}
+			*/
 		}
-		*/
+		
 	
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
@@ -9238,7 +9253,16 @@ void STATION_9AND10_WalkControl(void)
 	{
 		CHANGE_TO_GO_STRAIGHT_MODE();
 
-		ctrlParasPtr->gear = 10;
+		if(5 == ctrlParasPtr->crossRoadCountF)
+		{
+			ctrlParasPtr->agvStatus = gSslow;
+			ctrlParasPtr->gear = 3;
+			//printf("ctrlParasPtr->gear = 3\r\n");
+		}
+		else
+		{
+			ctrlParasPtr->gear = 10;
+		}
 			
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
@@ -9992,8 +10016,9 @@ void step_entry_Func(void)
 		ctrlParasPtr->gear = 1;
 	}
 	
-	if((0 == LMT_INR) || (0 == LMT_INL))		// 接近开关响应或者是超过磁条了
+	//if((0 == LMT_INR) || (0 == LMT_INL))		// 接近开关响应或者是超过磁条了
 	//if((0 == LMT_INR) || (0 == LMT_INL) || (0x0000 == FMSDS_Ptr->MSD_Hex))
+	if(0x0000 == FMSDS_Ptr->MSD_Hex)
 	{
 		CHANGE_TO_STOP_MODE();
 		//Delay_ns(1);
@@ -10010,7 +10035,7 @@ void step_catch_Func(void)
 {
 #if 1
 	
-	if(0 == LMT_SW) 	// 已经抓到货物了
+	if(1 == LMT_SW) 	// 已经抓到货物了
 	{
 		//Delay_ns(3);
 		
@@ -10018,7 +10043,7 @@ void step_catch_Func(void)
 		
 		RFID_Info_Ptr->updateFlag = 0;
 		
-		Send_GettedGoods(1);
+		Send_GettedGoods3();
 
 		printf("change to exit\r\n");
 		
@@ -10133,7 +10158,7 @@ void step_weigh_Func(void)
 	//WECV_DOWN();
 	//Delay_ns(6);
 
-	if(0 == Return_SW)
+	if(1 == Return_SW)
 	{
 		ECV_POWER_OFF();
 		ctrlParasPtr->walkingstep = step_bVeer;
@@ -10285,6 +10310,7 @@ void step_wFTans_Func(void)
 			CMD_Flag_Ptr->cmdFlag = NcNone;
 			timRec = 0;
 			RFID_Info_Ptr->lock = 0x00;
+			Zigbee_Ptr->recvId = 0x00;
 			ctrlParasPtr->walkingstep = step_origin;
 		}
 	}
@@ -10298,7 +10324,7 @@ void step_origin_Func(void)
 	
 	CHANGE_TO_GO_STRAIGHT_MODE();
 	
-	if(1 == ctrlParasPtr->crossRoadCountF)
+	if(ctrlParasPtr->crossRoadCountF <= 1)
 	{
 		ctrlParasPtr->agvStatus = gSslow;
 		ctrlParasPtr->gear = 3;
@@ -10321,6 +10347,11 @@ void step_origin_Func(void)
 			CHANGE_TO_STOP_MODE();
 			//Delay_ms(500);
 			ctrlParasPtr->walkingstep = step_stop;
+
+			if(0 == ctrlParasPtr->start_origin_mode)
+			{
+				ctrlParasPtr->start_origin_mode = 1;
+			}
 			
 		}
 		else if(RFID_Info_Ptr->rfidData > 0x01)
@@ -10351,8 +10382,61 @@ void step_stop_Func(void)
 	ctrlParasPtr->goalStation = ControlCenter;
 	ctrlParasPtr->goalRFIDnode = 0x0000;
 	ctrlParasPtr->walkingstep = step_stop;
-	Zigbee_Ptr->recvId = 0x00;
+	//ctrlParasPtr->originFlag = 1;
+	//Zigbee_Ptr->recvId = 0x00;
 }
+
+void originP(void)
+{
+	if((ControlCenter == ctrlParasPtr->goalStation) && (step_stop == ctrlParasPtr->goalStation))
+	{
+		ctrlParasPtr->originFlag = 1;
+	}
+	else
+	{
+		ctrlParasPtr->originFlag = 0;
+	}
+}
+
+void startup_origin_Func(void)
+{
+
+	if(1 == RFID_Info_Ptr->updateFlag)
+	{
+		
+		RFID_Info_Ptr->updateFlag = 0;
+		printf("startup_origin_Func\r\n");
+		//printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
+		//printf("1LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+		if(0x01 == RFID_Info_Ptr->rfidData)
+		{
+			CHANGE_TO_STOP_MODE();
+			step_stop_Func();
+			ctrlParasPtr->start_origin_mode = 1;
+			
+		}
+		else if(RFID_Info_Ptr->rfidData > 0x01)
+		{
+						
+			CHANGE_TO_BACK_SLOW_MODE();
+		}
+	}
+	
+	/*
+	else if(1 == ctrlParasPtr->crossRoadCountF)
+	{
+		if((ctrlParasPtr->rightHallCounter >= CrossRoadHallCountArrGS[ctrlParasPtr->crossRoadCountF].HallCountRight) ||\
+			(ctrlParasPtr->leftHallCounter >= CrossRoadHallCountArrGS[ctrlParasPtr->crossRoadCountF].HallCountLeft))
+		{
+			CHANGE_TO_STOP_MODE();
+			//Delay_ms(500);
+			ctrlParasPtr->walkingstep = step_stop;
+			
+		}
+	}
+	*/
+}
+
 
 void Walking_Step_Controler(void)
 {
@@ -10428,7 +10512,7 @@ void ProtectFunc(void)
 {
 	if((0 == ProtectSW_F) || (0 == ProtectSW_R))
 	{
-		MOTOR_POWER_OFF();
+		//MOTOR_POWER_OFF();
 	}
 }
 
@@ -10524,6 +10608,73 @@ void BuzzerCtrlFunc(void)
 	}
 	
 }
+
+void SIMU_PWM_Breath_Ctrl(void)
+{
+	static u32 timRec = 0;
+	static u8 step = 0, flag = 0, counter = 0;
+	static u16 dutyTime = 0;
+	
+	if(0 == timRec)
+	{
+		timRec = SystemRunningTime;
+		Warning_LED = 0;
+		step = 0;
+	}
+	else
+	{
+		
+		if(0 == step)
+		{
+			if(SystemRunningTime - timRec >= dutyTime)
+			{
+				Warning_LED = 1;
+				step = 1;
+				timRec = SystemRunningTime;
+			}
+		}
+		else if(1 == step)
+		{
+			if(SystemRunningTime - timRec >= (100 - dutyTime))
+			{
+				timRec = 0;
+				step = 0;
+
+				if(counter < 1)
+				{
+					counter++;
+				}
+				else
+				{
+					counter = 0;
+					if(0 == dutyTime)
+					{
+						flag = 0;
+					}
+					else if(dutyTime >= 100)
+					{
+						flag = 1;
+					}
+
+					if(0 == flag)
+					{
+						dutyTime++;
+					}
+					else if(1 == flag)
+					{
+						dutyTime--;
+					}
+				}
+				
+				
+			}
+		}
+		
+	}
+	
+}
+
+
 
 
 void Motion_Ctrl_GPIO_Init(void)
@@ -10745,7 +10896,7 @@ void Motion_Ctrl_Init(void)
 
 	//Trigger_Gpio_Init();
 	
-	ctrlParasPtr->agvStatus = stopStatus;
+	ctrlParasPtr->agvStatus = StatusStart;
 	ctrlParasPtr->settedSpeed = 0;
 	ctrlParasPtr->rightMotorRealSpeed = 0;
 	ctrlParasPtr->rightMotorSettedSpeed = 0;
@@ -10773,12 +10924,16 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->goalStation = ControlCenter;
 	ctrlParasPtr->walkingstep = step_stop;
 	ctrlParasPtr->crossRoadCountF = 0;
+	ctrlParasPtr->crossRoadUpdateF = 0;
+	ctrlParasPtr->crossRoadCountR = 0;
+	ctrlParasPtr->crossRoadUpdateR = 0;
 	ctrlParasPtr->T1DF = 0;
 	ctrlParasPtr->T1dutyRec = 0;
 	ctrlParasPtr->LP_duty = 0;
 	ctrlParasPtr->RP_duty = 0;
 	ctrlParasPtr->LD_duty = 0;
 	ctrlParasPtr->RD_duty = 0;
+	ctrlParasPtr->originFlag = 0;
 	
 	agv_walking_func[StatusStart] = NullFunc;
 	agv_walking_func[stopStatus] = walking_stopStatus;

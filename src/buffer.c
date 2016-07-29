@@ -1,5 +1,6 @@
 #include "buffer.h"
 #include "debug_opts.h"
+#include "motion_control.h"
 
 BufferControl fytCmdBufCtrl;
 BufferControl canBufCtrl;
@@ -382,7 +383,7 @@ void NrfRecvDataBuf_Delete(void)
 
 u8 searchZigbeeData(u16 data, u8 *index)
 {
-	u8 cir = 0, flag = 0, inindex = 0, searchIndex = 0;
+	u8 cir = 0, flag = 0, searchIndex = 0;
 
 	for(cir = 0; cir < zigbeeQueueCtrl.Total; cir++)
 	{
@@ -399,12 +400,11 @@ u8 searchZigbeeData(u16 data, u8 *index)
 		if(data == zigbeeInfoQueueBuf[searchIndex])
 		{
 			flag = 1;
-			inindex = cir;
 			break;
 		}
 	}
 
-	*index = inindex;
+	*index = searchIndex;
 	
 	return flag;
 }
@@ -445,6 +445,74 @@ void zigbeeReqQueue(u16 data)
 	if(0 == searchZigbeeData(data, &index))		// 还无数据存在
 	{
 		zigbeeRecvDataBuf_Append(data);
+		BuzzerCtrlPtr->buzzerFlag = 1;
+	}
+}
+
+
+
+void zigbeeDeleteQueue(u8 index)
+{
+	u8 cir = 0;
+	
+	if(zigbeeQueueCtrl.HeadVernier + zigbeeQueueCtrl.Total > MAX_ZIGBEE_QUEUE_NUM)
+	{
+		if(index >= zigbeeQueueCtrl.HeadVernier)
+		{
+			for(cir = index; cir < (zigbeeQueueCtrl.Total + zigbeeQueueCtrl.HeadVernier) - 1; cir++)
+			{
+				if(index < MAX_ZIGBEE_QUEUE_NUM - 1)
+				{
+					zigbeeInfoQueueBuf[cir] = zigbeeInfoQueueBuf[cir + 1];
+				}
+				else if(MAX_ZIGBEE_QUEUE_NUM - 1 == index)
+				{
+					zigbeeInfoQueueBuf[cir] = zigbeeInfoQueueBuf[0];
+				}
+				else if(index > MAX_ZIGBEE_QUEUE_NUM - 1)
+				{
+					zigbeeInfoQueueBuf[cir - MAX_ZIGBEE_QUEUE_NUM] = zigbeeInfoQueueBuf[cir - MAX_ZIGBEE_QUEUE_NUM + 1];
+				}
+			}
+		}
+		else
+		{
+			for(cir = index; cir < zigbeeQueueCtrl.TailVernier - 1; cir++)
+			{
+				zigbeeInfoQueueBuf[cir] = zigbeeInfoQueueBuf[cir + 1];
+			}
+		}
+		zigbeeQueueCtrl.TailVernier--;
+	}
+	else if(MAX_ZIGBEE_QUEUE_NUM == zigbeeQueueCtrl.HeadVernier + zigbeeQueueCtrl.Total)
+	{
+		for(cir = index; cir < (zigbeeQueueCtrl.Total + zigbeeQueueCtrl.HeadVernier) - 1; cir++)
+		{
+			zigbeeInfoQueueBuf[cir] = zigbeeInfoQueueBuf[cir + 1];
+		}
+		zigbeeQueueCtrl.TailVernier = MAX_ZIGBEE_QUEUE_NUM - 1;
+	}
+	else if(zigbeeQueueCtrl.HeadVernier + zigbeeQueueCtrl.Total < MAX_ZIGBEE_QUEUE_NUM)
+	{
+		for(cir = index; cir < (zigbeeQueueCtrl.Total + zigbeeQueueCtrl.HeadVernier) - 1; cir++)
+		{
+			zigbeeInfoQueueBuf[cir] = zigbeeInfoQueueBuf[cir + 1];
+		}
+		zigbeeQueueCtrl.TailVernier--;
+	}
+
+	zigbeeQueueCtrl.Total--;
+}
+
+
+void zigbeeCancelQueue(u16 data)
+{
+	u8 index = 0;
+
+	if(1 == searchZigbeeData(data, &index))
+	{
+		zigbeeDeleteQueue(index);
+		BuzzerCtrlPtr->buzzerFlag = 1;
 	}
 }
 

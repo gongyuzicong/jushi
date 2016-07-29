@@ -7,7 +7,6 @@ PwmOperaterStruct_P pwmOptsPtr_1 = &pwm3_opts;
 PwmParaStruct pwm3Para;
 PwmParaStruct_P pwmParaPtr_1 = &pwm3Para;
 
-
 u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM ∆µ¬ …Ë÷√ ∑∂Œß 1k~10k
 {
 	u8 flag = 1;

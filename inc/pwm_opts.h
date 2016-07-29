@@ -46,7 +46,6 @@ u8 Pwm_Init(void);
 extern PwmOperaterStruct_P pwmOptsPtr_1;
 extern PwmParaStruct_P pwmParaPtr_1; 
 
-
 #endif
 
 

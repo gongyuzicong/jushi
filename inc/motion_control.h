@@ -276,6 +276,9 @@ typedef struct
 	u8 RP_duty;
 	u8 LD_duty;
 	u8 RD_duty;
+
+	u8 start_origin_mode;
+	u8 originFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -443,7 +446,10 @@ void Get_Zigbee_Info_From_Buf(void);
 void ProtectFunc(void);
 void gS_slow2(u8);
 void back_slow2(u8);
-
+void step_origin_Func(void);
+void startup_origin_Func(void);
+void originP(void);
+void SIMU_PWM_Breath_Ctrl(void);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

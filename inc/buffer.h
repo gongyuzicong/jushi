@@ -64,6 +64,9 @@ void zigbeeRecvDataBuf_Append(u16);
 void zigbeeRecvDataBuf_Delete(void);
 void get_zigbeeData(u16 *);
 void zigbeeReqQueue(u16);
+void zigbeeDeleteQueue(u8);
+void zigbeeCancelQueue(u16);
+u8 searchZigbeeData(u16, u8 *);
 
 
 

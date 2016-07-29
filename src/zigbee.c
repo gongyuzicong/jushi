@@ -21,8 +21,8 @@ Zigbee_ACK_Info_P ZigbeeResendInfo_Ptr = &ZigbeeResendInfo;
 ///////变量声明//////////////
 u8 receive_state=0;		//接收完成标志
 u8 receive_count=0;		//接收数据计数
-u8 i;									//循环体变量
-u8 flag1=0;						//记录串口接收字节
+u8 i;					//循环体变量
+u8 flag1=0;				//记录串口接收字节
 
 ZigbeeID_Info Id_Arr[12]; 
 
@@ -32,14 +32,8 @@ u8 nc_send2[8]=
 	{0xfe, 0x08, 0x8c, 0xfe, 0x01, 0x02, 0x7F, 0x02};//小车到达龙门请龙门取物
 u8 nc_send3[8]=
 	{0xfe, 0x08, 0x8c, 0xfe, 0x01, 0x02, 0x7F, 0x03};//小车离开龙门
-u8 nc_send4[8]=	// 1号
+u8 nc_send4[8]=
 	{0xfe, 0x08, 0x71, 0xdc, 0x01, 0x02, 0x7F, 0x01};//小车已取物，发送给按钮使其停止亮灯
-u8 nc_send5[8]=	// 2号
-	{0xfe, 0x08, 0x76, 0x3f, 0x01, 0x02, 0x7F, 0x01};//小车已取物，发送给按钮使其停止亮灯
-u8 nc_send6[8]= // 3号
-	{0xfe, 0x08, 0x54, 0xd7, 0x01, 0x02, 0x7F, 0x01};//小车已取物，发送给按钮使其停止亮灯
-u8 nc_send7[8]= // 4号
-	{0xfe, 0x08, 0xa4, 0x52, 0x01, 0x02, 0x7F, 0x01};//小车已取物，发送给按钮使其停止亮灯
 
 u8 zigbeeAck[8] = {0xfe, 0x08, 0x00, 0x00, 0x01, 0x02, 0x8f, 0xff};
 
@@ -112,7 +106,6 @@ u8 SendChar_Zigbee(u8 ch)  //发送单个数据
 {
 	//u16 timeout = U16_MAX;
 	u32 timeout = 0;
-	u32 cir = 0;
 	USART_SendData(USART2, ch);
 	
 	#if 0
@@ -293,7 +286,6 @@ void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
 		{
 			receive_count = 0;
 			receive_state = 1;
-			//Send_Zigbee_ACK();
 		}
 	}
 }
@@ -311,21 +303,21 @@ void Receive_handle(void)
 				nc_receive[i] = 0x00;
 			}
 			///终端请求取物////
-			if(ZBandRFIDmapping[SpinStation_1] != Zigbee_Ptr->recvId)
+			
+			if(ZBandRFIDmapping[SpinStation_8] != Zigbee_Ptr->recvId)
+			//if(1)
 			{
 				zigbeeReqQueue(0x0008);
 				zigbeeAck[2] = Id_Arr[1].zigbee_ID1;
 				zigbeeAck[3] = Id_Arr[1].zigbee_ID2;
 				Send_Zigbee_ACK();
 				CMD_Flag_Ptr->cmdFlag = GoodReq;
-				WarningLedCtrlPtr->twinkleFlag = 1;
+				//WarningLedCtrlPtr->twinkleFlag = 1;
+				//BuzzerCtrlPtr->buzzerFlag = 1;
 			}
 			
 			printf("0x0001\r\n");
-			
-			//zigbeeAck[2] = 0x71;
-			//zigbeeAck[3] = 0xdc;
-			
+						
 			/////////////////
 		}
 		else if((nc_receive[6] == 0x7f) && (nc_receive[7] == 0x11))
@@ -340,8 +332,6 @@ void Receive_handle(void)
 			zigbeeAck[3] = Id_Arr[2].zigbee_ID2;
 			Send_Zigbee_ACK();
 			printf("0x0002\r\n");
-			Delay_ns(1);
-			Send_GettedGoods(2);
 			CMD_Flag_Ptr->cmdFlag = GoodReq;
 			/////////////////
 		}
@@ -357,8 +347,6 @@ void Receive_handle(void)
 			zigbeeAck[3] = Id_Arr[3].zigbee_ID2;
 			Send_Zigbee_ACK();
 			printf("0x0003\r\n");
-			Delay_ns(1);
-			Send_GettedGoods(3);
 			CMD_Flag_Ptr->cmdFlag = GoodReq;
 			/////////////////
 		}
@@ -374,8 +362,6 @@ void Receive_handle(void)
 			zigbeeAck[3] = Id_Arr[4].zigbee_ID2;
 			Send_Zigbee_ACK();
 			printf("0x0003\r\n");
-			Delay_ns(1);
-			Send_GettedGoods(3);
 			CMD_Flag_Ptr->cmdFlag = GoodReq;
 			/////////////////
 		}
@@ -385,6 +371,9 @@ void Receive_handle(void)
 			{
 				nc_receive[i] = 0x00;
 			}
+
+			zigbeeCancelQueue(0x0008);
+			
 			Send_Zigbee_ACK();
 			printf("cancel 0x0001\r\n");
 			///////终端请求停止取物/////////
@@ -426,7 +415,8 @@ void Receive_handle(void)
 			zigbeeAck[3] = Id_Arr[0].zigbee_ID2;
 			Send_Zigbee_ACK();
 			printf("GoodLeav\r\n");
-			WarningLedCtrlPtr->twinkleFlag = 1;
+			//WarningLedCtrlPtr->twinkleFlag = 1;
+			//BuzzerCtrlPtr->buzzerFlag = 1;
 			/////龙门已经将货物取走//////
 			CMD_Flag_Ptr->cmdFlag = GoodLeav;
 			////////////////////////////
@@ -445,6 +435,69 @@ void Receive_handle(void)
 		
 	}
 }
+
+void Receive_handle2(void)
+{
+	if(receive_state == 1)
+	{
+		u8 cir = 0;
+		receive_state = 0;
+
+		if(nc_receive[6] == 0x7f)
+		{
+			u16 node = 0;
+
+			node = (nc_receive[7] >> 4) + 1;
+			
+			if(0x01 == (nc_receive[7] & 0x0f))			// 请求取物
+			{
+				if(ZBandRFIDmapping[node] != Zigbee_Ptr->recvId)
+				//if(1)
+				{
+					zigbeeReqQueue(node);
+					zigbeeAck[2] = Id_Arr[node].zigbee_ID1;
+					zigbeeAck[3] = Id_Arr[node].zigbee_ID2;
+					Send_Zigbee_ACK();
+					CMD_Flag_Ptr->cmdFlag = GoodReq;
+					//WarningLedCtrlPtr->twinkleFlag = 1;
+					//BuzzerCtrlPtr->buzzerFlag = 1;
+					printf("req %04x\r\n", node);
+				}
+				
+			}
+			else if(0x02 == (nc_receive[7] & 0x0f))		// 请求取消取物
+			{
+				u8 index = 0;
+
+				if(1 == searchZigbeeData(node, &index))
+				{
+					zigbeeDeleteQueue(index);
+					Send_Zigbee_ACK();
+					CMD_Flag_Ptr->cmdFlag = GoodReqCancel;
+					BuzzerCtrlPtr->buzzerFlag = 1;
+					printf("cancel %04x\r\n", node);
+				}
+				
+			}
+			
+		}
+		else if(nc_receive[6] == 0x8f)
+		{
+			if(0xff == nc_receive[7])
+			{
+				printf("recv ACK\r\n");
+				CMD_Flag_Ptr->cmdFlag = ZigbeeACK;
+			}
+		}
+
+		for(cir = 0; cir < 8; cir++)
+		{
+			nc_receive[cir] = 0x00;
+		}
+		
+	}
+}
+
 
 void Send_GettedGoods(u8 node)
 {
@@ -486,9 +539,50 @@ void Send_GettedGoods(u8 node)
 	ZigbeeResendInfo_Ptr->resendInfo = nc_send4;
 }
 
+void Send_GettedGoods2(u16 node)
+{
+	u8 cir = 8;
+	
+	nc_send4[2] = Id_Arr[node].zigbee_ID1;
+	nc_send4[3] = Id_Arr[node].zigbee_ID2;
+	
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_GettedGoods2\r\n");
+		}
+		SendChar_Zigbee(nc_send4[cir]);
+	}
+	
+	ZigbeeResendInfo_Ptr->resendFlag = 1;
+	ZigbeeResendInfo_Ptr->resendInfo = nc_send4;
+}
+
+void Send_GettedGoods3(void)
+{
+	u8 cir = 8;
+	
+	nc_send4[2] = Id_Arr[Zigbee_Ptr->recvId].zigbee_ID1;
+	nc_send4[3] = Id_Arr[Zigbee_Ptr->recvId].zigbee_ID2;
+	
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_GettedGoods3\r\n");
+		}
+		SendChar_Zigbee(nc_send4[cir]);
+	}
+	
+	ZigbeeResendInfo_Ptr->resendFlag = 1;
+	ZigbeeResendInfo_Ptr->resendInfo = nc_send4;
+}
+
 void Send_WaitForGoods(void)
 {
 	u8 cir = 8;
+	
 	for(cir = 0; cir < 8; cir++)
 	{
 		if(0 == cir)
@@ -504,11 +598,10 @@ void Send_WaitForGoods(void)
 }
 
 
-
-
 void Send_Arrive(void)
 {
 	u8 cir = 8;
+	
 	for(cir = 0; cir < 8; cir++)
 	{
 		if(0 == cir)
@@ -682,9 +775,8 @@ void Zigbee_Init(void)
 
 	CMD_Flag_Ptr->cmdFlag = NcNone;
 
-	// 龙门
-	Id_Arr[0].zigbee_ID1 = 0x8c;
-	Id_Arr[0].zigbee_ID2 = 0xfe;
+	Id_Arr[0].zigbee_ID1 = 0x00;
+	Id_Arr[0].zigbee_ID2 = 0x00;
 	
 	Id_Arr[1].zigbee_ID1 = 0x71;
 	Id_Arr[1].zigbee_ID2 = 0xdc;
@@ -698,6 +790,28 @@ void Zigbee_Init(void)
 	Id_Arr[4].zigbee_ID1 = 0xa4;
 	Id_Arr[4].zigbee_ID2 = 0x52;
 
+	Id_Arr[5].zigbee_ID1 = 0x40;
+	Id_Arr[5].zigbee_ID2 = 0x47;
+
+	Id_Arr[6].zigbee_ID1 = 0x05;
+	Id_Arr[6].zigbee_ID2 = 0x74;
+
+	Id_Arr[7].zigbee_ID1 = 0xd2;
+	Id_Arr[7].zigbee_ID2 = 0xc1;
+
+	Id_Arr[8].zigbee_ID1 = 0xd2;
+	Id_Arr[8].zigbee_ID2 = 0xa1;
+
+	Id_Arr[9].zigbee_ID1 = 0x60;
+	Id_Arr[9].zigbee_ID2 = 0x40;
+
+	Id_Arr[10].zigbee_ID1 = 0xd9;
+	Id_Arr[10].zigbee_ID2 = 0x2a;
+
+	// 龙门
+	Id_Arr[11].zigbee_ID1 = 0x8c;
+	Id_Arr[11].zigbee_ID2 = 0xfe;
+	
 	ZigbeeResendInfo_Ptr->resendFlag = 0;
 	ZigbeeResendInfo_Ptr->intervalTime_ms = 100;
 	ZigbeeResendInfo_Ptr->resendNum = 3;
