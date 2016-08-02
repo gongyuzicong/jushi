@@ -44,6 +44,8 @@ void SystemInit(void)
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
+
+	
 }
 
 
@@ -89,8 +91,8 @@ int main(void)
 	//WECV_DOWN();
 	//Delay_ns(5);
 	ECV_POWER_OFF();
-	//MOTOR_POWER_ON();
-	MOTOR_POWER_OFF();
+	MOTOR_POWER_ON();
+	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 
 	printf("Start\r\n");
@@ -105,7 +107,7 @@ int main(void)
 	while(1)
 	{		
 		
-		#if 0
+		#if 1
 		
 		if(testStatus == ctrlParasPtr->agvStatus)
 		{
@@ -116,8 +118,11 @@ int main(void)
 		else
 		{
 			Magn_Sensor_Scan();
+			Receive_handle2();
+			
 			
 			if(0 == ctrlParasPtr->start_origin_mode)
+			//if(0)
 			{
 				
 				if(gSslow == ctrlParasPtr->agvStatus)
@@ -130,12 +135,11 @@ int main(void)
 				}
 
 				startup_origin_Func();
+				
 			}
 			else
 			{
 				//originP();
-				
-				Receive_handle2();
 				
 				CrossRoad_Count();
 				
@@ -149,60 +153,56 @@ int main(void)
 				
 				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 				{
-					if(((mslRecF - FMSDS_Ptr->AgvMSLocation <= 2) || (mslRecF - FMSDS_Ptr->AgvMSLocation >= -2)) &&\
-						((mslRecR - RMSDS_Ptr->AgvMSLocation <= 2) || (mslRecR - RMSDS_Ptr->AgvMSLocation >= -2)))
+					
+				#if 0
+					AGV_Walking();
+				#else
+					if(goStraightStatus == ctrlParasPtr->agvStatus)
 					{
-						mslRecF = FMSDS_Ptr->AgvMSLocation;
-						mslRecR = FMSDS_Ptr->AgvMSLocation;
-						
-					#if 0
-						AGV_Walking();
-					#else
-						if(goStraightStatus == ctrlParasPtr->agvStatus)
-						{
-							AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-						}
-						else if(backStatus == ctrlParasPtr->agvStatus)
-						{
-							AGV_Correct_back_ug(ctrlParasPtr->gear);
-						}
-						else if(cirLeft == ctrlParasPtr->agvStatus)
-						{
-							walking_cirLeft(ctrlParasPtr->gear);
-						}
-						else if(cirRight == ctrlParasPtr->agvStatus)
-						{
-							walking_cirRight(ctrlParasPtr->gear);
-						}
-						else if(gSslow == ctrlParasPtr->agvStatus)
-						{
-							gS_slow2(ctrlParasPtr->gear);
-						}
-						else if(bSslow == ctrlParasPtr->agvStatus)
-						{
-							back_slow2(ctrlParasPtr->gear);
-						}
-					#endif
+						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
 					}
+					else if(backStatus == ctrlParasPtr->agvStatus)
+					{
+						AGV_Correct_back_ug(ctrlParasPtr->gear);
+					}
+					else if(cirLeft == ctrlParasPtr->agvStatus)
+					{
+						//walking_cirLeft(ctrlParasPtr->gear);
+						walking_cir(ctrlParasPtr->cirDuty);
+					}
+					else if(cirRight == ctrlParasPtr->agvStatus)
+					{
+						//walking_cirRight(ctrlParasPtr->gear);
+						walking_cir(ctrlParasPtr->cirDuty);
+					}
+					else if(gSslow == ctrlParasPtr->agvStatus)
+					{
+						gS_slow2(ctrlParasPtr->gear);
+					}
+					else if(bSslow == ctrlParasPtr->agvStatus)
+					{
+						back_slow2(ctrlParasPtr->gear);
+					}
+											
+				#endif
+					
 				}
 				
 				//AGV_Change_Mode();
-				ProtectFunc();
+				
 				
 				//AGV_Proc();
 				
-				WarningLedCtrlPtr->twinkleCtrlFunc();
-				ZigbeeResendInfo_Ptr->resendCtrlFunc();
-				BuzzerCtrlPtr->buzzerCtrlFunc();
 
 				if(ControlCenter == ctrlParasPtr->goalStation)
 				{
 					SIMU_PWM_BreathWarningLED_Ctrl();
+					
+					ctrlParasPtr->cirDuty = 7;
+					Origin_PatCtrl(ctrlParasPtr->cirDuty);
 				}
 				
-				SIMU_PWM_BreathLED_Ctrl();
-
-				Read_RTC_Data();
+				
 				//LeftOrRight_Counter();
 
 				if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
@@ -231,7 +231,16 @@ int main(void)
 				}
 					
 			}
-			
+
+
+			ProtectFunc();
+			WarningLedCtrlPtr->twinkleCtrlFunc();
+			ZigbeeResendInfo_Ptr->resendCtrlFunc();
+			BuzzerCtrlPtr->buzzerCtrlFunc();
+
+			SIMU_PWM_BreathBoardLED_Ctrl();
+
+			Read_RTC_Data();
 		}
 
 		#else
@@ -275,9 +284,21 @@ int main(void)
 		/*
 		u8 data1[9] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
 		u8 data2[9] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+		u8 data3[9] = {0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01};
 		u8 cir = 9;
+		static u8 flag = 0;
+
+		if(0 == flag)
+		{
+			flag = 1;
+			EEPROM_Write_Data(1, data1, 9);
+		}
+		else if(1 == flag)
+		{
+			flag = 0;
+			EEPROM_Write_Data(1, data3, 9);
+		}
 		
-		EEPROM_Write_Data(1, data1, 9);
 		Delay_ms(10);
 		EEPROM_Read_Data(1, data2, 9);
 		for(cir = 0; cir < 9; cir++)
@@ -285,9 +306,14 @@ int main(void)
 			printf("%02x ", data2[cir]);
 		}
 		printf("\r\n");
+		
 		Delay_ns(1);
 		*/
-		Get_Weight_Data();
+		
+		//Get_Weight_Data();
+
+
+		
 		
 		#endif
 		

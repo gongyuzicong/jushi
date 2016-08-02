@@ -3,12 +3,14 @@
 
 
 /*向指定地址写入一个字节*/
-void EEPROM_Write_Byte(u8 addr,u8 data)
+void EEPROM_Write_Byte(u16 addr,u8 data)
 {
 	IIC_Start();
 	IIC_Send_Byte(0xa0);
 	IIC_Wait_Ack();
-	IIC_Send_Byte(addr);
+	IIC_Send_Byte(addr >> 8);
+	IIC_Wait_Ack();
+	IIC_Send_Byte(addr & 0x00FF);
 	IIC_Wait_Ack();
 	IIC_Send_Byte(data);
 	IIC_Wait_Ack();
@@ -16,13 +18,15 @@ void EEPROM_Write_Byte(u8 addr,u8 data)
 	Delay_ms(10);
 }
 /*从指定地址读一个字节*/
-u8 EEPROM_Read_Byte(u8 addr)
+u8 EEPROM_Read_Byte(u16 addr)
 {
 	u8 temp;
 	IIC_Start();
 	IIC_Send_Byte(0xa0);
 	IIC_Wait_Ack();
-	IIC_Send_Byte(addr);
+	IIC_Send_Byte(addr >> 8);
+	IIC_Wait_Ack();
+	IIC_Send_Byte(addr & 0x00FF);
 	IIC_Wait_Ack();
 	IIC_Start();
 	IIC_Send_Byte(0xa1);
@@ -32,7 +36,7 @@ u8 EEPROM_Read_Byte(u8 addr)
 	return temp;
 }
 /*从指定地址开始连续写入len个字节数据*/
-void EEPROM_Write_Data(u8 addr, u8 *databuf, u16 len)
+void EEPROM_Write_Data(u16 addr, u8 *databuf, u16 len)
 {
 	u16 i;
 
@@ -43,7 +47,7 @@ void EEPROM_Write_Data(u8 addr, u8 *databuf, u16 len)
 
 }
 /*从指定地址开始连续读取len字节数据*/
-void EEPROM_Read_Data(u8 addr, u8 *databuf, u16 len)
+void EEPROM_Read_Data(u16 addr, u8 *databuf, u16 len)
 {
 	u16 i;
 	for(i=0;i<len;i++)

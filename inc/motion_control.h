@@ -277,6 +277,8 @@ typedef struct
 
 	u8 start_origin_mode;
 	u8 originFlag;
+
+	u8 cirDuty;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -448,10 +450,12 @@ void step_origin_Func(void);
 void startup_origin_Func(void);
 void originP(void);
 void SIMU_PWM_BreathWarningLED_Ctrl(void);
-void SIMU_PWM_BreathLED_Ctrl(void);
+void SIMU_PWM_BreathBoardLED_Ctrl(void);
 void Read_RTC_Data(void);
 void ProtectSW_GPIO_Config(void);
 void Get_Weight_Data(void);
+void walking_cir(u8);
+u8 Origin_PatCtrl(u8);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

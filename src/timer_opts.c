@@ -74,6 +74,25 @@ void Delay_ns(u32 ns)
 	}
 }
 
+u8 Delay_Func(u32 *recTime, u32 ms)
+{
+	u8 flag = 0;
+	
+	if(0 == *recTime)
+	{
+		*recTime = SystemRunningTime;
+	}
+	else
+	{
+		if(SystemRunningTime - *recTime >= ms * 10)
+		{
+			*recTime = 0;
+			flag = 1;
+		}
+	}
+
+	return flag;
+}
 
 void Timer2_Init(u16 arr, u16 psc)
 {

@@ -19,6 +19,10 @@
 #define MAX_OUT 	21
 #define ShiftTrigTime	10000
 
+#define BCD_CHANGE2HEX_U8(u8_data)		((u8_data & 0x0F) + ((u8_data >> 4) * 10))
+#define HEX_CHANGE2BCD_U8(u8_data)		(((u8_data / 10) << 4) | (u8_data % 10))
+
+
 TimRec rec[30];
 u8 recH = 0;
 
@@ -239,65 +243,6 @@ void Motor_Left_CCR(u8 speed)		// 反转
 	MOTOR_LEFT_CCR_PIN_SET();
 }
 
-
-void Mode_Pin_Ctrl(ControlerParaStruct_P para)
-{
-	switch(para->agvStatus)
-	{
-		case stopStatus:
-			MOTOR_RIGHT_DUTY_SET(para->rightMotorSettedSpeed);
-			MOTOR_LEFT_DUTY_SET(para->leftMotorSettedSpeed);
-			Delay_ms(500);
-			MOTOR_RIGHT_FR = 1;
-			MOTOR_LEFT_FR = 1;
-			MOTOR_RIGHT_EN = 1;
-			MOTOR_LEFT_EN = 1;
-			break;
-
-		case goStraightStatus:
-			MOTOR_RIGHT_DUTY_SET(para->rightMotorSettedSpeed);
-			MOTOR_LEFT_DUTY_SET(para->leftMotorSettedSpeed);
-			Delay_ms(2000);
-			MOTOR_RIGHT_FR = 1;
-			MOTOR_LEFT_FR = 0;
-			MOTOR_RIGHT_EN = 0;
-			MOTOR_LEFT_EN = 0;
-			break;
-
-		case backStatus:
-			MOTOR_RIGHT_DUTY_SET(para->rightMotorSettedSpeed);
-			MOTOR_LEFT_DUTY_SET(para->leftMotorSettedSpeed);
-			Delay_ms(2000);
-			MOTOR_RIGHT_FR = 0;
-			MOTOR_LEFT_FR = 1;
-			MOTOR_RIGHT_EN = 0;
-			MOTOR_LEFT_EN = 0;
-			break;
-
-		case cirLeft:
-			MOTOR_RIGHT_DUTY_SET(para->rightMotorSettedSpeed);
-			MOTOR_LEFT_DUTY_SET(para->leftMotorSettedSpeed);
-			Delay_ms(2000);
-			MOTOR_RIGHT_FR = 1;
-			MOTOR_LEFT_FR = 1;
-			MOTOR_RIGHT_EN = 0;
-			MOTOR_LEFT_EN = 0;
-			break;
-
-		case cirRight:
-			MOTOR_RIGHT_DUTY_SET(para->rightMotorSettedSpeed);
-			MOTOR_LEFT_DUTY_SET(para->leftMotorSettedSpeed);
-			Delay_ms(2000);
-			MOTOR_RIGHT_FR = 0;
-			MOTOR_LEFT_FR = 0;
-			MOTOR_RIGHT_EN = 0;
-			MOTOR_LEFT_EN = 0;
-			break;
-
-		default:
-			break;
-	}
-}
 
 /**********Motor Basic Control Unit: End****************/
 
@@ -837,6 +782,20 @@ void walking_cirLeft(u8 gear)
 	
 }
 
+void walking_cir(u8 duty)
+{
+	static u8 lmSpeed = 0, rmSpeed = 0;
+
+	lmSpeed = duty + AgvGearCompDutyLF[2];
+	rmSpeed = duty + AgvGearCompDutyLF[2];
+	
+	ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+	ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	
+	MOTOR_LEFT_DUTY_SET(lmSpeed);
+	MOTOR_RIGHT_DUTY_SET(rmSpeed);
+		
+}
 
 
 void walking_cirRight(u8 gear)
@@ -852,6 +811,7 @@ void walking_cirRight(u8 gear)
 	MOTOR_LEFT_DUTY_SET(lmSpeed);
 	MOTOR_RIGHT_DUTY_SET(rmSpeed);
 }
+
 
 void walking_stopStatus(u8 gear)
 {
@@ -8980,7 +8940,7 @@ void AGV_Walking_Test(void)
 
 	TRIGGER_PIN_O = 0;
 	
-	ctrlParasPtr->settedSpeed = AgvGear[10];
+	ctrlParasPtr->settedSpeed = AgvGear[15];
 	ctrlParasPtr->leftMotorSettedSpeed = ctrlParasPtr->settedSpeed + 2;
 	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
 	
@@ -9957,7 +9917,7 @@ void step_gVeer_Func(void)
 					CleanAllSpeed();
 					
 					CHANGE_TO_STOP_MODE();
-					//Delay_ms(500);
+					Delay_ns(1);
 					stepFlag = 0;
 					ctrlParasPtr->walkingstep = step_entry;
 				}
@@ -9973,7 +9933,7 @@ void step_gVeer_Func(void)
 					CleanAllSpeed();
 					
 					CHANGE_TO_STOP_MODE();
-					//Delay_ms(500);
+					Delay_ns(1);
 					stepFlag = 0;
 					ctrlParasPtr->walkingstep = step_entry;
 				}
@@ -9985,6 +9945,67 @@ void step_gVeer_Func(void)
 	}
 	
 }
+
+
+void step_gVeer_Func2(void)
+{
+	static u8 stepFlag = 0;
+	
+	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
+		(SpinStation_3 == ctrlParasPtr->goalStation) || \
+		(SpinStation_5 == ctrlParasPtr->goalStation) || \
+		(SpinStation_7 == ctrlParasPtr->goalStation) || \
+		(SpinStation_9 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_LEFT_MODE();
+		//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
+		//printf("info1: %d, %d, %d, %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->crossRoadCountF, ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+	}
+	else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
+			(SpinStation_4 == ctrlParasPtr->goalStation) || \
+			(SpinStation_6 == ctrlParasPtr->goalStation) || \
+			(SpinStation_8 == ctrlParasPtr->goalStation) || \
+			(SpinStation_10 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_RIGHT_MODE();
+		//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
+		//printf("info2: %d, %d, %d, %d\r\n", ctrlParasPtr->goalRFIDnode, ctrlParasPtr->crossRoadCountF, ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+	}
+
+	if(0 == stepFlag)
+	{
+		ctrlParasPtr->cirDuty = 8;
+		stepFlag = 1;
+	}
+	else if(1 == stepFlag)
+	{
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+		{
+			ctrlParasPtr->cirDuty = 8;
+			stepFlag = 2;
+		}
+	}
+	else if(2 == stepFlag)
+	{	
+		if(0xFFFF != FMSDS_Ptr->MSD_Hex)
+		{
+			ctrlParasPtr->cirDuty = 8;
+			
+			if(1 == Origin_PatCtrl(ctrlParasPtr->cirDuty))
+			{
+				CleanAllSpeed();
+					
+				CHANGE_TO_STOP_MODE();
+				//Delay_ns(1);
+				stepFlag = 0;
+				ctrlParasPtr->walkingstep = step_entry;
+			}
+			
+		}
+	}
+	
+}
+
 
 
 void step_entry_Func(void)
@@ -10021,9 +10042,9 @@ void step_entry_Func(void)
 		ctrlParasPtr->gear = 1;
 	}
 	
-	//if((0 == LMT_INR) || (0 == LMT_INL))		// 接近开关响应或者是超过磁条了
+	if((0 == LMT_INR) || (0 == LMT_INL))		// 接近开关响应或者是超过磁条了
 	//if((0 == LMT_INR) || (0 == LMT_INL) || (0x0000 == FMSDS_Ptr->MSD_Hex))
-	if(0x0000 == FMSDS_Ptr->MSD_Hex)
+	//if(0x0000 == FMSDS_Ptr->MSD_Hex)
 	{
 		CHANGE_TO_STOP_MODE();
 		//Delay_ns(1);
@@ -10040,7 +10061,7 @@ void step_catch_Func(void)
 {
 #if 1
 	
-	if(1 == LMT_SW) 	// 已经抓到货物了
+	if(0 == LMT_SW) 	// 已经抓到货物了
 	{
 		//Delay_ns(3);
 		
@@ -10142,15 +10163,50 @@ void step_exit_Func(void)
 
 void step_weigh_Func(void)
 {
-	
-	ECV_POWER_ON();
+	static u32 timRec = 0;
+	static u8 step = 0;
+
+	if(0 == step)
+	{
+		ECV_POWER_ON();
+		FECV_UP();
+		if(Delay_Func(&timRec, 4000))
+		{
+			step = 1;
+		}
+	}
+	else if(1 == step)
+	{
+		BECV_DOWN();
+		if(Delay_Func(&timRec, 1000))
+		{
+			step = 3;
+		}
+	}
+	else if(2 == step)
+	{
+		BECV_DOWN();
+		if(Delay_Func(&timRec, 1000))
+		{
+			step = 3;
+		}
+	}
+	else if(3 == step)
+	{
+		ECV_POWER_OFF();
+		step = 4;
+	}
 	//FECV_STOP();
-	//FECV_UP();
+	
+	//Delay_ns(5);
 	//BECV_UP();
 	//Delay_ns(2);
+	//BECV_DOWN();
+	//Delay_ns(1);
 	//FECV_STOP();
-	BECV_DOWN();
 	
+	//ECV_POWER_OFF();
+	//Delay_ns(1);
 	//WECV_UP();
 	//Delay_ns(3);
 	
@@ -10163,9 +10219,9 @@ void step_weigh_Func(void)
 	//WECV_DOWN();
 	//Delay_ns(6);
 
-	if(1 == Return_SW)
+	if(0 == Return_SW)
 	{
-		ECV_POWER_OFF();
+		step = 0;
 		ctrlParasPtr->walkingstep = step_bVeer;
 	}
 	
@@ -10245,12 +10301,70 @@ void step_bVeer_Func(void)
 					temp = ctrlParasPtr->crossRoadCountF;
 					ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
 					ctrlParasPtr->crossRoadCountR = temp;
-					
+					printf("gb crossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
 					ctrlParasPtr->BSflag = 0;
 					ctrlParasPtr->walkingstep = step_gB;
 				}
 			}
 			
+			
+		}
+	}
+	
+}
+
+
+void step_bVeer_Func2(void)
+{
+	static u8 stepFlag = 0;
+	
+	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
+		(SpinStation_3 == ctrlParasPtr->goalStation) || \
+		(SpinStation_5 == ctrlParasPtr->goalStation) || \
+		(SpinStation_7 == ctrlParasPtr->goalStation) || \
+		(SpinStation_9 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_RIGHT_MODE();
+	}
+	else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
+			(SpinStation_4 == ctrlParasPtr->goalStation) || \
+			(SpinStation_6 == ctrlParasPtr->goalStation) || \
+			(SpinStation_8 == ctrlParasPtr->goalStation) || \
+			(SpinStation_10 == ctrlParasPtr->goalStation))
+	{
+		CHANGE_TO_CIR_LEFT_MODE();
+	}
+
+	if(0 == stepFlag)
+	{
+		ctrlParasPtr->cirDuty = 8;
+		stepFlag = 1;
+	}
+	else if(1 == stepFlag)
+	{
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+		{
+			ctrlParasPtr->cirDuty = 8;
+			stepFlag = 2;
+		}
+	}
+	else if(2 == stepFlag)
+	{	
+		if(0xFFFF != FMSDS_Ptr->MSD_Hex)
+		{
+			ctrlParasPtr->cirDuty = 8;
+			
+			if(1 == Origin_PatCtrl(ctrlParasPtr->cirDuty))
+			{
+				CleanAllSpeed();
+				
+				CHANGE_TO_STOP_MODE();
+				//Delay_ns(1);
+				Send_WaitForGoods();
+				stepFlag = 0;
+				ctrlParasPtr->BSflag = 0;
+				ctrlParasPtr->walkingstep = step_gB;
+			}
 			
 		}
 	}
@@ -10272,7 +10386,7 @@ void step_gB_Func(void)
 		//ctrlParasPtr->gear = 3;
 	}
 	
-	
+	printf("MSD_Hex = %x, crossRoadCountF = %d\r\n", FMSDS_Ptr->MSD_Hex, ctrlParasPtr->crossRoadCountF);
 	if((0x0000 == FMSDS_Ptr->MSD_Hex) && (0 == ctrlParasPtr->crossRoadCountF))
 	{
 		CHANGE_TO_STOP_MODE();
@@ -10473,7 +10587,7 @@ void Walking_Step_Controler(void)
 
 	if(step_gVeer == ctrlParasPtr->walkingstep)
 	{
-		step_gVeer_Func();
+		step_gVeer_Func2();
 	}
 	else if(step_entry == ctrlParasPtr->walkingstep)
 	{
@@ -10493,7 +10607,7 @@ void Walking_Step_Controler(void)
 	}
 	else if(step_bVeer == ctrlParasPtr->walkingstep)
 	{
-		step_bVeer_Func();
+		step_bVeer_Func2();
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
@@ -10634,9 +10748,35 @@ void BuzzerCtrlFunc(void)
 	
 }
 
-void Origin_PatCtrl(void)
+u8 Origin_PatCtrl(u8 duty)
 {
+	u8 status = 0;
+	static u32 timRec = 0;
 	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_0_5))
+	{
+		CHANGE_TO_CIR_RIGHT_MODE();
+		timRec = SystemRunningTime;
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_0_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		CHANGE_TO_CIR_LEFT_MODE();
+		//ctrlParasPtr->cirDuty = 7;
+		timRec = SystemRunningTime;
+	}
+	else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_0_5) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_0_5))
+	{
+		CHANGE_TO_STOP_MODE();
+		CleanAllSpeed();
+		
+		if(SystemRunningTime - timRec >= 10000)
+		{
+			status = 1;
+		}
+		
+	}
+
+	return status;
 }
 
 void SIMU_PWM_BreathWarningLED_Ctrl(void)
@@ -10705,7 +10845,7 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void)
 }
 
 
-void SIMU_PWM_BreathLED_Ctrl(void)
+void SIMU_PWM_BreathBoardLED_Ctrl(void)
 {
 	static u32 timRec = 0;
 	static u8 step = 0, flag = 0, counter = 0;
@@ -10768,6 +10908,27 @@ void SIMU_PWM_BreathLED_Ctrl(void)
 		
 	}
 	
+}
+
+
+u8 BCD_Change2_Hex_u8(u8 u8_data)
+{
+	u8 hex = 0;
+
+	hex = ((u8_data >> 4) * 10);
+	hex += (u8_data & 0x0F);
+
+	return hex;
+}
+
+u8 HEX_Change2_BCD_u8(u8 u8_data)
+{
+	u8 hex = 0;
+
+	hex = ((u8_data / 10) << 4);
+	hex |= (u8_data % 10);
+
+	return hex;
 }
 
 

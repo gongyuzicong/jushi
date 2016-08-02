@@ -1,6 +1,7 @@
 #ifndef __TIMER_OPTS_H__
 #define __TIMER_OPTS_H__
 
+#include "common_include.h"
 
 #include "data_type.h"
 
@@ -18,6 +19,7 @@ void Timer4_Init(u16 arr, u16 psc);
 void TIM3_Init(u16 Arr, u16 Psc);
 void Delay_ns(u32 ns);
 void Timer6_Init(u16 arr, u16 psc);
+u8 Delay_Func(u32 *recTime, u32 ms);
 
 
 //extern u8 fac_us;

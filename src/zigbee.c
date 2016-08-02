@@ -286,6 +286,7 @@ void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
 		{
 			receive_count = 0;
 			receive_state = 1;
+			//Send_Zigbee_ACK();
 		}
 	}
 }
@@ -459,6 +460,7 @@ void Receive_handle2(void)
 					zigbeeAck[3] = Id_Arr[node].zigbee_ID2;
 					Send_Zigbee_ACK();
 					CMD_Flag_Ptr->cmdFlag = GoodReq;
+					//ctrlParasPtr->start_origin_mode = 1;
 					//WarningLedCtrlPtr->twinkleFlag = 1;
 					//BuzzerCtrlPtr->buzzerFlag = 1;
 					printf("req %04x\r\n", node);
