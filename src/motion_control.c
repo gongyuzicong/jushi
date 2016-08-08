@@ -11083,7 +11083,7 @@ void step_entry_Func(void)
 	{
 		CHANGE_TO_STOP_MODE();
 		//Delay_ns(1);
-		
+		printf("go to step_catch*****************************\r\n");
 		RFID_Info_Ptr->rfidData = 0;
 		flag = 0;
 		ctrlParasPtr->walkingstep = step_catch;
@@ -11157,6 +11157,8 @@ void step_exit_Func(void)
 		if(ctrlParasPtr->goalRFIDnode == RFID_Info_Ptr->rfidData)
 		{
 			CHANGE_TO_STOP_MODE();
+			ctrlParasPtr->crossRoadCountF = RFID_Info_Ptr->rfidData;
+			ctrlParasPtr->crossRoadCountR = ctrlParasPtr->crossRoadCountF + 1;
 			//Delay_ns(1);
 			ctrlParasPtr->walkingstep = step_weigh;
 		}
@@ -11296,8 +11298,8 @@ void step_bVeer_Func(void)
 					stepFlag = 0;
 
 					temp = ctrlParasPtr->crossRoadCountF;
-					ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
-					ctrlParasPtr->crossRoadCountR = temp;
+					//ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
+					//ctrlParasPtr->crossRoadCountR = temp;
 					printf("gb crossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
 
 					ctrlParasPtr->BSflag = 0;
@@ -11321,8 +11323,8 @@ void step_bVeer_Func(void)
 					stepFlag = 0;
 					
 					temp = ctrlParasPtr->crossRoadCountF;
-					ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
-					ctrlParasPtr->crossRoadCountR = temp;
+					//ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
+					//ctrlParasPtr->crossRoadCountR = temp;
 					printf("gb crossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
 
 					ctrlParasPtr->BSflag = 0;
@@ -11635,6 +11637,7 @@ void AutoRunningFunc(void)
 
 void Walking_Step_Controler(void)
 {
+	//printf("walkingstep = %d\r\n", ctrlParasPtr->walkingstep);
 	if(STATION_1AND2_RFID == ctrlParasPtr->goalRFIDnode)
 	{
 		STATION_1AND2_WalkControl();
@@ -11711,33 +11714,23 @@ void ProtectFunc(void)
 	if((0 == ProtectSW_F) || (0 == ProtectSW_R))
 	{
 		MOTOR_POWER_OFF();
+		ECV_POWER_OFF();
 		printf("Protect_Power_Off\r\n");
 		flag = 1;
 	}
 
 	if(1 == flag)
 	{
-		#if 0
-		if(0 == timRec)
-		{
-			timRec = SystemRunningTime;
-		}
-		else
-		{
-			if(SystemRunningTime - timRec >= 50000)
-			{
-				flag = 0;
-				timRec = 0;
-				MOTOR_POWER_ON();
-			}
-		}
-		#else
 		if(Delay_Func(&timRec, 5000))
 		{
+			if((0 != ProtectSW_F) && (0 != ProtectSW_R))
+			{
+				MOTOR_POWER_ON();
+				ECV_POWER_ON();
+			}
 			flag = 0;
-			MOTOR_POWER_ON();
+			
 		}
-		#endif
 	}
 
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
