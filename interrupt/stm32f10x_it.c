@@ -30,6 +30,7 @@
 #include "motion_control.h"
 #include "magn_sensor.h"
 #include "zigbee.h"
+#include "lcd.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -695,8 +696,9 @@ void USART1_IRQHandler(void)
 	else if(0 != (USART1->SR & (0x01 << 5)))	// 判断是否为RXNE中断
 	{
 		u8 recvD = USART1_RECV_DATA;
-		//printf("recvD = %x\r\n", recvD);
+		//printf("U1D = %x\r\n", recvD);
 		
+		UART1_REC(recvD);
 	}
 	
 }
@@ -777,13 +779,13 @@ void USART3_IRQHandler(void)
 				WarningLedCtrlPtr->twinkleFlag = 1;
 				//BuzzerCtrlPtr->buzzerFlag = 1;
 				
-				if(goStraightStatus == ctrlParasPtr->agvStatus)
+				if((goStraightStatus == ctrlParasPtr->agvStatus) || ((gSslow == ctrlParasPtr->agvStatus) && (step_entry != ctrlParasPtr->walkingstep)))
 				{
-					ctrlParasPtr->crossRoadCountF = recvD;
-					ctrlParasPtr->crossRoadCountR = recvD - 1;					
+					ctrlParasPtr->crossRoadCountF = recvD + 1;
+					ctrlParasPtr->crossRoadCountR = recvD;				
 					printf("\r\nIT GcrossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
 				}
-				else if(backStatus == ctrlParasPtr->agvStatus)
+				else if((backStatus == ctrlParasPtr->agvStatus) || ((bSslow == ctrlParasPtr->agvStatus) && (step_exit != ctrlParasPtr->walkingstep)))
 				{
 					ctrlParasPtr->crossRoadCountF = recvD;
 					ctrlParasPtr->crossRoadCountR = recvD + 1;
@@ -795,7 +797,10 @@ void USART3_IRQHandler(void)
 			
 			
 		}
-		
+		else
+		{
+			RFID_Info_Ptr->noValide = 1;
+		}
 	}
 }
 
@@ -1063,6 +1068,19 @@ void SPI3_IRQHandler(void)
 *******************************************************************************/
 void UART4_IRQHandler(void)
 {
+	if(0 != (UART4->SR & (0x01 << 6)))	
+	{
+		xBitOff(UART4->SR, 6);
+		
+	}	
+	else if(0 != (UART4->SR & (0x01 << 5)))	// 判断是否为RXNE中断
+	{
+		u8 recvD = UART4_RECV_DATA;
+		//printf("U4D = %x\r\n", recvD);
+		
+		//UART1_REC(recvD);
+	}
+	
 }
 
 /*******************************************************************************

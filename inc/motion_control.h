@@ -46,7 +46,7 @@
 #define CHANGE_TO_CIR_LEFT_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft;}
 #define CHANGE_TO_CIR_RIGHT_MODE()			{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
 #define CHANGE_TO_STOP_MODE()				{MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus;}
-#define CHANGE_TO_TEST_MODE()				{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = testStatus;}
+#define CHANGE_TO_TEST_MODE()				{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET();}
 #define CHANGE_TO_GO_STRAIGHT_SLOW_MODE()	{MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = gSslow;}
 #define CHANGE_TO_BACK_SLOW_MODE()			{MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = bSslow;}
 
@@ -155,7 +155,6 @@ typedef enum
 	backStatus,
 	cirLeft,
 	cirRight,
-	testStatus,
 	gSslow,
 	bSslow,
 	StatusEnd,
@@ -173,7 +172,18 @@ typedef enum
 {
 	AutomaticMode = 0,
 	ManualMode,
+	TestMode,
+	RFID_Setting_Mode,
 }AgvWalkMode;
+
+typedef enum
+{
+	Man_Forward = 0,
+	Man_Backward,
+	Man_CirL,
+	Man_CirR,
+	Man_Stop,
+}ManualMode_Ctrl;
 
 typedef enum
 {
@@ -226,6 +236,7 @@ typedef struct
 	AgvStatus agvStatus;
 	AgvSpeedMode speedMode;
 	AgvWalkMode agvWalkingMode;
+	ManualMode_Ctrl manualCtrl;
 	u8 speedModeValue_Right;
 	u8 speedModeValue_Left;
 	s8 rightMotorSpeedOffset;
@@ -250,6 +261,7 @@ typedef struct
 
 	u8 FSflag;
 	u8 BSflag;
+	u8 fgvflag;
 
 	Damper dampingFlag;
 	u32 dampingTimeRec;
@@ -279,6 +291,8 @@ typedef struct
 	u8 originFlag;
 
 	u8 cirDuty;
+	u8 rifdAdaptFlag;
+	
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -416,6 +430,13 @@ typedef struct
 	void (*agv_walk_stop)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
+typedef struct
+{
+	u8 acceleraFlag;
+	u8 gearRecoder;
+	u8 init;
+}GearShiftCtrl, *GearShiftCtrl_P;
+
 
 void Motion_Ctrl_Init(void);
 void AGV_Walking(void);
@@ -451,11 +472,12 @@ void startup_origin_Func(void);
 void originP(void);
 void SIMU_PWM_BreathWarningLED_Ctrl(void);
 void SIMU_PWM_BreathBoardLED_Ctrl(void);
-void Read_RTC_Data(void);
 void ProtectSW_GPIO_Config(void);
-void Get_Weight_Data(void);
 void walking_cir(u8);
 u8 Origin_PatCtrl(u8);
+void AutoRunningFunc(void);
+void CrossRoad_Count2(void);
+void ManualModeFunc(ManualMode_Ctrl);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;
@@ -469,6 +491,8 @@ extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;
 extern LED_Twinkle_P WarningLedCtrlPtr;
 extern Buzzer_Ctrl_P BuzzerCtrlPtr;
+extern GearShiftCtrl_P gearCtrlPtr;
+
 
 #endif
 

@@ -12,8 +12,6 @@ Agv_Midpoint_Location_Struct_P AGV_MPLS_Ptr = &AGV_MPLS;
 RFID_Struct RIFD_Info;
 RFID_Struct_P RFID_Info_Ptr = &RIFD_Info;
 
-u8 station = 0x00;
-
 #define STD_MS_NUM		0x07E0	
 #define MS_ERROR		0xFFFF
 
@@ -950,7 +948,7 @@ void Magn_Sensor_Scan(void)
 		
 
 		#if 1
-		if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
+		if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus) || (step_bVeer == ctrlParasPtr->walkingstep))
 		{
 			FMSDS_Ptr->MSD_Hex = RMS_Hex;
 			RMSDS_Ptr->MSD_Hex = hex_reload(FMS_Hex);

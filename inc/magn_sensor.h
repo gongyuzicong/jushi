@@ -53,6 +53,7 @@ typedef struct
 	u8 lock;
 	u8 updateFlag;
 	u32 rfidData;
+	u8 noValide;
 }RFID_Struct, *RFID_Struct_P;
 
 

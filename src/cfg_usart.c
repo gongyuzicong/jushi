@@ -4,7 +4,7 @@
 #include "buffer.h"
 
 #define USE_USART1
-#define USE_USART3
+//#define USE_USART3
 
 #if 0
 int SendChar(u8 ch)  //发送单个数据 
@@ -150,89 +150,71 @@ void cb_usart_test(void)
 }
 
 
+void Debug_Uart_GPIOInit(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	/* 开启GPIO时钟和复用功能时钟RCC_APB2Periph_AFIO */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* 配置 USART Tx 复用推挽输出 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	//复用推挽输出
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+	/* 配置 USART Rx 浮空输入 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	
+	//GPIO_SetBits(GPIOA, GPIO_Pin_2 | GPIO_Pin_3);
+}
 
 
-
-void CB_USART_Config(void)
+void Debug_UART_INIT(void)
 {
 	USART_InitTypeDef USART_InitStructure;
-	USART_ClockInitTypeDef USART_ClockInitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	//Nvic_Paramater node;
-
-	//node.Nvic_PreemptionPriority = 1;
-	//node.Nvic_SubPriority = 0;
-	//node.Nvic_Group = 2;
-	//node.Nvic_Channel = USART1_IRQChannel;
 	
-	//USART_ClockInitTypeDef USART_ClockInitStructure;
-
-#ifdef USE_USART1
-	/***USART3 初始化 BEGIN***/
-	/*设置串口*/
-
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
-
-	/*
+	Debug_Uart_GPIOInit();
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
+	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannel = UART4_IRQChannel;		//选择中断通道
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
 	NVIC_Init(&NVIC_InitStructure);								//初始化
-	
+
+	/*
 	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
 	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
-	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
+	USART_ClockInitStructure.USART_CPHA = USART_CPHA_1Edge;
 	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
-	USART_ClockInit(USART1, &USART_ClockInitStructure);
+	USART_ClockInit(UART4, &USART_ClockInitStructure);
 	*/
+	
 	USART_InitStructure.USART_BaudRate = 115200;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_Init(UART4, &USART_InitStructure);
 	
-	USART_Init(USART1, &USART_InitStructure);
-	USART_Cmd(USART1, ENABLE);
-	USART_ClearFlag(USART1, USART_FLAG_TC);
-	/***USART1 初始化 END***/
-#endif
+	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
+	USART_Cmd(UART4, ENABLE);
+	USART_ClearFlag(UART4, USART_FLAG_TC);
+}
 
-#ifdef USE_USART3
-	/***USART3 初始化 BEGIN***/
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
-	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQChannel;		//选择中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
-	NVIC_Init(&NVIC_InitStructure);								//初始化
-	
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
 
-	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
-	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
-	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
-	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
-	USART_ClockInit(USART3, &USART_ClockInitStructure);
-	
-	USART_InitStructure.USART_BaudRate = 9600;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
 
-	USART_Init(USART3, &USART_InitStructure);
-	USART_Cmd(USART3, ENABLE);
-	/***USART3 初始化 END***/
-#endif
-
-	//USART3->CR1 |= (1 << 8);	// PE(校验错误)中断使能
-	USART3->CR1 |= (1 << 5);	// RXNE(接收缓冲区)非空中断使能
-	//My_Nvic_Init(node);
-
+void CB_USART_Config(void)
+{
+	Debug_UART_INIT();
 	
 }
 

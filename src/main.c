@@ -19,6 +19,8 @@
 #include "buffer.h"
 #include "eeprom.h" 
 #include "ads1256.h"
+#include "fiberglas.h"
+#include "lcd.h"
 
 void SystemInit(void)
 {	
@@ -33,6 +35,7 @@ void SystemInit(void)
 	Motion_Ctrl_Init();
 	Pwm_Init();
 	SPI_Initial();
+	RFID_Usart_Init();
 	//NFR24L01_Init();
 	//ExtiInit();
 	Magn_Sensor_Init();
@@ -41,6 +44,9 @@ void SystemInit(void)
 	ProtectSW_GPIO_Config();
 	//MPU6050_init();
 	ADS1256_Init();
+	LCD_INIT();
+	
+	Get_Weight_Offset_Data();
 	
 	errorInfo.errorType = errorTypeBegin;
 	errorInfo.errorData = 0;
@@ -75,21 +81,7 @@ int main(void)
 
 	BECV_UP();
 	Delay_ns(1);
-	//MOTOR_POWER_OFF();
-	//FECV_UP();
-	//FECV_DOWN();
-	//BECV_UP();
-	//Delay_ns(5);
-	//BECV_DOWN();
 	
-	//FECV_DOWN();
-	//Delay_ns(20);
-	//FECV_DOWN();
-	//Delay_ns(3);
-	//WECV_UP();
-	//Delay_ns(7);
-	//WECV_DOWN();
-	//Delay_ns(5);
 	ECV_POWER_OFF();
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
@@ -108,19 +100,40 @@ int main(void)
 	{		
 		
 		#if 1
+
+		ProtectFunc();
+		Read_RTC_Data();
+		Lcd_Handle();
+		SIMU_PWM_BreathBoardLED_Ctrl();
 		
-		if(testStatus == ctrlParasPtr->agvStatus)
+		if(TestMode == ctrlParasPtr->agvWalkingMode)
 		{
 			//printf("l=%d,r=%d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->rightHallIntervalTime);
 			AVG_Calu_Program();
 			AGV_Correct_1();
 		}
-		else
+		else if(ManualMode == ctrlParasPtr->agvWalkingMode)
+		{
+			//MOTOR_POWER_ON();
+			ManualModeFunc(ctrlParasPtr->manualCtrl);
+		}
+		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
+		{
+			static u8 count = 0x00;
+			
+			MOTOR_POWER_ON();
+			
+			if(1 == RFID_Info_Ptr->noValide)
+			{
+				
+			}
+			
+		}
+		else if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 		{
 			Magn_Sensor_Scan();
 			Receive_handle2();
-			
-			
+						
 			if(0 == ctrlParasPtr->start_origin_mode)
 			//if(0)
 			{
@@ -133,7 +146,7 @@ int main(void)
 				{
 					back_slow2(3);
 				}
-
+				
 				startup_origin_Func();
 				
 			}
@@ -141,7 +154,7 @@ int main(void)
 			{
 				//originP();
 				
-				CrossRoad_Count();
+				CrossRoad_Count2();
 				
 				//Hall_Count();
 				
@@ -157,12 +170,15 @@ int main(void)
 				#if 0
 					AGV_Walking();
 				#else
+					
 					if(goStraightStatus == ctrlParasPtr->agvStatus)
 					{
+						
 						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
 					}
 					else if(backStatus == ctrlParasPtr->agvStatus)
 					{
+						
 						AGV_Correct_back_ug(ctrlParasPtr->gear);
 					}
 					else if(cirLeft == ctrlParasPtr->agvStatus)
@@ -190,57 +206,51 @@ int main(void)
 				
 				//AGV_Change_Mode();
 				
-				
 				//AGV_Proc();
 				
-
 				if(ControlCenter == ctrlParasPtr->goalStation)
 				{
 					SIMU_PWM_BreathWarningLED_Ctrl();
 					
 					ctrlParasPtr->cirDuty = 7;
 					Origin_PatCtrl(ctrlParasPtr->cirDuty);
+					AutoRunningFunc();
 				}
-				
 				
 				//LeftOrRight_Counter();
-
-				if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
-				//if(0)
-				{
-					hexF = FMSDS_Ptr->MSD_Hex;
-					hexR = RMSDS_Ptr->MSD_Hex;
-
-				#if 1
-					if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
-					{
-						//Show_Infomation();
-						//show_Excel_Analysis_Info();
-					}
-					else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
-					{
-						//Show_Infomation();
-						//show_Excel_Analysis_Info();
-					}
-				#else
-
-					Show_Infomation();
-
-				#endif
-					
-				}
 					
 			}
-
-
-			ProtectFunc();
+			
 			WarningLedCtrlPtr->twinkleCtrlFunc();
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
+			
 
-			SIMU_PWM_BreathBoardLED_Ctrl();
+			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
+			{
+				hexF = FMSDS_Ptr->MSD_Hex;
+				hexR = RMSDS_Ptr->MSD_Hex;
 
-			Read_RTC_Data();
+			#if 0
+				
+				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
+				{
+					//Show_Infomation();
+					//show_Excel_Analysis_Info();
+				}
+				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
+				{
+					//Show_Infomation();
+					//show_Excel_Analysis_Info();
+				}
+				
+			#else
+				
+				//Show_Infomation();
+				
+			#endif
+				
+			}
 		}
 
 		#else
@@ -281,6 +291,7 @@ int main(void)
 		//Delay_ns(1);
 
 		//Read_RTC_Data();
+		
 		/*
 		u8 data1[9] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
 		u8 data2[9] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -311,9 +322,8 @@ int main(void)
 		*/
 		
 		//Get_Weight_Data();
-
-
 		
+		//Lcd_Handle();
 		
 		#endif
 		

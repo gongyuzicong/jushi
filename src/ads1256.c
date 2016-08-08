@@ -1,4 +1,5 @@
 #include "ads1256.h"
+#include "timer_opts.h"
 
 
 //***************************
@@ -84,6 +85,35 @@ s32 ADS1256ReadData(u8 channel)
 }
 
 
+//初始化ADS1256
+void ADS1256_Auto_Init(void)
+{
+	//*************自校准****************
+   	while(ADS1256_DRDY);
+	CS_0();
+	SPI_WriteByte(ADS1256_CMD_SELFCAL);
+	while(ADS1256_DRDY);
+	CS_1();
+	//**********************************
+
+	ADS1256WREG(ADS1256_STATUS,0x06);               // 高位在前、使用缓冲
+//	ADS1256WREG(ADS1256_STATUS,0x04);               // 高位在前、不使用缓冲
+
+//	ADS1256WREG(ADS1256_MUX,0x08);                  // 初始化端口A0为‘+’，AINCOM位‘-’
+	ADS1256WREG(ADS1256_ADCON,ADS1256_GAIN_1);                // 放大倍数1
+	ADS1256WREG(ADS1256_DRATE,ADS1256_DRATE_10SPS);  // 数据10sps
+	ADS1256WREG(ADS1256_IO,0x00);               
+
+	//*************自校准****************
+	while(ADS1256_DRDY);
+	CS_0();
+	SPI_WriteByte(ADS1256_CMD_SELFCAL);
+	while(ADS1256_DRDY);
+	CS_1(); 
+	//**********************************
+}
+
+
 void ADS1256_GPIO_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -142,6 +172,8 @@ void ADS1256_Init(void)
 {
 	ADS1256_GPIO_Init();
 	ADS1256_SPI2_Init();
+	Delay_ms(100);
+	ADS1256_Auto_Init();
 }
 
 

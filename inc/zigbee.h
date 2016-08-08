@@ -84,6 +84,9 @@ void Receive_handle2(void);
 void Send_GettedGoods2(u16);
 void Send_GettedGoods3(void);
 
+extern u8 receive_state;		//接收完成标志
+extern u8 receive_count;		//接收数据计数
+extern u8 nc_receive[8];		//接收数据缓存
 
 #endif
 
