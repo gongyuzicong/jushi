@@ -1,11 +1,10 @@
 #include "common_include.h"
-#include "buffer.h"
 
 vu32 SystemRunningTime = 0x00000000;
 
 /*******************************************************************************
 * 函数名  		: fputc
-* 函数描述    	: 将printf函数重定位到USATR1
+* 函数描述    	: 将printf函数重定位到USATR
 * 输入参数    	: 无
 * 输出结果    	: 无
 * 返回值		: 无

@@ -78,15 +78,16 @@ int main(void)
 	BECV_DOWN();
 	//WECV_DOWN();
 	Delay_ns(3);
-
+	FECV_STOP();
 	BECV_UP();
-	Delay_ns(1);
-	
-	ECV_POWER_OFF();
+	//Delay_ns(1);
+	Delay_ms(700);
+	BECV_STOP();
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
-
+	Get_Weight_Offset_Data_One();
+	
 	printf("Start\r\n");
 	
 	ctrlParasPtr->gear = 10;
@@ -104,13 +105,14 @@ int main(void)
 		ProtectFunc();
 		Read_RTC_Data();
 		Lcd_Handle();
-		SIMU_PWM_BreathBoardLED_Ctrl();
+		//SIMU_PWM_BreathBoardLED_Ctrl();
+		Scan_Weight_Func();
 		
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
 		{
 			//printf("l=%d,r=%d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->rightHallIntervalTime);
-			AVG_Calu_Program();
-			AGV_Correct_1();
+			//AVG_Calu_Program();
+			AGV_Correct_2();
 		}
 		else if(ManualMode == ctrlParasPtr->agvWalkingMode)
 		{
@@ -133,7 +135,7 @@ int main(void)
 		{
 			Magn_Sensor_Scan();
 			Receive_handle2();
-						
+			
 			if(0 == ctrlParasPtr->start_origin_mode)
 			//if(0)
 			{
@@ -155,8 +157,6 @@ int main(void)
 				//originP();
 				
 				CrossRoad_Count2();
-				
-				//Hall_Count();
 				
 				Get_Zigbee_Info_From_Buf();
 				
@@ -210,37 +210,37 @@ int main(void)
 				
 				if(ControlCenter == ctrlParasPtr->goalStation)
 				{
-					SIMU_PWM_BreathWarningLED_Ctrl();
+					//SIMU_PWM_BreathWarningLED_Ctrl();
 					
-					ctrlParasPtr->cirDuty = 7;
+					ctrlParasPtr->cirDuty = 8;
 					Origin_PatCtrl(ctrlParasPtr->cirDuty);
-					AutoRunningFunc();
+					//AutoRunningFunc();
 				}
 				
 				//LeftOrRight_Counter();
-					
+				
 			}
 			
 			WarningLedCtrlPtr->twinkleCtrlFunc();
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
 			
-
+			
 			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
 			{
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
-
+				
 			#if 0
 				
 				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
 				{
-					//Show_Infomation();
+					Show_Infomation();
 					//show_Excel_Analysis_Info();
 				}
 				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
 				{
-					//Show_Infomation();
+					Show_Infomation();
 					//show_Excel_Analysis_Info();
 				}
 				
@@ -320,9 +320,10 @@ int main(void)
 		
 		Delay_ns(1);
 		*/
-		
+		//Lcd_Handle();
 		//Get_Weight_Data();
-		
+		MA_TEST();
+				
 		//Lcd_Handle();
 		
 		#endif

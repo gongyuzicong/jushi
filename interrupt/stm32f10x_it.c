@@ -746,61 +746,11 @@ void USART3_IRQHandler(void)
 	}	
 	else if(0 != (USART3->SR & (0x01 << 5)))	// ÅÐ¶ÏÊÇ·ñÎªRXNEÖÐ¶Ï
 	{
-		//static u8 counter = 0x00;
 		u8 recvD = USART3_RECV_DATA;
-		//u32 tempData = 0x00;
 		//printf("3recvD = %x\r\n", recvD);
 		
-		#if 0
-		if(counter >= 4)
-		{
-			counter = 0;
-			RFID_Info_Ptr->updateFlag = 1;
-			RFID_Info_Ptr->rfidData = tempData;
-			//printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);
-			tempData = 0;
-		}
-		else
-		{
-			
-			tempData = (tempData << (counter * 8)) | recvD;
-			counter++;
-			
-		}
-		#endif
-
-		if((recvD >= 0x01) && (recvD <= 0x05))
-		{
-			if(RFID_Info_Ptr->lock != recvD)
-			{
-				RFID_Info_Ptr->lock = recvD;
-				RFID_Info_Ptr->updateFlag = 1;
-				RFID_Info_Ptr->rfidData = recvD;
-				WarningLedCtrlPtr->twinkleFlag = 1;
-				//BuzzerCtrlPtr->buzzerFlag = 1;
-				
-				if((goStraightStatus == ctrlParasPtr->agvStatus) || ((gSslow == ctrlParasPtr->agvStatus) && (step_entry != ctrlParasPtr->walkingstep)))
-				{
-					ctrlParasPtr->crossRoadCountF = recvD + 1;
-					ctrlParasPtr->crossRoadCountR = recvD;				
-					printf("\r\nIT GcrossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
-				}
-				else if((backStatus == ctrlParasPtr->agvStatus) || ((bSslow == ctrlParasPtr->agvStatus) && (step_exit != ctrlParasPtr->walkingstep)))
-				{
-					ctrlParasPtr->crossRoadCountF = recvD;
-					ctrlParasPtr->crossRoadCountR = recvD + 1;
-					printf("\r\nIT BcrossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
-				}
-
-				printf("rfidData = %04x\r\n", RFID_Info_Ptr->rfidData);
-			}
-			
-			
-		}
-		else
-		{
-			RFID_Info_Ptr->noValide = 1;
-		}
+		Recv_RFID_CrossRoad(recvD);
+		
 	}
 }
 
@@ -815,67 +765,61 @@ void EXTI15_10_IRQHandler(void)
 {
 	//static u8 lMotorCount = 0x00, rMotorCount = 0x00;
 	static u32 lTimeRecode = 0x00, rTimeRecode = 0x00;
-	u32 ltempTime = 0x00, rtempTime = 0x00;
-
-	ltempTime = rtempTime = SystemRunningTime;
-
+	
 	#if 1
 	if (((EXTI->PR & ((u32)0x04000)) != 0) && ((EXTI->IMR & ((u32)0x04000)) != 0))
 	{
-		#if 0
-		if(rMotorCount >= MAX_HALL_COUNT)
+		ctrlParasPtr->rightHallIntervalTime = SystemRunningTime - rTimeRecode;
+
+		if(0xFFFFFFFF == ctrlParasPtr->rightHallCounter)
 		{
-			rMotorCount = 0;
-			ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
-			rTimeRecode = rtempTime;
-			//printf("rt = %d\r\n", ctrlParasPtr->rightHallIntervalTime);
+			ctrlParasPtr->rightHallCounter = 0;
 		}
 		else
 		{
-			rMotorCount++;
+			ctrlParasPtr->rightHallCounter++;
 		}
-		#else
-		ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
-		ctrlParasPtr->rightHallCounter++;
+
+		if(1 == ctrlParasPtr->CrossRoadHallCountFlag)
+		{
+			ctrlParasPtr->CrossRoadHallCountR++;
+		}
+		
 		/*
 		if(0 == ctrlParasPtr->rightHallIntervalTime)
 		{
 			printf("rtt = %d, rtr = %d\r\n", rtempTime, rTimeRecode);
 		}
 		*/
-		rTimeRecode = rtempTime;
-		#endif
+		rTimeRecode = SystemRunningTime;
 
 		EXTI->PR = ((u32)0x04000);
 	}	
 
 	if (((EXTI->PR & ((u32)0x01000)) != 0) && ((EXTI->IMR & ((u32)0x01000)) != 0))
 	{
-		#if 0
-		if(lMotorCount >= MAX_HALL_COUNT)
+		ctrlParasPtr->leftHallIntervalTime = SystemRunningTime - lTimeRecode;
+
+		if(0xFFFFFFFF == ctrlParasPtr->leftHallCounter)
 		{
-			lMotorCount = 0;
-			ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
-			lTimeRecode = ltempTime;
-			//printf("lt = %d\r\n", ctrlParasPtr->leftHallIntervalTime);
+			ctrlParasPtr->leftHallCounter = 0;
 		}
 		else
 		{
-			lMotorCount++;
+			ctrlParasPtr->leftHallCounter++;
 		}
-		#else
 
-		ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
-		ctrlParasPtr->leftHallCounter++;
+		if(1 == ctrlParasPtr->CrossRoadHallCountFlag)
+		{
+			ctrlParasPtr->CrossRoadHallCountL++;
+		}
 		/*
 		if(0 == ctrlParasPtr->leftHallIntervalTime)
 		{
 			printf("ltt = %d, ltr = %d\r\n", ltempTime, lTimeRecode);
 		}
 		*/
-		lTimeRecode = ltempTime;
-
-		#endif
+		lTimeRecode = SystemRunningTime;
 
 		EXTI->PR = ((u32)0x01000);
 	}
@@ -884,41 +828,13 @@ void EXTI15_10_IRQHandler(void)
 	
 	if(EXTI_GetITStatus(EXTI_Line14) != RESET)
 	{
-		//printf("exti14\r\n");
-				
-		if(rMotorCount >= MAX_HALL_COUNT)
-		{
-			rMotorCount = 0;
-			ctrlParasPtr->rightHallIntervalTime = rtempTime - rTimeRecode;
-			rTimeRecode = rtempTime;
-			//printf("rt = %d\r\n", ctrlParasPtr->rightHallIntervalTime);
-		}
-		else
-		{
-			rMotorCount++;
-		}
 		
-		//EXTI->PR = ((u32)0x04000);
 		EXTI_ClearITPendingBit(EXTI_Line14);
 	}
 	
 	if(EXTI_GetITStatus(EXTI_Line12) != RESET)
 	{
-		//printf("exti12\r\n");
 		
-		if(lMotorCount >= MAX_HALL_COUNT)
-		{
-			lMotorCount = 0;
-			ctrlParasPtr->leftHallIntervalTime = ltempTime - lTimeRecode;
-			lTimeRecode = ltempTime;
-			//printf("lt = %d\r\n", ctrlParasPtr->leftHallIntervalTime);
-		}
-		else
-		{
-			lMotorCount++;
-		}
-		
-		//EXTI->PR = ((u32)0x01000);
 		EXTI_ClearITPendingBit(EXTI_Line12);
 	}
 

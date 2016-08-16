@@ -1030,17 +1030,21 @@ void Magn_Sensor_Scan(void)
 		
 		if(1 == MSDS_UpdateFlag)
 		{
-			*AGV_Pat_Pre_Ptr = *AGV_Pat_Ptr;
+			if(((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End)) &&\
+				((RMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (RMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End)))
+			{
+				*AGV_Pat_Pre_Ptr = *AGV_Pat_Ptr;
 			
-			Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
+				Get_Pattern_Num(FMSDS_Ptr, RMSDS_Ptr, AGV_Pat_Ptr);
 
-			Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+				Get_AngleDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 
-			Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+				Get_MidpointDirection(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
 
-			Get_MidpointVxt(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+				Get_MidpointVxt(AGV_Pat_Ptr, AGV_Pat_Pre_Ptr);
+			}
+			
 		}
-
 		
 	}
 }

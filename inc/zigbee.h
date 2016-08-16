@@ -8,6 +8,7 @@
 #define NC_MODE 0x00
 #define ZD_MODE 0x01
 
+#define USE_SEND_ZIGBEE
 
 /******************数据和函数定义*********************/
 #define baurd_uart1 (u32)19200
@@ -79,10 +80,9 @@ void UART2_REC_IRQ(u8);
 void Receive_handle(void);
 void Send_Arrive(void);
 void Send_WaitForGoods(void);
-void Send_GettedGoods(u8);
 void Receive_handle2(void);
-void Send_GettedGoods2(u16);
 void Send_GettedGoods3(void);
+void Send_Zigbee_LM_ACK(void);
 
 extern u8 receive_state;		//接收完成标志
 extern u8 receive_count;		//接收数据计数

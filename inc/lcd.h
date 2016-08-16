@@ -23,6 +23,9 @@ void UART1_REC(u8);
 //处理从LCD接受的数据//
 void Lcd_Handle(void);
 void LCD_INIT(void);
+void Weight_Screen_Show(void);
+void Screen_Save_Power_Mode(void);
+void Light_Up_Screen(void);
 
 
 #endif

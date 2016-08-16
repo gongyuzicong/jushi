@@ -3,6 +3,7 @@
 #include "motion_control.h"
 #include "fiberglas.h"
 #include "cfg_gpio.h"
+#include "fiberglas.h"
 
 
 //添加到全局变量//
@@ -229,12 +230,14 @@ void Lcd_Handle(void)
 					Set_batter(98);
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					Set_main_state(main_state);
+					getWeightCtrl_Ptr->weightReportFlag = 0;
 				}
 				if(receive_buf[1]==0x42)//称重页面
 				{
 					Set_batter(98);
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
-					Set_scale_weight(00, 00);
+					getWeightCtrl_Ptr->weightReportFlag = 1;
+					//Set_scale_weight(00, 00);
 				}
 				if(receive_buf[1]==0x44)//手动控制页面
 				{
@@ -243,6 +246,7 @@ void Lcd_Handle(void)
 					ctrlParasPtr->agvWalkingMode = ManualMode;
 					ctrlParasPtr->manualCtrl = Man_Stop;
 					MOTOR_POWER_ON();
+					getWeightCtrl_Ptr->weightReportFlag = 0;
 					printf("ManualMode\r\n");
 				}
 			}
@@ -325,6 +329,7 @@ void Lcd_Handle(void)
 			Set_time(BackgroudRTC_Rec_Hex.hour, BackgroudRTC_Rec_Hex.minute, BackgroudRTC_Rec_Hex.second);
 			Set_batter(98);
 			Set_main_state(main_state);
+			Light_Up_Screen();
 		}
 //////清除flag，接收计数//////
 		flag_recok=0;
@@ -349,7 +354,21 @@ void UART1_REC(u8 data)
 	
 }
 
+void Weight_Screen_Show(void)
+{
+	Uart_Send_Str("scale.show()\r");
+}
 
+void Screen_Save_Power_Mode(void)
+{
+	Uart_Send_Str("sysTouch.enabled=1\r");
+	Uart_Send_Str("sysTouch.idleTimeout=10000\r");
+}
+
+void Light_Up_Screen(void)
+{
+	Uart_Send_Str("sysTouch.enabled=1\r");
+}
 
 #if 0
 void LCD_Usart_GPIOInit(void)

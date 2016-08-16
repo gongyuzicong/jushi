@@ -24,6 +24,7 @@
 #define MOTOR_LEFT_CR_DEF(X) 	Motor_Left_CR(X)
 #define CHECK_MOTOR_SET_DUTY(duty)		(((duty >= 0) && (duty <= 100)) ? 1 : 0)
 
+#define EXTRA_CROSS_ROAD_R	2
 
 #define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
 #define MAX_STEP_SPEED_INC	1
@@ -292,7 +293,10 @@ typedef struct
 
 	u8 cirDuty;
 	u8 rifdAdaptFlag;
-	
+
+	u16 CrossRoadHallCountL;
+	u16 CrossRoadHallCountR;
+	u8 CrossRoadHallCountFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -456,7 +460,8 @@ void gS_startup_mode(u8);
 void gS_slow(u8);
 void back_slow(u8);
 void AGV_Correct_back_ug(u8);
-void Hall_Count(void);
+void CrossRoad_Hall_Count_Start(void);
+void CrossRoad_Hall_Count_Stop(void);
 void AGV_Proc(void);
 void MPU6050_Data_init(void);
 void MPU6050_Data(void);
@@ -478,6 +483,9 @@ u8 Origin_PatCtrl(u8);
 void AutoRunningFunc(void);
 void CrossRoad_Count2(void);
 void ManualModeFunc(ManualMode_Ctrl);
+void MA_TEST(void);
+void AGV_Correct_2(void);
+void Recv_RFID_CrossRoad(u8);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;
