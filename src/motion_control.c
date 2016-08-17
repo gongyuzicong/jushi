@@ -9672,7 +9672,7 @@ void AGV_Correct_2(void)
 
 void Get_Zigbee_Info_From_Buf(void)
 {
-	if(((step_origin == ctrlParasPtr->walkingstep) || (step_stop == ctrlParasPtr->walkingstep)) && (zigbeeQueueCtrl.Total > 0))
+	if(((step_origin == ctrlParasPtr->walkingstep) || (step_stop == ctrlParasPtr->walkingstep)) && (zigbeeQueueCtrl.Total > 0) && (ctrlParasPtr->crossRoadCountF >= 3))
 	{
 		u16 data = 0;
 		
@@ -11454,14 +11454,14 @@ void step_gVeer_Func2(void)
 
 	if(0 == stepFlag)
 	{
-		ctrlParasPtr->cirDuty = 12;
+		ctrlParasPtr->cirDuty = 13;
 		stepFlag = 1;
 	}
 	else if(1 == stepFlag)
 	{
 		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
-			ctrlParasPtr->cirDuty = 12;
+			ctrlParasPtr->cirDuty = 13;
 			stepFlag = 2;
 		}
 	}
@@ -11801,14 +11801,14 @@ void step_bVeer_Func2(void)
 
 	if(0 == stepFlag)
 	{
-		ctrlParasPtr->cirDuty = 12;
+		ctrlParasPtr->cirDuty = 13;
 		stepFlag = 1;
 	}
 	else if(1 == stepFlag)
 	{
 		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
-			ctrlParasPtr->cirDuty = 12;
+			ctrlParasPtr->cirDuty = 13;
 			stepFlag = 2;
 		}
 	}
@@ -11888,7 +11888,7 @@ void step_gB_Func(void)
 	if((ctrlParasPtr->crossRoadCountF <= 1) && (ctrlParasPtr->crossRoadCountR <= 2))
 	{
 		CHANGE_TO_BACK_SLOW_MODE();
-		ctrlParasPtr->gear = 3;
+		ctrlParasPtr->gear = 4;
 	}
 	
 	//printf("MSD_Hex = %x, crossRoadCountF = %d\r\n", FMSDS_Ptr->MSD_Hex, ctrlParasPtr->crossRoadCountF);
@@ -11915,8 +11915,8 @@ void step_wFTans_Func(void)
 	#ifdef USE_SEND_ZIGBEE
 		Send_Arrive();
 	#endif
-		ctrlParasPtr->crossRoadCountF = 0;
-		ctrlParasPtr->crossRoadCountR = 0;
+		ctrlParasPtr->crossRoadCountF = 2;
+		ctrlParasPtr->crossRoadCountR = 1;
 		//ECV_POWER_ON();
 		BECV_UP();
 		timRec = SystemRunningTime;
@@ -11941,6 +11941,7 @@ void step_wFTans_Func(void)
 			timRec = 0;
 			RFID_Info_Ptr->lock = 0x00;
 			Zigbee_Ptr->recvId = 0x00;
+			ctrlParasPtr->FSflag = 0;
 			CHANGE_TO_GO_STRAIGHT_MODE();
 			ctrlParasPtr->walkingstep = step_origin;
 		}
@@ -11951,17 +11952,16 @@ void step_wFTans_Func(void)
 
 void step_origin_Func(void)
 {
-	ctrlParasPtr->FSflag = 0;
 	
-	if(ctrlParasPtr->crossRoadCountF <= 1)
+	if(ctrlParasPtr->crossRoadCountF < 3)
 	{
-		ctrlParasPtr->agvStatus = gSslow;
-		ctrlParasPtr->gear = 3;
+		CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
+		ctrlParasPtr->gear = 4;
 		//printf("ctrlParasPtr->gear = 3\r\n");
 	}
 	else
 	{
-		ctrlParasPtr->gear = 10;
+		//ctrlParasPtr->gear = 10;
 	}
 
 	if(1 == RFID_Info_Ptr->updateFlag)
