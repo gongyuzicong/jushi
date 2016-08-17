@@ -9099,7 +9099,7 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		if(0 == ctrlParasPtr->FSflag)		
 		{
 			// 启动模式
-			gS_startup_mode6(3);
+			gS_startup_mode6(4);
 			timRec = 0;
 		}
 		else if(1 == ctrlParasPtr->FSflag)
@@ -9153,7 +9153,7 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 		if(0 == ctrlParasPtr->BSflag)		
 		{
 			// 启动模式
-			bS_startup_mode8(3);
+			bS_startup_mode8(4);
 			timRec = 0;
 		}
 		else if(1 == ctrlParasPtr->BSflag)
@@ -10186,7 +10186,7 @@ void STATION_1AND2_WalkControl(void)
 				else
 				{
 					CHANGE_TO_GO_STRAIGHT_MODE();
-					ctrlParasPtr->gear = 10;
+					ctrlParasPtr->gear = 12;
 				}
 			}
 			else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -10282,7 +10282,7 @@ void STATION_3AND4_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 10;
+				ctrlParasPtr->gear = 12;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -10374,7 +10374,7 @@ void STATION_5AND6_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 10;
+				ctrlParasPtr->gear = 12;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -10470,7 +10470,7 @@ void STATION_7AND8_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 10;
+				ctrlParasPtr->gear = 12;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -10565,7 +10565,7 @@ void STATION_9AND10_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 10;
+				ctrlParasPtr->gear = 12;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -11087,6 +11087,35 @@ u8 Origin_PatCtrl(u8 duty)
 }
 
 
+u8 Origin_PatCtrl2(u8 duty)
+{
+	u8 status = 0;
+	static u32 timRec = 0;
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1))
+	{
+		CHANGE_TO_CIR_RIGHT_MODE();
+		timRec = SystemRunningTime;
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		CHANGE_TO_CIR_LEFT_MODE();
+		//ctrlParasPtr->cirDuty = 7;
+		timRec = SystemRunningTime;
+	}
+	else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
+	{
+		CHANGE_TO_STOP_MODE();
+		CleanAllSpeed();
+		
+		status = 1;
+		
+	}
+
+	return status;
+}
+
+
 void CrossRoad_Hall_Count_Start(void)
 {
 	
@@ -11425,14 +11454,14 @@ void step_gVeer_Func2(void)
 
 	if(0 == stepFlag)
 	{
-		ctrlParasPtr->cirDuty = 10;
+		ctrlParasPtr->cirDuty = 12;
 		stepFlag = 1;
 	}
 	else if(1 == stepFlag)
 	{
 		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
-			ctrlParasPtr->cirDuty = 10;
+			ctrlParasPtr->cirDuty = 12;
 			stepFlag = 2;
 		}
 	}
@@ -11442,7 +11471,7 @@ void step_gVeer_Func2(void)
 		{
 			ctrlParasPtr->cirDuty = 9;
 			
-			if(1 == Origin_PatCtrl(ctrlParasPtr->cirDuty))
+			if(1 == Origin_PatCtrl2(ctrlParasPtr->cirDuty))
 			{
 				CleanAllSpeed();
 					
@@ -11618,7 +11647,7 @@ void step_weigh_Func(void)
 	{
 		FECV_UP();
 		BECV_UP();
-		if(Delay_Func(&timRec, 2500))
+		if(Delay_Func(&timRec, 3000))
 		{
 			step = 1;
 			BECV_STOP();
@@ -11772,14 +11801,14 @@ void step_bVeer_Func2(void)
 
 	if(0 == stepFlag)
 	{
-		ctrlParasPtr->cirDuty = 10;
+		ctrlParasPtr->cirDuty = 12;
 		stepFlag = 1;
 	}
 	else if(1 == stepFlag)
 	{
 		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 		{
-			ctrlParasPtr->cirDuty = 10;
+			ctrlParasPtr->cirDuty = 12;
 			stepFlag = 2;
 		}
 	}
@@ -11789,7 +11818,7 @@ void step_bVeer_Func2(void)
 		{
 			ctrlParasPtr->cirDuty = 9;
 			//ctrlParasPtr->agvStatus = backStatus;
-			if(1 == Origin_PatCtrl(ctrlParasPtr->cirDuty))
+			if(1 == Origin_PatCtrl2(ctrlParasPtr->cirDuty))
 			{
 				u8 temp = 0;
 				CleanAllSpeed();

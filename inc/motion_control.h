@@ -486,6 +486,7 @@ void ManualModeFunc(ManualMode_Ctrl);
 void MA_TEST(void);
 void AGV_Correct_2(void);
 void Recv_RFID_CrossRoad(u8);
+u8 Origin_PatCtrl2(u8);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;
