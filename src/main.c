@@ -225,7 +225,6 @@ int main(void)
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
 			
-			
 			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
 			{
 				hexF = FMSDS_Ptr->MSD_Hex;

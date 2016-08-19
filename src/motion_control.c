@@ -11665,7 +11665,7 @@ void step_weigh_Func(void)
 	else if(2 == step)
 	{
 		
-		if(Delay_Func(&timRec, 1200))
+		if(Delay_Func(&timRec, 1400))
 		{
 			BECV_STOP();
 			step = 3;
@@ -11888,7 +11888,7 @@ void step_gB_Func(void)
 	if((ctrlParasPtr->crossRoadCountF <= 1) && (ctrlParasPtr->crossRoadCountR <= 2))
 	{
 		CHANGE_TO_BACK_SLOW_MODE();
-		ctrlParasPtr->gear = 4;
+		ctrlParasPtr->gear = 3;
 	}
 	
 	//printf("MSD_Hex = %x, crossRoadCountF = %d\r\n", FMSDS_Ptr->MSD_Hex, ctrlParasPtr->crossRoadCountF);
@@ -11915,8 +11915,8 @@ void step_wFTans_Func(void)
 	#ifdef USE_SEND_ZIGBEE
 		Send_Arrive();
 	#endif
-		ctrlParasPtr->crossRoadCountF = 2;
-		ctrlParasPtr->crossRoadCountR = 1;
+		ctrlParasPtr->crossRoadCountF = 0;
+		ctrlParasPtr->crossRoadCountR = 0;
 		//ECV_POWER_ON();
 		BECV_UP();
 		timRec = SystemRunningTime;
@@ -11941,7 +11941,7 @@ void step_wFTans_Func(void)
 			timRec = 0;
 			RFID_Info_Ptr->lock = 0x00;
 			Zigbee_Ptr->recvId = 0x00;
-			ctrlParasPtr->FSflag = 0;
+			
 			CHANGE_TO_GO_STRAIGHT_MODE();
 			ctrlParasPtr->walkingstep = step_origin;
 		}
@@ -11952,6 +11952,7 @@ void step_wFTans_Func(void)
 
 void step_origin_Func(void)
 {
+	ctrlParasPtr->FSflag = 0;
 	
 	if(ctrlParasPtr->crossRoadCountF < 3)
 	{
