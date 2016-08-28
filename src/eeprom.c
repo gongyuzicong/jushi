@@ -6,11 +6,11 @@
 void EEPROM_Write_Byte(u16 addr,u8 data)
 {
 	IIC_Start();
-	IIC_Send_Byte(0xa0);
+	IIC_Send_Byte(0xa0);			// 设备地址(ID)
 	IIC_Wait_Ack();
-	IIC_Send_Byte(addr >> 8);
+	IIC_Send_Byte(addr >> 8);		// 写入地址
 	IIC_Wait_Ack();
-	IIC_Send_Byte(addr & 0x00FF);
+	IIC_Send_Byte(addr & 0x00FF);	// 写入地址
 	IIC_Wait_Ack();
 	IIC_Send_Byte(data);
 	IIC_Wait_Ack();
@@ -24,14 +24,14 @@ u8 EEPROM_Read_Byte(u16 addr)
 	IIC_Start();
 	IIC_Send_Byte(0xa0);
 	IIC_Wait_Ack();
-	IIC_Send_Byte(addr >> 8);
+	IIC_Send_Byte( addr >> 8 );
 	IIC_Wait_Ack();
-	IIC_Send_Byte(addr & 0x00FF);
+	IIC_Send_Byte( addr & 0x00FF );
 	IIC_Wait_Ack();
 	IIC_Start();
-	IIC_Send_Byte(0xa1);
+	IIC_Send_Byte( 0xa1 );
 	IIC_Wait_Ack();
-	temp= IIC_Read_Byte(0);
+	temp = IIC_Read_Byte(0);
 	IIC_Stop();
 	return temp;
 }

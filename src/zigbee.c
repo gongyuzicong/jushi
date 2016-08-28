@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "timer_opts.h"
 #include "motion_control.h"
+#include "circle_recoder.h"
 
 #define USART2_TC					((USART2->SR >> 6) & 0x0001)
 
@@ -484,8 +485,13 @@ void Receive_handle2(void)
 					node = (nc_receive[7] >> 4) + 1;
 					
 					if(ZBandRFIDmapping[node] != Zigbee_Ptr->recvId)
-					//if(1)
 					{
+						#if USE_CIRCLE_INFO_RECODER
+						CircleInfoStrPtr->CircleRecoderCount++;
+						CircleInfoStrPtr->Station = node;
+						CircleInfoStrPtr->REQ_TIME = BackgroudRTC_Rec;
+						#endif
+						
 						zigbeeReqQueue(node);
 						//zigbeeAck[2] = Id_Arr[node].zigbee_ID1;
 						//zigbeeAck[3] = Id_Arr[node].zigbee_ID2;

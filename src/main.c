@@ -21,6 +21,8 @@
 #include "ads1256.h"
 #include "fiberglas.h"
 #include "lcd.h"
+#include "watch_dog.h"
+#include "circle_recoder.h"
 
 void SystemInit(void)
 {	
@@ -43,8 +45,14 @@ void SystemInit(void)
 	My_I2C_Init();
 	ProtectSW_GPIO_Config();
 	//MPU6050_init();
+	
+	
 	ADS1256_Init();
 	LCD_INIT();
+
+	#if USE_CIRCLE_INFO_RECODER
+	circle_recoder_init();
+	#endif
 	
 	Get_Weight_Offset_Data();
 	
@@ -60,6 +68,7 @@ int main(void)
 {
 	//TIMx_PwmOpts_Struct TIM3_PWM;
 	//int cir = 0, ayDec = 0;
+	
 	static u16 hexF = 0, hexR = 0;
 	static Agv_MS_Location mslRecF = AgvInits, mslRecR = AgvInits;
 	
@@ -87,6 +96,11 @@ int main(void)
 	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
+
+	#if USE_IWDG
+	IWatch_Dog_Init();
+	#endif
+	
 	
 	printf("Start\r\n");
 	
@@ -101,7 +115,15 @@ int main(void)
 	{		
 		
 		#if 1
-
+		
+		#if USE_IWDG
+		static u32 timRec = 0;
+		if(Delay_Func(&timRec, 500))
+		{
+			IWDG_RELOAD();
+		}
+		#endif
+		
 		ProtectFunc();
 		Read_RTC_Data();
 		Lcd_Handle();
@@ -142,11 +164,11 @@ int main(void)
 				
 				if(gSslow == ctrlParasPtr->agvStatus)
 				{
-					gS_slow2(3);
+					gS_slow2(5);
 				}
 				else if(bSslow == ctrlParasPtr->agvStatus)
 				{
-					back_slow2(3);
+					back_slow2(5);
 				}
 				
 				startup_origin_Func();
@@ -321,9 +343,39 @@ int main(void)
 		*/
 		//Lcd_Handle();
 		//Get_Weight_Data();
-		MA_TEST();
+		//MA_TEST();
 				
 		//Lcd_Handle();
+
+
+		static u32 timRec = 0;
+		static u8 step = 0;
+
+		if(0 == step)
+		{
+			FECV_UP();
+			BECV_UP();
+			if(Delay_Func(&timRec, 4000))
+			{
+				step = 1;
+				BECV_STOP();
+				timRec = 0;
+				//printf("BECV_STOP\r\n");
+				WarningLedCtrlPtr->twinkleFlag = 1;
+			}
+		}
+		else if(1 == step)
+		{
+			if(Delay_Func(&timRec, 7000))
+			{
+				FECV_STOP();
+				step = 2;
+				//printf("FECV_STOP\r\n");
+				WarningLedCtrlPtr->twinkleFlag = 1;
+			}
+		}
+
+		WarningLedCtrlPtr->twinkleCtrlFunc();
 		
 		#endif
 		

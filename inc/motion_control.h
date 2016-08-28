@@ -129,16 +129,16 @@
 #define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0; ECV3_POWER = 0;}
 #define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1; ECV3_POWER = 1;}
 
-#define FECV_UP()		{ECV2_DIR = 0;   ECV2_PWM = 1;  }		//
-#define FECV_DOWN()		{ECV2_DIR = 1;   ECV2_PWM = 1;  }
+#define FECV_UP()		{ECV2_PWM = 1;   ECV2_DIR = 0;  }		//
+#define FECV_DOWN()		{ECV2_PWM = 1;   ECV2_DIR = 1;  }
 #define FECV_STOP()		{ECV2_PWM = 0;					}
 
-#define BECV_UP()		{ECV1_DIR = 1;   ECV1_PWM = 1;  }
-#define BECV_DOWN()		{ECV1_DIR = 0;   ECV1_PWM = 1;  }
+#define BECV_UP()		{ECV1_PWM = 1;	 ECV1_DIR = 1;  }
+#define BECV_DOWN()		{ECV1_PWM = 1;   ECV1_DIR = 0;  }
 #define BECV_STOP()		{ECV1_PWM = 0;					}
 
-#define WECV_UP()		{ECV3_DIR = 1;   ECV3_PWM = 1;  }
-#define WECV_DOWN()		{ECV3_DIR = 0;   ECV3_PWM = 1;  }
+#define WECV_UP()		{ECV3_PWM = 1;   ECV3_DIR = 1;  }
+#define WECV_DOWN()		{ECV3_PWM = 1;   ECV3_DIR = 0;  }
 #define WECV_STOP()		{ECV3_PWM = 0;					}
 
 

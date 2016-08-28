@@ -31,6 +31,7 @@
 #include "magn_sensor.h"
 #include "zigbee.h"
 #include "lcd.h"
+#include "circle_recoder.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -995,6 +996,9 @@ void UART4_IRQHandler(void)
 		//printf("U4D = %x\r\n", recvD);
 		
 		//UART1_REC(recvD);
+		#if USE_CIRCLE_INFO_RECODER
+		CircleInfo_CMD_Handle(recvD);
+		#endif
 	}
 	
 }
