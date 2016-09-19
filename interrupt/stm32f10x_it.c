@@ -283,12 +283,27 @@ void EXTI3_IRQHandler(void)
 *******************************************************************************/
 void EXTI4_IRQHandler(void)
 {
+	
+#if 1
+	// E1-HALL
+	if (((EXTI->PR & ((u32)0x00010)) != 0) && ((EXTI->IMR & ((u32)0x00010)) != 0))
+	{
+		
+
+		EXTI->PR = ((u32)0x00010);
+	}
+
+
+#else
+
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
-		//printf("pd2exti\r\n");
-		//EXTI->PR = ((u32)0x00004);
-		EXTI_ClearITPendingBit(EXTI_Line4);
+		
+		EXTI_ClearITPendingBit(EXTI_Line8);
 	}
+
+#endif
+	
 }
 
 /*******************************************************************************
@@ -454,6 +469,38 @@ void CAN_SCE_IRQHandler(void)
 *******************************************************************************/
 void EXTI9_5_IRQHandler(void)
 {
+
+	#if 1
+	// E2-HALL
+	if (((EXTI->PR & ((u32)0x00100)) != 0) && ((EXTI->IMR & ((u32)0x00100)) != 0))
+	{
+		
+
+		EXTI->PR = ((u32)0x00100);
+	}
+	// E3-HALL
+	if (((EXTI->PR & ((u32)0x00200)) != 0) && ((EXTI->IMR & ((u32)0x00200)) != 0))
+	{
+		
+
+		EXTI->PR = ((u32)0x00200);
+	}
+
+	#else
+
+	if(EXTI_GetITStatus(EXTI_Line8) != RESET)
+	{
+		
+		EXTI_ClearITPendingBit(EXTI_Line8);
+	}
+	
+	if(EXTI_GetITStatus(EXTI_Line9) != RESET)
+	{
+		
+		EXTI_ClearITPendingBit(EXTI_Line9);
+	}
+
+	#endif
 }
 
 /*******************************************************************************
@@ -1012,7 +1059,21 @@ void UART4_IRQHandler(void)
 *******************************************************************************/
 void UART5_IRQHandler(void)
 {
+	if(0 != (UART5->SR & (0x01 << 6)))	
+	{
+		xBitOff(UART5->SR, 6);
+		
+	}	
+	else if(0 != (UART5->SR & (0x01 << 5))) // ÅÐ¶ÏÊÇ·ñÎªRXNEÖÐ¶Ï
+	{
+		u8 recvD = UART5_RECV_DATA;
+		//printf("U4D = %x\r\n", recvD);
+		
+		//UART1_REC(recvD);
+	}
+	
 }
+
 
 /*******************************************************************************
 * Function Name  : TIM6_IRQHandler

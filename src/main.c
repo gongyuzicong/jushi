@@ -79,7 +79,7 @@ int main(void)
 
 	mslRecF = FMSDS_Ptr->AgvMSLocation;
 	mslRecR = FMSDS_Ptr->AgvMSLocation;
-	Warning_LED = 0;
+	Warning_LED_RED = 0;
 	
 	//MPU6050_Data_init3();
 	ECV_POWER_ON();

@@ -9777,7 +9777,7 @@ void RFID_Goal_Node_Analy(void)
 	if(1 == Zigbee_Ptr->recvValidDataFlag)
 	{
 		Zigbee_Ptr->recvValidDataFlag = 0;
-		Warning_LED = 0;
+		Warning_LED_RED = 0;
 		if((ZBandRFIDmapping[SpinStation_1] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_2] == Zigbee_Ptr->recvId))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_1AND2_RFID;
@@ -12653,7 +12653,7 @@ void WarningLedTwinkleCtrl(void)
 		if(0 == timRec)
 		{
 			timRec = SystemRunningTime;
-			Warning_LED = 1;
+			Warning_LED_RED = 1;
 			step = 0;
 		}
 		else
@@ -12663,7 +12663,7 @@ void WarningLedTwinkleCtrl(void)
 			{
 				if(SystemRunningTime - timRec >= WarningLedCtrlPtr->intervalTime_ms * 10)
 				{
-					Warning_LED = 0;
+					Warning_LED_RED = 0;
 					step = 1;
 					timRec = SystemRunningTime;
 				}
@@ -13041,7 +13041,7 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void)
 	if(0 == timRec)
 	{
 		timRec = SystemRunningTime;
-		Warning_LED = 0;
+		Warning_LED_RED = 0;
 		step = 0;
 	}
 	else
@@ -13051,7 +13051,7 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void)
 		{
 			if(SystemRunningTime - timRec >= dutyTime)
 			{
-				Warning_LED = 1;
+				Warning_LED_RED = 1;
 				step = 1;
 				timRec = SystemRunningTime;
 			}
@@ -13243,10 +13243,15 @@ void Motion_Ctrl_GPIO_Init(void)
 #else
 	/*Motor Right Out*/
 	/*设置为推挽输出，最大翻转频率为50MHz*/
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
 	GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_13;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	/*Motor Left Out*/
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11;
@@ -13324,6 +13329,61 @@ void PG_EXTI_CFG(void)
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
 	NVIC_Init(&NVIC_InitStructure);								//初始化
+
+
+	// E1-HALL config PD2
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOD, GPIO_PinSource4);
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line = EXTI_Line4;
+  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+
+	// E2-HALL config PC8
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource8);
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line = EXTI_Line8;
+  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+
+	// E3-HALL config PC9
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource9);
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line = EXTI_Line9;
+  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
 }
 
 
@@ -13382,6 +13442,11 @@ void SW_Gpio_Init(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1 | GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_9 | GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;

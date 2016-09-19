@@ -11,10 +11,12 @@
 
 #define MAX_HALL_COUNT		1
 
-#define Warning_LED		PDout(3)
-#define Warning_LED_IN	PDin(3)
-#define ProtectSW_F		PDin(5)
-#define ProtectSW_R		PEin(4)
+#define Warning_LED_RED			PDout(3)
+#define Warning_LED_GREEN		PCout(6)
+#define Warning_LED_ORANGE		PCout(7)
+#define Warning_LED_IN			PDin(3)
+#define ProtectSW_F				PDin(5)
+#define ProtectSW_R				PEin(4)
 
 #define USE_ECV		1
 
@@ -56,7 +58,8 @@
 /****MOTOR OUT: START****/
 #define MOTOR_RIGHT_EN		PDout(0)
 #define MOTOR_RIGHT_FR		PDout(1)
-#define MOTOR_RIGHT_BK		PDout(2)
+//#define MOTOR_RIGHT_BK		PDout(2)
+#define MOTOR_RIGHT_BK		PCout(13)
 #define MOTOR_RIGHT_X1		PDout(3)
 #define MOTOR_RIGHT_X2		PDout(4)
 #define MOTOR_RIGHT_X3		PDout(5)
@@ -123,6 +126,9 @@
 
 #define LMT_SW			PEin(0)			// 响应为 0
 #define Return_SW		PDin(10)		// 响应为 0
+
+#define KEY_1			PCin(1)			// 响应为 0
+#define KEY_2			PCin(2)			// 响应为 0
 
 #define LMT2_SW			PEin(2)			//
 

@@ -210,12 +210,72 @@ void Debug_UART_INIT(void)
 	USART_ClearFlag(UART4, USART_FLAG_TC);
 }
 
+void Uart5_GPIOInit(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	/* 开启GPIO时钟和复用功能时钟RCC_APB2Periph_AFIO */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_AFIO, ENABLE);
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* 配置 USART Tx 复用推挽输出 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	//复用推挽输出
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+	/* 配置 USART Rx 浮空输入 */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	
+	//GPIO_SetBits(GPIOA, GPIO_Pin_2 | GPIO_Pin_3);
+}
+
+
+void UART5_INIT(void)
+{
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
+	Uart5_GPIOInit();
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE);
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+
+	/*
+	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
+	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
+	USART_ClockInitStructure.USART_CPHA = USART_CPHA_1Edge;
+	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
+	USART_ClockInit(UART4, &USART_ClockInitStructure);
+	*/
+	
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_Init(UART5, &USART_InitStructure);
+	
+	USART_ITConfig(UART5, USART_IT_RXNE, ENABLE);
+	USART_Cmd(UART5, ENABLE);
+	USART_ClearFlag(UART5, USART_FLAG_TC);
+}
 
 
 void CB_USART_Config(void)
 {
 	Debug_UART_INIT();
-	
+	UART5_INIT();
 }
 
 
