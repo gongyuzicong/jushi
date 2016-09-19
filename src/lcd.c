@@ -231,6 +231,7 @@ void Lcd_Handle(void)
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					Set_main_state(main_state);
 					getWeightCtrl_Ptr->weightReportFlag = 0;
+					WarningLedCtrlPtr->twinkleNum = 2;
 				}
 				if(receive_buf[1]==0x42)//称重页面
 				{
@@ -238,6 +239,7 @@ void Lcd_Handle(void)
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					getWeightCtrl_Ptr->weightReportFlag = 1;
 					//Set_scale_weight(00, 00);
+					WarningLedCtrlPtr->twinkleNum = 2;
 				}
 				if(receive_buf[1]==0x44)//手动控制页面
 				{
@@ -245,7 +247,11 @@ void Lcd_Handle(void)
 					////进入手动控制界面////
 					ctrlParasPtr->agvWalkingMode = ManualMode;
 					ctrlParasPtr->manualCtrl = Man_Stop;
+					#if USE_ECV
+					
+					#else
 					MOTOR_POWER_ON();
+					#endif
 					getWeightCtrl_Ptr->weightReportFlag = 0;
 					printf("ManualMode\r\n");
 				}

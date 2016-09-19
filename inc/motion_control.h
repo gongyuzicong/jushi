@@ -16,6 +16,7 @@
 #define ProtectSW_F		PDin(5)
 #define ProtectSW_R		PEin(4)
 
+#define USE_ECV		1
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
@@ -122,6 +123,8 @@
 
 #define LMT_SW			PEin(0)			// 响应为 0
 #define Return_SW		PDin(10)		// 响应为 0
+
+#define LMT2_SW			PEin(2)			//
 
 #define BUZZER_1		PEout(9)
 #define BUZZER_2		PEout(10)
@@ -290,6 +293,7 @@ typedef struct
 
 	u8 start_origin_mode;
 	u8 originFlag;
+	u8 armResetFlag;
 
 	u8 cirDuty;
 	u8 rifdAdaptFlag;
@@ -487,6 +491,8 @@ void MA_TEST(void);
 void AGV_Correct_2(void);
 void Recv_RFID_CrossRoad(u8);
 u8 Origin_PatCtrl2(u8);
+u8 ARM_Reset(void);
+void ARM_Reset2(void);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

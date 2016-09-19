@@ -227,29 +227,29 @@ typedef struct
 
 typedef struct
 {
-	vu16 MSD_Hex;
+	vu16 MSD_Hex;	// 最原始的数据
 	
 	vs16 MSD_Dec;	// 左偏为正值, 右偏为负值, 中间为0
 
-	vs16 VelocityX;
+	vs16 VelocityX;		// 磁传感器x方向偏移时间
 
-	vs16 AcceleratedX;
+	vs16 AcceleratedX;	// 加速度时间
 
 	vu32 VelocityXt;
 
 	s32 AcceleratedXt;
 
-	s16 LeftRemain;
+	s16 LeftRemain;		// 
 
-	s16 RightRemain;
+	s16 RightRemain;	// 
 
-	u8 BitNum;
+	u8 BitNum;			// 可以忽略	
 
-	AgvDirection agvDirection;
+	AgvDirection agvDirection;	// 左右偏移的方向
 
-	u32 TimeRecoder;
+	u32 TimeRecoder;		
 
-	Agv_MS_Location AgvMSLocation;
+	Agv_MS_Location AgvMSLocation;		// 磁传感器最原始的数据处理后结果
 
 	s16 AgvMSLocation_s;
 

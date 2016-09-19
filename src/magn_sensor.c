@@ -988,13 +988,13 @@ void Magn_Sensor_Scan(void)
 			
 			FMSDS_Ptr->TimeRecoder = SystemRunningTime;
 			
-			MSD_Analy(FMSDS_Ptr);
+			MSD_Analy(FMSDS_Ptr);		// 数据处理
 
-			Check_Magn_Direction(FMSDS_Ptr, FMSDS_Pre_Ptr);
+			Check_Magn_Direction(FMSDS_Ptr, FMSDS_Pre_Ptr);	// 识别方向
 
-			Magn_VelocityXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
+			Magn_VelocityXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);	// 速度计算
 
-			Magn_AcceleratedXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);
+			Magn_AcceleratedXt_Clau(FMSDS_Ptr, FMSDS_Pre_Ptr);	// 加速度计算
 
 			MSDS_UpdateFlag = 1;
 		}

@@ -83,6 +83,7 @@ int main(void)
 	
 	//MPU6050_Data_init3();
 	ECV_POWER_ON();
+	#if 0
 	FECV_DOWN();
 	BECV_DOWN();
 	//WECV_DOWN();
@@ -90,8 +91,18 @@ int main(void)
 	FECV_STOP();
 	BECV_UP();
 	//Delay_ns(1);
-	Delay_ms(700);
+	//Delay_ms(600);
+	Delay_ns(2);
+	Delay_ms(500);
+	BECV_DOWN();
+	Delay_ns(1);
+	Delay_ms(900);
 	BECV_STOP();
+	#else
+	//while(ARM_Reset() != 1);
+	ctrlParasPtr->armResetFlag = 1;
+	#endif
+	
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
@@ -117,19 +128,23 @@ int main(void)
 		#if 1
 		
 		#if USE_IWDG
-		static u32 timRec = 0;
+		u32 timRec = 0;
 		if(Delay_Func(&timRec, 500))
 		{
 			IWDG_RELOAD();
 		}
 		#endif
 		
-		ProtectFunc();
-		Read_RTC_Data();
-		Lcd_Handle();
+		//ProtectFunc();
+		Read_RTC_Data();	// 年月日
+		Lcd_Handle();		// 小屏幕操作函数
 		//SIMU_PWM_BreathBoardLED_Ctrl();
-		Scan_Weight_Func();
-		
+		Scan_Weight_Func();	// 扫描称重模块数据
+		WarningLedCtrlPtr->twinkleCtrlFunc();
+		ARM_Reset2();		// 机械手臂复位操作
+
+
+		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
 		{
 			//printf("l=%d,r=%d\r\n", ctrlParasPtr->leftHallIntervalTime, ctrlParasPtr->rightHallIntervalTime);
@@ -140,6 +155,12 @@ int main(void)
 		{
 			//MOTOR_POWER_ON();
 			ManualModeFunc(ctrlParasPtr->manualCtrl);
+			#if USE_ECV
+			if((Man_CirL == ctrlParasPtr->manualCtrl) || (Man_CirR == ctrlParasPtr->manualCtrl))
+			{
+				ctrlParasPtr->manualCtrl = Man_Stop;
+			}
+			#endif
 		}
 		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
 		{
@@ -155,8 +176,9 @@ int main(void)
 		}
 		else if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 		{
-			Magn_Sensor_Scan();
-			Receive_handle2();
+			Magn_Sensor_Scan();		// 磁传感器数据处理
+			Receive_handle2();		// ZigBee数据接收处理函数
+
 			
 			if(0 == ctrlParasPtr->start_origin_mode)
 			//if(0)
@@ -178,14 +200,16 @@ int main(void)
 			{
 				//originP();
 				
-				CrossRoad_Count2();
+				CrossRoad_Count2();				// 磁条十字交叉路口的计算
 				
-				Get_Zigbee_Info_From_Buf();
+				Get_Zigbee_Info_From_Buf();		// 从队列当中取出接收到的ZigBee信息
 				
-				RFID_Goal_Node_Analy();
+				RFID_Goal_Node_Analy();			// 分析哪个RFID点转
 				
-				Walking_Step_Controler();
-				
+				Walking_Step_Controler();		// 整个大逻辑的控制
+
+
+				/****小车驱动轮控制****/
 				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 				{
 					
@@ -193,31 +217,31 @@ int main(void)
 					AGV_Walking();
 				#else
 					
-					if(goStraightStatus == ctrlParasPtr->agvStatus)
+					if(goStraightStatus == ctrlParasPtr->agvStatus)		// 高速直行状态
 					{
 						
 						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
 					}
-					else if(backStatus == ctrlParasPtr->agvStatus)
+					else if(backStatus == ctrlParasPtr->agvStatus)		// 高速后退状态
 					{
 						
 						AGV_Correct_back_ug(ctrlParasPtr->gear);
 					}
-					else if(cirLeft == ctrlParasPtr->agvStatus)
+					else if(cirLeft == ctrlParasPtr->agvStatus)			// 左转状态
 					{
 						//walking_cirLeft(ctrlParasPtr->gear);
 						walking_cir(ctrlParasPtr->cirDuty);
 					}
-					else if(cirRight == ctrlParasPtr->agvStatus)
+					else if(cirRight == ctrlParasPtr->agvStatus)		// 右转状态
 					{
 						//walking_cirRight(ctrlParasPtr->gear);
 						walking_cir(ctrlParasPtr->cirDuty);
 					}
-					else if(gSslow == ctrlParasPtr->agvStatus)
+					else if(gSslow == ctrlParasPtr->agvStatus)			// 低速直行
 					{
 						gS_slow2(ctrlParasPtr->gear);
 					}
-					else if(bSslow == ctrlParasPtr->agvStatus)
+					else if(bSslow == ctrlParasPtr->agvStatus)			// 低速后退
 					{
 						back_slow2(ctrlParasPtr->gear);
 					}
@@ -229,7 +253,7 @@ int main(void)
 				//AGV_Change_Mode();
 				
 				//AGV_Proc();
-				
+				// 在原点待机时自动回正
 				if(ControlCenter == ctrlParasPtr->goalStation)
 				{
 					//SIMU_PWM_BreathWarningLED_Ctrl();
@@ -243,10 +267,11 @@ int main(void)
 				
 			}
 			
-			WarningLedCtrlPtr->twinkleCtrlFunc();
+			
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
-			
+
+			// 小车调试信息的打印
 			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
 			{
 				hexF = FMSDS_Ptr->MSD_Hex;
@@ -347,7 +372,7 @@ int main(void)
 				
 		//Lcd_Handle();
 
-
+		/*
 		static u32 timRec = 0;
 		static u8 step = 0;
 
@@ -376,6 +401,130 @@ int main(void)
 		}
 
 		WarningLedCtrlPtr->twinkleCtrlFunc();
+		*/
+		/*
+		static u8 step = 0;
+		static u32 timRec = 0;
+		
+				
+		if(0 == step)
+		{
+			if(0 == Return_SW)
+			{
+				Delay_ms(20);
+				if(0 == Return_SW)
+				{
+					while(0 == Return_SW);
+					step = 1;
+					BECV_UP();
+					FECV_UP();
+					timRec = 0;
+					printf("step = 1\r\n");
+				}
+				
+			}
+		}
+		else if(1 == step)
+		{
+			if(Delay_Func(&timRec, 1200))
+			{
+				BECV_STOP();
+				FECV_STOP();
+			}
+
+			if(0 == Return_SW)
+			{
+				Delay_ms(20);
+				if(0 == Return_SW)
+				{
+					while(0 == Return_SW);
+					step = 2;
+					BECV_UP();
+					FECV_UP();
+					timRec = 0;
+					printf("step = 2\r\n");
+				}
+			}
+		}
+		else if(2 == step)
+		{
+			if(Delay_Func(&timRec, 2000))
+			{
+				BECV_STOP();
+				FECV_STOP();
+			}
+
+			if(0 == Return_SW)
+			{
+				Delay_ms(20);
+				if(0 == Return_SW)
+				{
+					while(0 == Return_SW);
+					step = 3;
+					BECV_DOWN();
+					timRec = 0;
+					printf("step = 3\r\n");
+				}
+			}
+		}
+		else if(3 == step)
+		{
+			if(Delay_Func(&timRec, 1000))
+			{
+				BECV_STOP();
+			}
+
+			if(0 == Return_SW)
+			{
+				Delay_ms(20);
+				if(0 == Return_SW)
+				{
+					while(0 == Return_SW);
+					step = 4;
+					BECV_DOWN();
+					FECV_DOWN();
+					timRec = 0;
+					printf("step = 4\r\n");
+				}
+			}
+		}
+		else if(4 == step)
+		{
+			if(0 == Return_SW)
+			{
+				Delay_ms(20);
+				if(0 == Return_SW)
+				{
+					while(0 == Return_SW);
+					step = 5;
+					BECV_UP();
+					FECV_STOP();
+					timRec = 0;
+					printf("step = 5\r\n");
+				}
+			}
+		}
+		else if(5 == step)
+		{
+			if(Delay_Func(&timRec, 2500))
+			{
+				BECV_DOWN();
+				step = 6;
+				timRec = 0;
+				printf("step = 6\r\n");
+			}
+		}
+		else if(6 == step)
+		{
+			if(Delay_Func(&timRec, 1900))
+			{
+				BECV_STOP();
+				timRec = 0;
+				step = 0;
+			}
+		}
+		*/
+		
 		
 		#endif
 		

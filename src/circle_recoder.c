@@ -158,7 +158,7 @@ void Save_OneCircleInfo(CIRCLE_INFO_STRUCT_P ptr)
 
 	Write_CircleInfo_Count(ptr->CircleRecoderCount);
 	
-	Clean_CircleInfoStr(ptr);
+	
 }
 
 
