@@ -4,7 +4,7 @@
 #include "fiberglas.h"
 #include "cfg_gpio.h"
 #include "fiberglas.h"
-
+#include "ecv_control.h"
 
 //添加到全局变量//
 u8 receive_buf[150];

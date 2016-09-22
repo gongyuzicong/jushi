@@ -1,4 +1,3 @@
-#include "motion_control.h"
 #include "cfg_gpio.h"
 #include "timer_opts.h"
 #include "pwm_opts.h"
@@ -10,6 +9,9 @@
 #include "buffer.h"
 #include "rtc.h" 
 #include "circle_recoder.h"
+#include "ecv_control.h"
+
+#include "motion_control.h"
 
 #define ABSOLU(value)	(value >= 0 ? value : (-value))
 #define MAX_ADAPT_NUM	20
@@ -1506,7 +1508,7 @@ void gS_startup_mode5(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 	//u8 gainDuty[15] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8};
@@ -1631,7 +1633,7 @@ void gS_startup_mode6(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 	//u8 gainDuty[15] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8};
@@ -1718,7 +1720,7 @@ void gS_startup_mode7(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 	//u8 gainDuty[15] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8};
@@ -2157,7 +2159,7 @@ void bS_startup_mode5(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	//u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8};
@@ -2237,7 +2239,7 @@ void bS_startup_mode6(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	u32 tm = 0;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
@@ -2337,7 +2339,7 @@ void bS_startup_mode7(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 	//u8 gainDuty[15] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8};
@@ -2424,7 +2426,7 @@ void bS_startup_mode8(u8 gear)
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
-	static Agv_MS_Location mslRec = AgvInits;
+	//static Agv_MS_Location mslRec = AgvInits;
 	//u8 gainDuty[11] = {1, 4, 6, 8, 10, 12, 12, 12, 12, 12};
 	u8 gainDuty[15] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 12, 12, 12};
 	//u8 gainDuty[15] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8};
@@ -3272,7 +3274,8 @@ void T1_Adapter_Com(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		//if((re >= 0) && (re < MAX_ADAPT_NUM))
+		if(re < MAX_ADAPT_NUM)
 		{
 			Tnow.T1_update = 2;
 			
@@ -3427,7 +3430,8 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		//if((re >= 0) && (re < MAX_ADAPT_NUM))
+		if(re < MAX_ADAPT_NUM)
 		{
 			
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -3499,7 +3503,7 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 				{
 					flag = 2;
 					printf("re = %d: Small\r\n", re);
-					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", T1LSpeedin, T1RSpeedin);
 				}
 
 				if(adaptInfo[re].duty < 15)
@@ -3516,7 +3520,7 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 				{
 					flag = 2;
 					printf("re = %d: Big\r\n", re);
-					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", T1LSpeedin, T1RSpeedin);
 				}
 
 				if(adaptInfo[re].duty > 0)
@@ -3533,7 +3537,7 @@ void T1_Adapter(u8 *T1LSpeed, u8 *T1RSpeed)
 				{
 					flag = 2;
 					printf("re = %d: Good****************\r\n\r\n", re);
-					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", T1LSpeedin, T1RSpeedin);
 				}
 				adaptInfo[re].goodDuty = adaptInfo[re].duty;
 				adaptInfo[re].goodLock = 1;
@@ -3591,7 +3595,8 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		//if((re >= 0) && (re < MAX_ADAPT_NUM))
+		if(re < MAX_ADAPT_NUM)
 		{
 			Tnow.T1_update = 2;
 			
@@ -3661,7 +3666,7 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 				{
 					flag = 2;
 					printf("B re = %d: Small\r\n", re);
-					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", T1LSpeedin, T1RSpeedin);
 				}
 
 				if(adaptInfoB[re].duty < 15)
@@ -3678,7 +3683,7 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 				{
 					flag = 2;
 					printf("re = %d: Big\r\n", re);
-					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", T1LSpeedin, T1RSpeedin);
 				}
 
 				if(adaptInfoB[re].duty > 0)
@@ -3695,7 +3700,7 @@ void T1_Adapter_back(u8 *T1LSpeed, u8 *T1RSpeed)
 				{
 					flag = 2;
 					printf("B re = %d: Good****************\r\n\r\n", re);
-					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", re, T1LSpeedin, T1RSpeedin);
+					printf("T1LSpeedin = %d, T1RSpeedin = %d\r\n", T1LSpeedin, T1RSpeedin);
 				}
 				
 				adaptInfoB[re].goodLock = 1;
@@ -3769,7 +3774,8 @@ void T1_Adapter2(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		//if((re >= 0) && (re < MAX_ADAPT_NUM))
+		if(re < MAX_ADAPT_NUM)
 		{
 			
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -4014,7 +4020,8 @@ void T1_Adapter3(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info2 *arr)
 	{
 		re = Tnow.T1 / div;
 		
-		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		//if((re >= 0) && (re < MAX_ADAPT_NUM))
+		if(re < MAX_ADAPT_NUM)
 		{
 			
 			if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
@@ -4271,7 +4278,8 @@ void T1_Adapter3_back(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info2 *arr)
 	{
 		re = Tnow.T1 / div;
 		
-		if((re >= 0) && (re < MAX_ADAPT_NUM))
+		//if((re >= 0) && (re < MAX_ADAPT_NUM))
+		if(re < MAX_ADAPT_NUM)
 		{
 			
 			if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End))
@@ -5234,7 +5242,8 @@ void Get_T1_Duty(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < 20))
+		//if((re >= 0) && (re < 20))
+		if(re < 20)
 		{
 			
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -5317,7 +5326,8 @@ void Get_T1_Duty_back(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < 20))
+		//if((re >= 0) && (re < 20))
+		if(re < 20)
 		{
 
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -5380,7 +5390,8 @@ void Get_T1_Duty2(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < 20))
+		//if((re >= 0) && (re < 20))
+		if(re < 20)
 		{
 			
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -5549,13 +5560,6 @@ void Get_T1_Duty3(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	static u32 recT1Tim = 0;
 	
 	u8 div = 100;
-
-	Agv_MS_Location max = AgvInits;
-
-	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
-	{
-		max = FMSDS_Ptr->AgvMSLocation;
-	}
 	
 	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
 	{
@@ -5575,7 +5579,8 @@ void Get_T1_Duty3(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < 20))
+		//if((re >= 0) && (re < 20))
+		if(re < 20)
 		{
 			
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -5654,15 +5659,13 @@ void Get_T1_Duty4(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	
 	static u8 T1LSpeedin = 0, T1RSpeedin = 0, re = 0;
 	
-	static u32 recT1Tim = 0;
-	
 	u8 div = 100;
 
-	Agv_MS_Location max = AgvInits, rec = AgvInits;
+	//Agv_MS_Location max = AgvInits, rec = AgvInits;
 
 	if((AgvCent2Left == FMSDS_Ptr->agvDirection) || (AgvCent2Right == FMSDS_Ptr->agvDirection))
 	{
-		max = FMSDS_Ptr->AgvMSLocation;
+		//max = FMSDS_Ptr->AgvMSLocation;
 	}
 	
 	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
@@ -5682,7 +5685,8 @@ void Get_T1_Duty4(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 	{
 		re = Tnow.T1 / div;
 
-		if((re >= 0) && (re < 20))
+		//if((re >= 0) && (re < 20))
+		if(re < 20)
 		{
 			
 			if(FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_0_5)
@@ -5697,8 +5701,6 @@ void Get_T1_Duty4(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 				T1RSpeedin = 0;
 				ctrlParasPtr->T1dutyRec = T1LSpeedin;
 			}
-
-			recT1Tim = SystemRunningTime;
 		
 			Tnow.T1_update = 2;
 
@@ -5768,8 +5770,7 @@ void Get_T1_Duty4(u8 *T1LSpeed, u8 *T1RSpeed, T1_AutoAdapt_Info *arr)
 		*T1LSpeed = T1LSpeedin;
 		*T1RSpeed = T1RSpeedin;
 		ctrlParasPtr->T1dutyRec = 0;
-		rec = max = AgvInits;
-		recT1Tim = 0;
+		//rec = max = AgvInits;
 		return;
 
 	Center:
@@ -6278,7 +6279,7 @@ void Get_Damp_Duty_Back(u8 *lmSpeedPull, u8 *rmSpeedPull)
 
 void Get_Damp_Duty2(u8 *lmSpeedPull, u8 *rmSpeedPull)
 {
-	static Agv_MS_Location maxRec = AgvInits;
+	//static Agv_MS_Location maxRec = AgvInits;
 	u8 lmSpeedPullin = 0, rmSpeedPullin = 0;
 	u8 duty[7] = {1, 2, 4, 5, 6, 7, 8};
 	//u8 duty2[9][7] = {{}, {}, {}, {}, {}, {}, {}, {}, {}};
@@ -6318,7 +6319,7 @@ void Get_Damp_Duty2(u8 *lmSpeedPull, u8 *rmSpeedPull)
 	{
 		
 		
-		maxRec = Agv_MS_Center;
+		//maxRec = Agv_MS_Center;
 	}
 
 
@@ -7052,7 +7053,6 @@ void Pattern_ctrl4(u8 *T1LSpeed, u8 *T1RSpeed)
 {
 	u8 lmSpeed = 0, rmSpeed = 0;
 	static Agv_MS_Location msRec = AgvInits;
-	static u8 angArr[4] = {1, 2, 3, 4};
 	s16 agvLimt = 0;
 	
 	ctrlParasPtr->comflag = 64;
@@ -7201,7 +7201,6 @@ void Pattern_ctrl5(u8 *T1LSpeed, u8 *T1RSpeed)
 {
 	u8 lmSpeed = 0, rmSpeed = 0;
 	static Agv_MS_Location msRec = AgvInits;
-	static u8 angArr[4] = {1, 2, 3, 4};
 	s16 agvLimt = 0;
 	
 	ctrlParasPtr->comflag = 64;
@@ -7365,7 +7364,8 @@ void get_Pull_Duty(u8 *PullLSpeed, u8 *PullRSpeed, T1_AutoAdapt_Info *arr)
 				//re = (FMSDS_Ptr->VelocityXt + FMSDS_Pre_Ptr->VelocityXt) / div;
 				re = FMSDS_Ptr->VelocityXt / div;
 
-				if((re >= 0) && (re < 20))
+				//if((re >= 0) && (re < 20))
+				if(re < 20)
 				{
 					
 					PullLSpeedin = 0;
@@ -7382,7 +7382,8 @@ void get_Pull_Duty(u8 *PullLSpeed, u8 *PullRSpeed, T1_AutoAdapt_Info *arr)
 			{
 				re = (FMSDS_Ptr->VelocityXt + FMSDS_Pre_Ptr->VelocityXt) / div;
 
-				if((re >= 0) && (re < 20))
+				//if((re >= 0) && (re < 20))
+				if(re < 20)
 				{
 					
 					PullLSpeedin = arr[re].duty;
@@ -7453,11 +7454,9 @@ void get_Pull_Duty(u8 *PullLSpeed, u8 *PullRSpeed, T1_AutoAdapt_Info *arr)
 void get_Pull_Duty2(u8 *PullLSpeed, u8 *PullRSpeed)
 {
 
-	static u8 PullLSpeedin = 0, PullRSpeedin = 0, re = 0, step = 0;
+	static u8 PullLSpeedin = 0, PullRSpeedin = 0, step = 0;
 
 	static u32 recT1Tim = 0;
-
-	u8 div = 100;
 
 	if(0 == step)
 	{
@@ -7620,8 +7619,7 @@ void scale_1_mode18_back(u8 gear)
 {
 	//u8 AgvGearS1CDLF[20] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10};
 	u8 gearRecod = 0;
-	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPull = 0, rmSpeedPull = 0,	lmSpeedT1 = 0, rmSpeedT1 = 0, lmSpeedPat = 0, rmSpeedPat = 0;
-	u8 softwarePWML = 0, softwarePWMR = 0;
+	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeed = 0, rmSpeed = 0, lmSpeedPat = 0, rmSpeedPat = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
 	// 普通模式,偏差在1格之内调整
@@ -7736,8 +7734,8 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 	//u8 AgvPatAngOut[MAX_OUT] = {1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10};
 	//u8 AgvPatAngOut[21] = {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 	u8 AgvPatAngOut[21] = {1, 1, 1, 2, 2, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 15, 15};
-	u8 MidpointDuty[21] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4};
-	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0, lmSpeedPat_T1 = 0, rmSpeedPat_T1 = 0;
+	//u8 MidpointDuty[21] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4};
+	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0;
 	u8 maxLimt = MAX_OUT - 1;
 
 	// 1.判别车体的运动方向, 区分控制逻辑(正数:车体往远离磁条方向; 负数:车体靠近磁条方向)
@@ -7774,7 +7772,8 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 				{
 					tempAngle = -AGV_Pat_Ptr->Angle;
 
-					if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					//if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
 					{
 						lmSpeedPat_P = AgvPatAngOut[tempAngle];
 					}
@@ -7815,7 +7814,8 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 				{
 					tempAngle = -AGV_Pat_Ptr->Angle;
 					
-					if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					//if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
 					{
 						rmSpeedPat_P = AgvPatAngOut[tempAngle];
 					}
@@ -7841,7 +7841,8 @@ void so_This_is_P(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 				{
 					tempAngle = -AGV_Pat_Ptr->Angle;
 					
-					if((tempAngle >= 0) && (tempAngle < MAX_OUT))
+					//if((tempAngle >= 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
 					{
 						rmSpeedPat_P = AgvPatAngOut[tempAngle];
 					}
@@ -7888,7 +7889,7 @@ void so_This_is_P2(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 	//u8 AgvPatAngOut[MAX_OUT] = {1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10};
 	//u8 AgvPatAngOut[21] = {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 	u8 AgvPatAngOut[21] = {1, 1, 1, 2, 2, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 15, 15};
-	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0, lmSpeedPat_T1 = 0, rmSpeedPat_T1 = 0;
+	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0;
 	u8 maxLimt = MAX_OUT - 1;
 
 	// 1.判别车体的运动方向, 区分控制逻辑(正数:车体往远离磁条方向; 负数:车体靠近磁条方向)
@@ -7916,7 +7917,8 @@ void so_This_is_P2(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 				{
 					tempAngle = -AGV_Pat_Ptr->Angle;
 
-					if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					//if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
 					{
 						lmSpeedPat_P = AgvPatAngOut[tempAngle];
 					}
@@ -7957,7 +7959,8 @@ void so_This_is_P2(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 				{
 					tempAngle = -AGV_Pat_Ptr->Angle;
 					
-					if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					//if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
 					{
 						rmSpeedPat_P = AgvPatAngOut[tempAngle];
 					}
@@ -7983,7 +7986,8 @@ void so_This_is_P2(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 				{
 					tempAngle = -AGV_Pat_Ptr->Angle;
 					
-					if((tempAngle >= 0) && (tempAngle < MAX_OUT))
+					//if((tempAngle >= 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
 					{
 						rmSpeedPat_P = AgvPatAngOut[tempAngle];
 					}
@@ -8028,7 +8032,7 @@ void so_This_is_P2(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 
 void so_This_is_D(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 {
-	u8 lmSpeedPat_D = 0, rmSpeedPat_D = 0, tempAngle = 0;
+	u8 lmSpeedPat_D = 0, rmSpeedPat_D = 0;
 	
 	if(AGV_Pat_Ptr->MidpointDirection < 0)	// 1.2 车体中点方向是往磁条靠拢
 	{
@@ -8036,7 +8040,6 @@ void so_This_is_D(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 		{
 			if(AGV_Pat_Ptr->Angle < 0)		
 			{
-				tempAngle = -AGV_Pat_Ptr->Angle;
 				
 				if(AGV_Pat_Ptr->Angle >= -1)
 				{
@@ -9159,12 +9162,10 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 	//if(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3)
 	if(1)
 	{
-		static u32 timRec = 0;
 		if(0 == ctrlParasPtr->FSflag)		
 		{
 			// 低速启动模式
 			gS_startup_mode6(4);
-			timRec = 0;
 		}
 		else if(1 == ctrlParasPtr->FSflag)
 		{
@@ -9213,12 +9214,10 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 	//if(SubAbsV(FMSDS_Ptr->AgvMSLocation, FMSDS_Pre_Ptr->AgvMSLocation) <= 3)
 	if(1)
 	{
-		static u32 timRec = 0;
 		if(0 == ctrlParasPtr->BSflag)		
 		{
 			// 启动模式
 			bS_startup_mode8(4);
-			timRec = 0;
 		}
 		else if(1 == ctrlParasPtr->BSflag)
 		{
@@ -10229,7 +10228,6 @@ void AGV_Walking_Test(void)
 
 void STATION_1AND2_WalkControl(void)
 {
-	static u32 timRec = 0;
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 		if(1 == ctrlParasPtr->originFlag)
@@ -10289,7 +10287,6 @@ void STATION_1AND2_WalkControl(void)
 			
 			if(1 == RFID_Info_Ptr->updateFlag)
 			{
-				timRec = 0;
 				RFID_Info_Ptr->updateFlag = 0;
 				printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
 				//printf("1LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
@@ -10344,7 +10341,6 @@ void STATION_1AND2_WalkControl(void)
 
 void STATION_3AND4_WalkControl(void)
 {	
-	static u32 timRec = 0;
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 		
@@ -10397,7 +10393,6 @@ void STATION_3AND4_WalkControl(void)
 				
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
-			timRec = 0;
 			RFID_Info_Ptr->updateFlag = 0;
 			printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
 			//printf("2LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
@@ -10449,7 +10444,6 @@ void STATION_3AND4_WalkControl(void)
 
 void STATION_5AND6_WalkControl(void)
 {
-	static u32 timRec = 0;
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 
@@ -10502,7 +10496,6 @@ void STATION_5AND6_WalkControl(void)
 
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
-			timRec = 0;
 			//printf("updateFlag = %d, cr = %d\r\n", RFID_Info_Ptr->updateFlag, ctrlParasPtr->crossRoadCountF);
 			RFID_Info_Ptr->updateFlag = 0;
 
@@ -10558,7 +10551,6 @@ void STATION_5AND6_WalkControl(void)
 
 void STATION_7AND8_WalkControl(void)
 {
-	static u32 timRec = 0;
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 		
@@ -10611,7 +10603,6 @@ void STATION_7AND8_WalkControl(void)
 		
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
-			timRec = 0;
 			RFID_Info_Ptr->updateFlag = 0;
 			
 			printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
@@ -10666,7 +10657,6 @@ void STATION_7AND8_WalkControl(void)
 
 void STATION_9AND10_WalkControl(void)
 {
-	static u32 timRec = 0;
 	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
@@ -10720,7 +10710,6 @@ void STATION_9AND10_WalkControl(void)
 			
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
-			timRec = 0;
 			RFID_Info_Ptr->updateFlag = 0;
 			//printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
 			printf("5LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
@@ -11234,18 +11223,17 @@ u8 Origin_PatCtrl(u8 duty)
 u8 Origin_PatCtrl2(u8 duty)
 {
 	u8 status = 0;
-	static u32 timRec = 0;
 	
 	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_1))
 	{
 		CHANGE_TO_CIR_RIGHT_MODE();
-		timRec = SystemRunningTime;
+		//timRec = SystemRunningTime;
 	}
 	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_1) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
 	{
 		CHANGE_TO_CIR_LEFT_MODE();
 		//ctrlParasPtr->cirDuty = 7;
-		timRec = SystemRunningTime;
+		//timRec = SystemRunningTime;
 	}
 	else if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
 	{
@@ -12049,7 +12037,6 @@ void step_bVeer_Func(void)
 	{	
 		if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
 		{
-			u8 temp = 0;
 			
 			if(cirLeft == ctrlParasPtr->agvStatus)
 			{
@@ -12067,7 +12054,7 @@ void step_bVeer_Func(void)
 				#endif
 					stepFlag = 0;
 
-					temp = ctrlParasPtr->crossRoadCountF;
+					//temp = ctrlParasPtr->crossRoadCountF;
 					//ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
 					//ctrlParasPtr->crossRoadCountR = temp;
 					printf("gb crossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
@@ -12091,7 +12078,7 @@ void step_bVeer_Func(void)
 					Send_WaitForGoods();
 					stepFlag = 0;
 					
-					temp = ctrlParasPtr->crossRoadCountF;
+					//temp = ctrlParasPtr->crossRoadCountF;
 					//ctrlParasPtr->crossRoadCountF = ctrlParasPtr->crossRoadCountR;
 					//ctrlParasPtr->crossRoadCountR = temp;
 					printf("gb crossRoadCountF = %d, crossRoadCountR = %d\r\n", ctrlParasPtr->crossRoadCountF, ctrlParasPtr->crossRoadCountR);
@@ -12185,7 +12172,6 @@ void step_bVeer_Func2(void)
 
 void step_gB_Func(void)
 {
-	static u32 timRec = 0;
 	
 	FECV_DOWN();
 	BECV_DOWN();
@@ -12251,7 +12237,6 @@ void step_gB_Func(void)
 void step_wFTans_Func(void)
 {
 	static u32 timRec = 0;
-	static u8 step = 0;
 	
 	if(0 == timRec)
 	{
@@ -12555,8 +12540,6 @@ void Walking_Step_Controler(void)
 
 void ProtectFunc(void)
 {
-	static u32 timRec = 0;
-	static u8 flag = 0;
 	#if 0
 	//if(step_wFTans == ctrlParasPtr->walkingstep)
 	if(0)
@@ -13387,39 +13370,6 @@ void PG_EXTI_CFG(void)
 }
 
 
-void E_pushrod_Gpio_Init(void)
-{
-	#if 1
-	
-	GPIO_InitTypeDef  GPIO_InitStructure; 
-
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_8 | GPIO_Pin_9;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
-	
-	
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_14 | GPIO_Pin_15;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
-
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
-
-	#else
-
-	
-	
-
-	#endif
-}
-
 
 void SW_Gpio_Init(void)
 {
@@ -13480,8 +13430,6 @@ void Motion_Ctrl_Init(void)
 	
 	CHANGE_TO_STOP_MODE();
 	
-	E_pushrod_Gpio_Init();
-
 	SW_Gpio_Init();
 
 	//Trigger_Gpio_Init();

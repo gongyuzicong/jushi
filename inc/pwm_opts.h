@@ -42,6 +42,7 @@ typedef struct
 
 
 u8 Pwm_Init(void);
+u8 Pwm_Duty_Cycle_Init(u8, PwmParaStruct_P);
 
 extern PwmOperaterStruct_P pwmOptsPtr_1;
 extern PwmParaStruct_P pwmParaPtr_1; 

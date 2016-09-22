@@ -23,6 +23,7 @@
 #include "lcd.h"
 #include "watch_dog.h"
 #include "circle_recoder.h"
+#include "ecv_control.h"
 
 void SystemInit(void)
 {	
@@ -36,6 +37,7 @@ void SystemInit(void)
 	//Timer5_Init(9, 719);
 	Motion_Ctrl_Init();
 	Pwm_Init();
+	ECV_Init();
 	SPI_Initial();
 	RFID_Usart_Init();
 	//NFR24L01_Init();
@@ -70,15 +72,15 @@ int main(void)
 	//int cir = 0, ayDec = 0;
 	
 	static u16 hexF = 0, hexR = 0;
-	static Agv_MS_Location mslRecF = AgvInits, mslRecR = AgvInits;
+	//static Agv_MS_Location mslRecF = AgvInits, mslRecR = AgvInits;
 	
 	CB_RCC_Config();	/*ÅäÖÃÏµÍ³Ê±ÖÓ*/
 	CB_GPIO_Config();	/*ÅäÖÃGPIO¿Ú*/
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
 
-	mslRecF = FMSDS_Ptr->AgvMSLocation;
-	mslRecR = FMSDS_Ptr->AgvMSLocation;
+	//mslRecF = FMSDS_Ptr->AgvMSLocation;
+	//mslRecR = FMSDS_Ptr->AgvMSLocation;
 	Warning_LED_RED = 0;
 	
 	//MPU6050_Data_init3();
@@ -164,7 +166,6 @@ int main(void)
 		}
 		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
 		{
-			static u8 count = 0x00;
 			
 			MOTOR_POWER_ON();
 			

@@ -15,21 +15,61 @@ u8 Pwm_Frequency_Set(PwmParaStruct_P pwmArguPtr)	// PWM 频率设置 范围 1k~10k
 	{
 		/* 定义 TIM_TimeBase 初始化结构体 TIM_TimeBaseStructure */
 		TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+		if(TIM2 == pwmArguPtr->TimX)
+		{
+			TIMx_2_7_ENABLE(2);
+		}
+		else if(TIM3 == pwmArguPtr->TimX)
+		{
+			TIMx_2_7_ENABLE(3);
+		}
+		else if(TIM4 == pwmArguPtr->TimX)
+		{
+			TIMx_2_7_ENABLE(4);
+		}
+		else if(TIM5 == pwmArguPtr->TimX)
+		{
+			TIMx_2_7_ENABLE(5);
+		}
+		else if(TIM6 == pwmArguPtr->TimX)
+		{
+			TIMx_2_7_ENABLE(6);
+		}
+		else if(TIM7 == pwmArguPtr->TimX)
+		{
+			TIMx_2_7_ENABLE(7);
+		}
+		else
+		{
+			printf("pwm timer error!\r\n");
+		}
+				
+
+		if(pwmArguPtr->Frequency <= 1)
+		{
+			pwmArguPtr->PwmFrequencyCounterNum = 36000;
+			TIM_TimeBaseStructure.TIM_Prescaler = 1;
+		}
+		else
+		{
+			pwmArguPtr->PwmFrequencyCounterNum = 72000 / pwmArguPtr->Frequency;
+			TIM_TimeBaseStructure.TIM_Prescaler = 0;
+		}
 		
-		TIMx_2_7_ENABLE(3); 
 		/* 
 		*  	计数重载值为9999
 		*  	预分频值为(0 + 1 = 1)
 		*  	时钟分割0
 		*  	向上计数模式
 		*/
-		//TIM_TimeBaseStructure.TIM_Period = 72000;
-		pwmArguPtr->PwmFrequencyCounterNum = 72000 / pwmArguPtr->Frequency;
+		
+		
 		pwmArguPtr->ResolutionPreStep = pwmArguPtr->PwmFrequencyCounterNum / pwmArguPtr->PwmResolution;
 		
 		TIM_TimeBaseStructure.TIM_Period = pwmArguPtr->PwmFrequencyCounterNum;
 		//TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
-		TIM_TimeBaseStructure.TIM_Prescaler = 0;
+		
 		TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;	
 		TIM_TimeBaseInit(pwmArguPtr->TimX, &TIM_TimeBaseStructure);

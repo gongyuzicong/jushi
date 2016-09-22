@@ -32,6 +32,7 @@
 #include "zigbee.h"
 #include "lcd.h"
 #include "circle_recoder.h"
+#include "ecv_control.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -288,7 +289,14 @@ void EXTI4_IRQHandler(void)
 	// E1-HALL
 	if (((EXTI->PR & ((u32)0x00010)) != 0) && ((EXTI->IMR & ((u32)0x00010)) != 0))
 	{
-		
+		if(1 == FECV_Str_Ptr->EcvEnableHallFlag)
+		{
+			FECV_Str_Ptr->EcvHallCount++;
+		}
+		else
+		{
+			FECV_Str_Ptr->EcvHallCount = 0;
+		}
 
 		EXTI->PR = ((u32)0x00010);
 	}

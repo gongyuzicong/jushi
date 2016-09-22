@@ -18,14 +18,15 @@
 #define ProtectSW_F				PDin(5)
 #define ProtectSW_R				PEin(4)
 
-#define USE_ECV		1
+
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
 
 #define MOTOR_RIGHT_CR_DEF(X) 	Motor_Right_CCR(X)
 #define MOTOR_LEFT_CR_DEF(X) 	Motor_Left_CR(X)
-#define CHECK_MOTOR_SET_DUTY(duty)		(((duty >= 0) && (duty <= 100)) ? 1 : 0)
+//#define CHECK_MOTOR_SET_DUTY(duty)		(((duty >= 0) && (duty <= 100)) ? 1 : 0)
+#define CHECK_MOTOR_SET_DUTY(duty)		((duty <= 100) ? 1 : 0)
 
 #define EXTRA_CROSS_ROAD_R	2
 
@@ -112,43 +113,7 @@
 #define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
 /***********MOTOR LEFT: END***************/
 
-#define ECV1_PWM		PBout(8)		// 前电缸
-#define ECV1_DIR		PCout(14)		// 电缸方向 0: 缩   1: 推
 
-#define ECV2_PWM		PBout(9)		// 后电缸
-#define ECV2_DIR		PCout(15)		// 电缸方向 0: 推   1: 缩
-
-#define ECV3_PWM		PEout(8)		// 
-#define ECV3_DIR		PEout(7)		// 
-
-#define LMT_INR			PCin(3)			// 响应为 0
-#define LMT_INL			PCin(4)			// 响应为 0
-
-#define LMT_SW			PEin(0)			// 响应为 0
-#define Return_SW		PDin(10)		// 响应为 0
-
-#define KEY_1			PCin(1)			// 响应为 0
-#define KEY_2			PCin(2)			// 响应为 0
-
-#define LMT2_SW			PEin(2)			//
-
-#define BUZZER_1		PEout(9)
-#define BUZZER_2		PEout(10)
-
-#define ECV_POWER_ON()	{ECV1_POWER = 0; ECV2_POWER = 0; ECV3_POWER = 0;}
-#define ECV_POWER_OFF()	{ECV1_POWER = 1; ECV2_POWER = 1; ECV3_POWER = 1;}
-
-#define FECV_UP()		{ECV2_PWM = 1;   ECV2_DIR = 0;  }		//
-#define FECV_DOWN()		{ECV2_PWM = 1;   ECV2_DIR = 1;  }
-#define FECV_STOP()		{ECV2_PWM = 0;					}
-
-#define BECV_UP()		{ECV1_PWM = 1;	 ECV1_DIR = 1;  }
-#define BECV_DOWN()		{ECV1_PWM = 1;   ECV1_DIR = 0;  }
-#define BECV_STOP()		{ECV1_PWM = 0;					}
-
-#define WECV_UP()		{ECV3_PWM = 1;   ECV3_DIR = 1;  }
-#define WECV_DOWN()		{ECV3_PWM = 1;   ECV3_DIR = 0;  }
-#define WECV_STOP()		{ECV3_PWM = 0;					}
 
 
 #define TRIGGER_PIN_O	PEout(11)
