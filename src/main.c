@@ -127,7 +127,7 @@ int main(void)
 	while(1)
 	{		
 		
-		#if 1
+		#if 0
 		
 		#if USE_IWDG
 		u32 timRec = 0;
