@@ -2424,6 +2424,7 @@ void bS_startup_mode7(u8 gear)
 void bS_startup_mode8(u8 gear)
 {
 	u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 0, lmSpeedP = 0, rmSpeedP = 0;
+	static u8 flag = 0;
 	u32 centCount = 0;
 	static u32 startCount = 0;
 	//static Agv_MS_Location mslRec = AgvInits;
@@ -2485,13 +2486,18 @@ void bS_startup_mode8(u8 gear)
 			{
 				centCount = SystemRunningTime - startCount;
 			}
+			
 			//printf("centCount = %d\r\n", centCount);
-			if(centCount >= ShiftTrigTime - 7000)
+			if(centCount >= ShiftTrigTime - 12000)
 			{
-				ctrlParasPtr->BSflag = 1;
-				ctrlParasPtr->gear = 12;
-				ctrlParasPtr->comflag = 6331;
+				Ecv_Para temp;
+				temp.Dir 				= ECV_UP;
+				flag = 1;
+				CHANGE_TO_STOP_MODE();
 				
+				ctrlParasPtr->comflag 	= 6331;
+				
+				WECV_Str_Ptr->ECV_SetPara(&temp);
 				startCount = 0;
 				
 			}
@@ -2500,7 +2506,18 @@ void bS_startup_mode8(u8 gear)
 		{
 			startCount = 0;
 		}
-		
+
+		if(1 == flag)
+		{
+			if(WECV_DOWN_LIMT_SW_RESP)
+			{
+				ctrlParasPtr->BSflag 	= 1;
+				ctrlParasPtr->gear 		= 12;
+				WECV_Str_Ptr->ECV_Clean_Use_Status();
+				CHANGE_TO_BACK_MODE();
+				flag = 0;
+			}
+		}
 	}
 	else
 	{
@@ -8028,6 +8045,155 @@ void so_This_is_P2(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
 	*rmSpeedPat_PP = rmSpeedPat_P;
 }
 
+void so_This_is_P3(u8 *lmSpeedPat_PP, u8 *rmSpeedPat_PP)
+{	
+	u8 AgvPatAngOut[21] = {1, 1, 1, 2, 2, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 15, 15};
+	u8 lmSpeedPat_P = 0, rmSpeedPat_P = 0, tempAngle = 0;
+	u8 maxLimt = MAX_OUT - 1;
+	
+	// 1.判别车体的运动方向, 区分控制逻辑(正数:车体往远离磁条方向; 负数:车体靠近磁条方向)
+	if(AGV_Pat_Ptr->MidpointDirection >= 0)		// 1.2 车体中点为远离磁条方向
+	{
+		// 2.判别车体在左边/右边,然后区分控制逻辑
+		if(AGV_Pat_Ptr->Midpoint > 0)	// 2.1 车体中点在磁条右边, 远离磁条方向
+		{
+			if(AGV_Pat_Ptr->Midpoint <= 20)
+			{
+				
+			}
+			else if(AGV_Pat_Ptr->Midpoint > 20)
+			{
+				
+			}
+			
+			if(AGV_Pat_Ptr->Angle >= 0)		// 中点在磁条右边并且方向远离磁条, 角度是正数/与磁条平行
+			{
+				if(AGV_Pat_Ptr->Angle < MAX_OUT)		// 角度偏差极限值
+				{
+					lmSpeedPat_P = AgvPatAngOut[AGV_Pat_Ptr->Angle];
+				}
+				else
+				{
+					lmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+				
+			}
+			else	// 中点方向继续远离磁条, 但是角度已经为负数, 除了"甩尾"我真的想不出有什么词可以形容此时的情况了
+			{
+				if((AGV_Pat_Ptr->Angle < 0) && (AGV_Pat_Ptr->Angle > -MAX_OUT))
+				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
+
+					//if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
+					{
+						lmSpeedPat_P = AgvPatAngOut[tempAngle];
+					}
+					else
+					{
+						printf("error code 5: %d, %d\r\n", tempAngle, AGV_Pat_Ptr->Angle);
+					}
+				}
+				else
+				{
+					lmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+				
+			}
+			
+		}
+		else if(0 == AGV_Pat_Ptr->Midpoint)		// 2.2 车体中点在磁条上, 远离磁条方向
+		{
+			if(AGV_Pat_Ptr->Angle > 0)			// 车体中点在磁条上, 并且方向为远离磁条方向, 角度为正数
+			{
+				if(AGV_Pat_Ptr->Angle < MAX_OUT)		// 角度偏差极限值
+				{
+					lmSpeedPat_P = AgvPatAngOut[AGV_Pat_Ptr->Angle];
+				}
+				else
+				{
+					lmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+			}
+			else if(0 == AGV_Pat_Ptr->Angle)	// 车体中点在磁条上, 并且方向为远离磁条方向, 与磁条平行
+			{
+				
+			}
+			else if(AGV_Pat_Ptr->Angle < 0)		// 车体中点在磁条上, 并且方向为远离磁条方向, 角度为负数
+			{
+				
+				if(AGV_Pat_Ptr->Angle > -MAX_OUT)		// 角度偏差极限值
+				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
+					
+					//if((tempAngle > 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
+					{
+						rmSpeedPat_P = AgvPatAngOut[tempAngle];
+					}
+					else
+					{
+						printf("error code 3: %d, %d\r\n", tempAngle, AGV_Pat_Ptr->Angle);
+					}
+					
+				}
+				else
+				{
+					rmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+			}
+			
+		}
+		else if(AGV_Pat_Ptr->Midpoint < 0)		// 2.3车体中点在磁条右边, 远离磁条方向
+		{
+			if(AGV_Pat_Ptr->Angle <= 0)
+			{
+				
+				if(AGV_Pat_Ptr->Angle > -MAX_OUT)		// 角度偏差极限值
+				{
+					tempAngle = -AGV_Pat_Ptr->Angle;
+					
+					//if((tempAngle >= 0) && (tempAngle < MAX_OUT))
+					if(tempAngle < MAX_OUT)
+					{
+						rmSpeedPat_P = AgvPatAngOut[tempAngle];
+					}
+					else
+					{
+						printf("error code 4: %d, %d\r\n", tempAngle, AGV_Pat_Ptr->Angle);
+					}	
+					
+				}
+				else
+				{
+					rmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+			}
+			else		// 甩尾
+			{
+				if((AGV_Pat_Ptr->Angle > 0) && (AGV_Pat_Ptr->Angle < MAX_OUT))
+				{
+					rmSpeedPat_P = AgvPatAngOut[AGV_Pat_Ptr->Angle];
+				}
+				else
+				{
+					rmSpeedPat_P = AgvPatAngOut[maxLimt];
+				}
+				
+			}
+			
+		}
+		
+	}
+
+	//Get_T1_Duty4(&lmSpeedPat_T1, &rmSpeedPat_T1, adaptInfo);
+
+	ctrlParasPtr->LP_duty = lmSpeedPat_P;
+	ctrlParasPtr->RP_duty = rmSpeedPat_P;
+	
+	*lmSpeedPat_PP = lmSpeedPat_P;
+	*rmSpeedPat_PP = rmSpeedPat_P;
+}
 
 
 void so_This_is_D(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
@@ -8993,7 +9159,7 @@ void scale_1_mode20_back(u8 gear)
 	{
 		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
 		
-		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
+		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D - 1;
 		
 	}
 
@@ -9217,7 +9383,7 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 		if(0 == ctrlParasPtr->BSflag)		
 		{
 			// 启动模式
-			bS_startup_mode8(4);
+			bS_startup_mode8(3);
 		}
 		else if(1 == ctrlParasPtr->BSflag)
 		{
@@ -10228,6 +10394,10 @@ void AGV_Walking_Test(void)
 
 void STATION_1AND2_WalkControl(void)
 {
+	#if USE_R_DEC_SPEED
+	static u32 timRec = 0;
+	#endif
+	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 		if(1 == ctrlParasPtr->originFlag)
@@ -10341,6 +10511,10 @@ void STATION_1AND2_WalkControl(void)
 
 void STATION_3AND4_WalkControl(void)
 {	
+	#if USE_R_DEC_SPEED
+	static u32 timRec = 0;
+	#endif
+	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 		
@@ -10444,6 +10618,10 @@ void STATION_3AND4_WalkControl(void)
 
 void STATION_5AND6_WalkControl(void)
 {
+	#if USE_R_DEC_SPEED
+	static u32 timRec = 0;
+	#endif
+	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 
@@ -10551,6 +10729,10 @@ void STATION_5AND6_WalkControl(void)
 
 void STATION_7AND8_WalkControl(void)
 {
+	#if USE_R_DEC_SPEED
+	static u32 timRec = 0;
+	#endif
+	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
 		
@@ -10657,6 +10839,9 @@ void STATION_7AND8_WalkControl(void)
 
 void STATION_9AND10_WalkControl(void)
 {
+	#if USE_R_DEC_SPEED
+	static u32 timRec = 0;
+	#endif
 	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
@@ -11735,9 +11920,9 @@ void step_entry_Func(void)
 		ctrlParasPtr->gear = 2;
 	}
 	
-	if((0 == LMT_INR) || (0 == LMT_INL))		// 前传感器感应到络纱机	
+	//if((0 == LMT_INR) || (0 == LMT_INL))		// 前传感器感应到络纱机	
 	//if((0 == LMT_INR) || (0 == LMT_INL) || (0x0000 == FMSDS_Ptr->MSD_Hex))	// 接近开关响应或者是超过磁条了
-	//if(0x0000 == FMSDS_Ptr->MSD_Hex)
+	if(0x0000 == FMSDS_Ptr->MSD_Hex)
 	{
 		CHANGE_TO_STOP_MODE();
 		//Delay_ns(1);
@@ -11751,6 +11936,7 @@ void step_entry_Func(void)
 		#endif
 		
 		ctrlParasPtr->walkingstep = step_catch;
+		
 	}
 
 #endif	
@@ -11758,21 +11944,18 @@ void step_entry_Func(void)
 
 void step_catch_Func(void)
 {
-#if 1
+	Ecv_Para temp;
+	static u32 timRec = 0;
 	
-	if(0 == LMT_SW) 	// 已经抓到货物了
+	if(1 == LMT_SW) 	// 已经抓到货物了/////
 	{
-		//Delay_ns(3);
-		
-		//ECV_POWER_OFF();
-		FECV_STOP();
-		BECV_STOP();
+		FECV_Str_Ptr->Dir = ECV_STOP;
 		
 		RFID_Info_Ptr->updateFlag = 0;
 
-#ifdef USE_SEND_ZIGBEE		
+	#ifdef USE_SEND_ZIGBEE		
 		Send_GettedGoods3();
-#endif
+	#endif
 		printf("change to exit\r\n");
 		
 		printf("change to back\r\n");
@@ -11786,35 +11969,25 @@ void step_catch_Func(void)
 		CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 		#endif
 
+		timRec = 0;
+
+		FECV_Str_Ptr->ECV_Clean_Use_Status();
+		BECV_Str_Ptr->ECV_Clean_Use_Status();
+
 		ctrlParasPtr->walkingstep = step_exit;
 	}
 	else
 	{
-		
-		//BECV_UP();
-		//BECV_STOP();
-		FECV_UP();
-		BECV_DOWN();
-		//ECV_POWER_ON();
+		temp.Dir 				= ECV_UP;
+		temp.EcvSpeed 			= 100;
+		temp.HallCountMode 		= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp 	= 0;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
 
-		//Delay_ns(1);
+		
+		FECV_Str_Ptr->ECV_SetPara(&temp);
 		
 	}
-	
-#else
-	
-	FECV_UP();
-	BECV_UP();
-	ECV_POWER_ON();
-	Delay_ns(3);
-	ECV_POWER_OFF();
-	RFID_Info_Ptr->updateFlag = 0;
-	printf("change to back\r\n");
-	ctrlParasPtr->walkingstep = step_exit;
-	CHANGE_TO_BACK_SLOW_MODE();
-	
-#endif
-	
 }
 
 void step_exit_Func(void)
@@ -11873,44 +12046,6 @@ void step_weigh_Func(void)
 	static u32 timRec = 0;
 	static u8 step = 0;
 	
-#if 0
-
-	if(0 == step)
-	{
-		FECV_UP();
-		BECV_UP();
-		if(Delay_Func(&timRec, 3000))
-		{
-			step = 1;
-			BECV_STOP();
-		}
-	}
-	else if(1 == step)
-	{
-		if(Delay_Func(&timRec, 500))
-		{
-			FECV_STOP();
-			BECV_DOWN();
-			step = 2;
-		}
-	}
-	else if(2 == step)
-	{
-		
-		if(Delay_Func(&timRec, 1400))
-		{
-			BECV_STOP();
-			step = 3;
-
-			#if USE_CIRCLE_INFO_RECODER
-			CircleInfoStrPtr->CircleTime.WeightTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
-			#endif
-		}
-	}
-	
-#else
-	#if 1
 	if(0 == step)
 	{
 		FECV_UP();
@@ -11938,45 +12073,9 @@ void step_weigh_Func(void)
 	{
 		
 	}
-	#else
 	
-	if(0 == step)
-	{
-		FECV_UP();
-		BECV_UP();
-		if(1 == LMT2_SW)
-		{
-			step = 1;
-			FECV_STOP();
-			BECV_STOP();
-		}
-		
-	}
-	else if(1 == step)
-	{
-		if(0 == ProtectSW_R)
-		{
-			FECV_UP();
-		}
-		else
-		{
-			FECV_STOP();
-		}
-
-		if(0 == ProtectSW_F)
-		{
-			BECV_UP();
-		}
-		else
-		{
-			BECV_STOP();
-		}
-	}
-	#endif
-	
-#endif
-	
-	if(0 == Return_SW)
+	//if(0 == Return_SW)
+	if(1 == Return_SW)
 	{
 		if(3 != step)
 		{
@@ -12173,64 +12272,33 @@ void step_bVeer_Func2(void)
 void step_gB_Func(void)
 {
 	
-	FECV_DOWN();
-	BECV_DOWN();
-	//ECV_POWER_ON();
-	#if 0
-	if(ctrlParasPtr->crossRoadCountR <= ctrlParasPtr->goalRFIDnode + EXTRA_CROSS_ROAD_R - 1)
-	{
-		if(Delay_Func(&timRec, 2000))
-		{
-			CHANGE_TO_BACK_MODE();
-		}
-		//printf("in1\r\n");
-	}
-	else
-	{
-		CHANGE_TO_BACK_SLOW_MODE();
-		ctrlParasPtr->gear = 3;
-		//printf("in2\r\n");
-	}
-	#else
-	/*
-	if(ctrlParasPtr->crossRoadCountF <= ctrlParasPtr->goalRFIDnode + EXTRA_CROSS_ROAD_R - 2)
-	{
-		CHANGE_TO_BACK_MODE();
-	}
-	else
-	{
-		CHANGE_TO_BACK_SLOW_MODE();
-		ctrlParasPtr->gear = 3;
-		//printf("in2\r\n");
-	}
-	*/
 	CHANGE_TO_BACK_MODE();
-	#endif
 	
 	if((ctrlParasPtr->crossRoadCountF <= 1) && (ctrlParasPtr->crossRoadCountR <= 2))
 	{
+		Ecv_Para temp;
 		CHANGE_TO_BACK_SLOW_MODE();
 		ctrlParasPtr->gear = 4;
+		temp.Dir = ECV_DOWN;
+		WECV_Str_Ptr->ECV_SetPara(&temp);
+		
 	}
 	
 	//printf("MSD_Hex = %x, crossRoadCountF = %d\r\n", FMSDS_Ptr->MSD_Hex, ctrlParasPtr->crossRoadCountF);
 	if((0x0000 == FMSDS_Ptr->MSD_Hex) && (0x0000 == RMSDS_Ptr->MSD_Hex))
 	{
 		CHANGE_TO_STOP_MODE();
-		//ECV_POWER_OFF();
-		FECV_STOP();
-		BECV_STOP();
 		ctrlParasPtr->gear = 12;
 		RFID_Info_Ptr->updateFlag = 0;
 		CMD_Flag_Ptr->cmdFlag = NcNone;
-
+		
 		#if USE_CIRCLE_INFO_RECODER
 		CircleInfoStrPtr->CircleTime.BackTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 		CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 		#endif
-		
+		WECV_Str_Ptr->ECV_Clean_Use_Status();
 		ctrlParasPtr->walkingstep = step_wFTans;
-				
+		
 	}
 }
 
@@ -12245,7 +12313,6 @@ void step_wFTans_Func(void)
 	#endif
 		ctrlParasPtr->crossRoadCountF = 0;
 		ctrlParasPtr->crossRoadCountR = 0;
-		//ECV_POWER_ON();
 		BECV_UP();
 		timRec = SystemRunningTime;
 		
@@ -12253,43 +12320,11 @@ void step_wFTans_Func(void)
 	}
 	else
 	{
-		#if 1
 		if(SystemRunningTime - timRec >= 6000)
 		{
 			BECV_STOP();
 			FECV_STOP();
-			//ECV_POWER_OFF();
-			//CMD_Flag_Ptr->cmdFlag = GoodLeav;
 		}
-		#else
-		/*
-		if(0 == step)
-		{
-			if(SystemRunningTime - timRec >= 25000)
-			{
-				BECV_DOWN();
-				FECV_STOP();
-				//ECV_POWER_OFF();
-				//CMD_Flag_Ptr->cmdFlag = GoodLeav;
-				step = 1;
-				timRec = SystemRunningTime;
-			}
-		}
-		else if(1 == step)
-		{
-			if(SystemRunningTime - timRec >= 19000)
-			{
-				BECV_STOP();
-				FECV_STOP();
-				//ECV_POWER_OFF();
-				//CMD_Flag_Ptr->cmdFlag = GoodLeav;
-				step = 1;
-				timRec = SystemRunningTime;
-			}
-		}
-		*/
-		
-		#endif
 		
 		if(0 == Return_SW)
 		{
@@ -12413,7 +12448,7 @@ void startup_origin_Func(void)
 		
 		RFID_Info_Ptr->updateFlag = 0;
 		printf("startup_origin_Func\r\n");
-		//printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
+		printf("data = %08x\r\n", RFID_Info_Ptr->rfidData);
 		//printf("1LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
 		if(0x01 == RFID_Info_Ptr->rfidData)
 		{
@@ -12540,14 +12575,16 @@ void Walking_Step_Controler(void)
 
 void ProtectFunc(void)
 {
-	#if 0
+	static u32 timRec = 0;
+	static u8 flag = 0;
+	
 	//if(step_wFTans == ctrlParasPtr->walkingstep)
 	if(0)
 	{
 		if(0 == ProtectSW_F)
 		{
 			MOTOR_POWER_OFF();
-			//ECV_POWER_OFF();
+			//ECV_ALL_POWER_OFF();
 			printf("Protect_Power_Off\r\n");
 			flag = 1;
 		}
@@ -12557,7 +12594,7 @@ void ProtectFunc(void)
 		if((0 == ProtectSW_F) || (0 == ProtectSW_R))
 		{
 			MOTOR_POWER_OFF();
-			//ECV_POWER_OFF();
+			//ECV_ALL_POWER_OFF();
 			printf("Protect_Power_Off\r\n");
 			flag = 1;
 		}
@@ -12571,7 +12608,7 @@ void ProtectFunc(void)
 			if((0 != ProtectSW_F) && (0 != ProtectSW_R))
 			{
 				MOTOR_POWER_ON();
-				//ECV_POWER_ON();
+				//ECV_ALL_POWER_ON()
 			}
 			flag = 0;
 			
@@ -12589,7 +12626,7 @@ void ProtectFunc(void)
 			if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
 			{
 				//MOTOR_POWER_OFF();
-				//ECV_POWER_OFF();
+				//ECV_ALL_POWER_OFF();
 				//printf("in1\r\n");
 			}
 			else
@@ -12597,32 +12634,12 @@ void ProtectFunc(void)
 				if(0 == flag)
 				{
 					//MOTOR_POWER_ON();
-					//ECV_POWER_ON();
+					//ECV_ALL_POWER_ON();
 				}
 				//printf("in2\r\n");
 			}
 		}
 	}
-	#else
-	if(0 == ProtectSW_R)
-	{
-		FECV_UP();
-	}
-	else
-	{
-		FECV_STOP();
-	}
-
-	if(0 == ProtectSW_F)
-	{
-		BECV_UP();
-	}
-	else
-	{
-		BECV_STOP();
-	}
-	
-	#endif
 	
 }
 
@@ -12766,254 +12783,44 @@ void Recv_RFID_CrossRoad(u8 recvD)
 		}
 }
 
-u8 ARM_Reset(void)
+
+void ZigbeeRecv_Simu(void)
 {
-	static u32 timRec = 0;
-	static u8 flag = 0, step = 0, type = 0;
-	u8 ret = 0;
+	#if 0
 	
-	if(0 == step)
+	if(step_stop == ctrlParasPtr->walkingstep)
 	{
-		if(0 == LMT2_SW)
+		Zigbee_Ptr->recvValidDataFlag = 1;
+		
+		if(Zigbee_Ptr->recvId < 10)
 		{
-			type = 0;
+			Zigbee_Ptr->recvId++;
 		}
 		else
 		{
-			type = 1;
+			Zigbee_Ptr->recvId = 1;
 		}
 		
-		step = 1;
-	}
-	else if(1 == step)
-	{
-		BECV_DOWN();
-		FECV_DOWN();
-		
-		if(Delay_Func(&timRec, 3000))
-		{
-			step = 2;
-			BECV_UP();
-			FECV_STOP();
-		}
-	}
-	else if(2 == step)
-	{
-		if(0 == type)
-		{
-			if(Delay_Func(&timRec, 600))
-			{
-				step = 3;
-				BECV_STOP();
-			}
-		}
-		else
-		{
-			if(Delay_Func(&timRec, 2500))
-			{
-				step = 3;
-				BECV_DOWN();
-			}
-		}
-	}
-	else if(3 == step)
-	{
-		if(0 == type)
-		{
-			flag = 1;
-			step = 4;
-		}
-		else
-		{
-			if(Delay_Func(&timRec, 1900))
-			{
-				step = 4;
-				BECV_STOP();
-				flag = 1;
-			}
-		}
 	}
 	
+	#else
 
-	if(1 == flag)
+	if(0 == Return_SW)
 	{
-		timRec = 0;
-		flag = 0;
-		ret = 1;
-		step = 0;
+		Delay_ms(20);
+		if(0 == Return_SW)
+		{
+			while(0 == Return_SW);
+			Zigbee_Ptr->recvId = 0x0008;
+			Zigbee_Ptr->recvValidDataFlag = 1;
+		}
 	}
 
-	return ret;
-}
-
-void ARM_Reset2(void)
-{
-	static u32 timRec = 0;
-	static u8 flag = 0, step = 0, type = 0;
-
-	if(1 == ctrlParasPtr->armResetFlag)
-	{
-		if(0 == step)
-		{
-			if(0 == LMT2_SW)
-			{
-				type = 0;
-			}
-			else
-			{
-				type = 1;
-			}
-			
-			step = 1;
-		}
-		else if(1 == step)
-		{
-			BECV_DOWN();
-			FECV_DOWN();
-			
-			if(Delay_Func(&timRec, 3000))
-			{
-				step = 2;
-				BECV_UP();
-				FECV_STOP();
-				timRec = 0;
-			}
-		}
-		else if(2 == step)
-		{
-			if(0 == type)
-			{
-				if(Delay_Func(&timRec, 600))
-				{
-					step = 3;
-					BECV_STOP();
-					timRec = 0;
-				}
-			}
-			else
-			{
-				if(Delay_Func(&timRec, 2500))
-				{
-					step = 3;
-					BECV_DOWN();
-					timRec = 0;
-				}
-			}
-		}
-		else if(3 == step)
-		{
-			if(0 == type)
-			{
-				flag = 1;
-				step = 4;
-			}
-			else
-			{
-				if(Delay_Func(&timRec, 1900))
-				{
-					step = 4;
-					BECV_STOP();
-					flag = 1;
-					timRec = 0;
-				}
-			}
-		}
-		
-
-		if(1 == flag)
-		{
-			timRec = 0;
-			flag = 0;
-			step = 0;
-			ctrlParasPtr->armResetFlag = 0;
-		}
-	}
+	#endif
 	
 }
 
 
-void MA_TEST(void)
-{
-	static u32 timRec = 0;
-	static u8 flag = 0, step = 0;
-
-	if(0 == flag)
-	{
-		FECV_UP();
-		if(Delay_Func(&timRec, 700))
-		{
-			FECV_STOP();
-			flag = 1;
-		}
-	}
-	else if(1 == flag)
-	{
-		if(0 == LMT_SW)
-		{
-			if(Delay_Func(&timRec, 1000))
-			{
-				flag = 2;
-				step = 0;
-			}
-		}
-	}
-	else if(2 == flag)
-	{
-		if(0 == step)
-		{
-			FECV_UP();
-			BECV_UP();
-			if(Delay_Func(&timRec, 2000))
-			{
-				step = 1;
-				BECV_STOP();
-			}
-		}
-		else if(1 == step)
-		{
-			if(Delay_Func(&timRec, 500))
-			{
-				FECV_STOP();
-				BECV_DOWN();
-				step = 2;
-			}
-		}
-		else if(2 == step)
-		{
-			
-			if(Delay_Func(&timRec, 700))
-			{
-				BECV_STOP();
-				step = 3;
-			}
-		}
-		else if(3 == step)
-		{
-			Delay_ns(3);
-			FECV_DOWN();
-			BECV_DOWN();
-			if(Delay_Func(&timRec, 4000))
-			{
-				step = 4;
-				BECV_UP();
-			}
-			
-		}
-		else if(4 == step)
-		{
-			if(Delay_Func(&timRec, 700))
-			{
-				BECV_STOP();
-				step = 5;
-			}
-		}
-		else if(5 == step)
-		{
-			flag = 0;
-		}
-	}
-	
-}
 
 void SIMU_PWM_BreathWarningLED_Ctrl(void)
 {
@@ -13024,7 +12831,8 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void)
 	if(0 == timRec)
 	{
 		timRec = SystemRunningTime;
-		Warning_LED_RED = 0;
+		Warning_LED_GREEN = 0;
+		Warning_LED_ORANGE = 1;
 		step = 0;
 	}
 	else
@@ -13034,7 +12842,8 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void)
 		{
 			if(SystemRunningTime - timRec >= dutyTime)
 			{
-				Warning_LED_RED = 1;
+				Warning_LED_GREEN = 1;
+				Warning_LED_ORANGE = 0;
 				step = 1;
 				timRec = SystemRunningTime;
 			}

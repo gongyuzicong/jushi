@@ -289,13 +289,13 @@ void EXTI4_IRQHandler(void)
 	// E1-HALL
 	if (((EXTI->PR & ((u32)0x00010)) != 0) && ((EXTI->IMR & ((u32)0x00010)) != 0))
 	{
-		if(1 == FECV_Str_Ptr->EcvEnableHallFlag)
+		if(1 == ECV1_HALL_FLAG)
 		{
-			FECV_Str_Ptr->EcvHallCount++;
+			ECV1_HALL++;
 		}
 		else
 		{
-			FECV_Str_Ptr->EcvHallCount = 0;
+			ECV1_HALL = 0;
 		}
 
 		EXTI->PR = ((u32)0x00010);
@@ -483,14 +483,33 @@ void EXTI9_5_IRQHandler(void)
 	if (((EXTI->PR & ((u32)0x00100)) != 0) && ((EXTI->IMR & ((u32)0x00100)) != 0))
 	{
 		
-
+		if(1 == ECV2_HALL_FLAG)
+		{
+			ECV2_HALL++;
+			//printf("ECV2_HALL = %d\r\n", ECV2_HALL);
+		}
+		else
+		{
+			ECV2_HALL = 0;
+		}
+		
 		EXTI->PR = ((u32)0x00100);
 	}
+	
 	// E3-HALL
 	if (((EXTI->PR & ((u32)0x00200)) != 0) && ((EXTI->IMR & ((u32)0x00200)) != 0))
 	{
 		
-
+		if(1 == ECV3_HALL_FLAG)
+		{
+			ECV3_HALL++;
+			//printf("ECV3_HALL = %d\r\n", ECV3_HALL);
+		}
+		else
+		{
+			ECV3_HALL = 0;
+		}
+		
 		EXTI->PR = ((u32)0x00200);
 	}
 

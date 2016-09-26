@@ -5,7 +5,7 @@
 #include "fiberglas.h"
 #include "eeprom.h"
 
-#define USE_CIRCLE_INFO_RECODER			1
+#define USE_CIRCLE_INFO_RECODER			0
 
 #define EEPROM_REC_COUNT_ADDR			0x1
 #define REC_COUNT_SIZE					2

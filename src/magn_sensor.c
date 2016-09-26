@@ -753,6 +753,7 @@ void Show_Infomation(void)
 	printf("F: ");
 	MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
 	printf(",\t");
+	//printf("%02x\t", FMSDS_Ptr->MSD_Hex);
 	Show_Resualt_Analy(FMSDS_Ptr);
 	
 	/*

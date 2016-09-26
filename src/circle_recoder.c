@@ -329,7 +329,7 @@ void Read_OneCircleInfo(CIRCLE_INFO_STRUCT_P ptr, u16 baseAddr)
 
 void Read_OneCircleInfo2(CIRCLE_INFO_STRUCT_P ptr, u16 baseAddr)
 {
-	u16 temp = 0, temp2[11];
+	u16 temp2[11];
 	u8 cir, temp1[6];
 
 	// read station
@@ -420,7 +420,7 @@ void Show_CircleInfo(CIRCLE_INFO_STRUCT_P ptr)
 
 void Show_CircleInfo2(CIRCLE_INFO_STRUCT_P ptr)
 {
-	float temp = 0;
+	//float temp = 0;
 	
 	printf("Station = %d\r\n", ptr->Station);
 	printf("REQ_TIME = 20%02x-%02x-%02x %02x:%02x:%02x\r\n", ptr->REQ_TIME.year, ptr->REQ_TIME.month, ptr->REQ_TIME.day, ptr->REQ_TIME.hour, ptr->REQ_TIME.minute, ptr->REQ_TIME.second);

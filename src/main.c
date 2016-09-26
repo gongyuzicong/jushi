@@ -37,7 +37,7 @@ void SystemInit(void)
 	//Timer5_Init(9, 719);
 	Motion_Ctrl_Init();
 	Pwm_Init();
-	ECV_Init();
+	
 	SPI_Initial();
 	RFID_Usart_Init();
 	//NFR24L01_Init();
@@ -47,11 +47,11 @@ void SystemInit(void)
 	My_I2C_Init();
 	ProtectSW_GPIO_Config();
 	//MPU6050_init();
-	
+	ECV_Init();
 	
 	ADS1256_Init();
 	LCD_INIT();
-
+	
 	#if USE_CIRCLE_INFO_RECODER
 	circle_recoder_init();
 	#endif
@@ -81,35 +81,25 @@ int main(void)
 
 	//mslRecF = FMSDS_Ptr->AgvMSLocation;
 	//mslRecR = FMSDS_Ptr->AgvMSLocation;
-	Warning_LED_RED = 0;
-	
+	Warning_LED_RED 	= 1;
+	Warning_LED_GREEN 	= 0;
+	Warning_LED_ORANGE 	= 0;
 	//MPU6050_Data_init3();
-	ECV_POWER_ON();
-	#if 0
-	FECV_DOWN();
-	BECV_DOWN();
-	//WECV_DOWN();
-	Delay_ns(3);
-	FECV_STOP();
-	BECV_UP();
-	//Delay_ns(1);
-	//Delay_ms(600);
-	Delay_ns(2);
-	Delay_ms(500);
-	BECV_DOWN();
-	Delay_ns(1);
-	Delay_ms(900);
-	BECV_STOP();
-	#else
-	//while(ARM_Reset() != 1);
-	ctrlParasPtr->armResetFlag = 1;
-	#endif
+
+	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
-	MOTOR_POWER_ON();
-	//MOTOR_POWER_OFF();
+	BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+	
+	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+	WECV_Str_Ptr->Dir = ECV_DOWN;
+	
+	//M_A_Init();
+	
+	//MOTOR_POWER_ON();
+	MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
-
+	
 	#if USE_IWDG
 	IWatch_Dog_Init();
 	#endif
@@ -119,10 +109,10 @@ int main(void)
 	
 	ctrlParasPtr->gear = 10;
 	//CHANGE_TO_GO_STRAIGHT_MODE();
-	//Zigbee_Ptr->recvValidDataFlag = 1;
-	//Zigbee_Ptr->recvId = 0x0008;
 	//ctrlParasPtr->FSflag = 1;
 	CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
+	//CHANGE_TO_GO_STRAIGHT_MODE();
+	
 	
 	while(1)
 	{		
@@ -138,14 +128,16 @@ int main(void)
 		#endif
 		
 		//ProtectFunc();
-		Read_RTC_Data();	// 年月日
-		Lcd_Handle();		// 小屏幕操作函数
-		//SIMU_PWM_BreathBoardLED_Ctrl();
-		Scan_Weight_Func();	// 扫描称重模块数据
-		WarningLedCtrlPtr->twinkleCtrlFunc();
-		ARM_Reset2();		// 机械手臂复位操作
+		Read_RTC_Data();						// 年月日
+		Lcd_Handle();							// 小屏幕操作函数
+		SIMU_PWM_BreathBoardLED_Ctrl();			// 模拟PWM控制主控板LED呼吸灯
+		Scan_Weight_Func();						// 扫描称重模块数据
+		WarningLedCtrlPtr->twinkleCtrlFunc();	// 警告灯闪烁控制
+		ECV_Ctrl_Func_F(FECV_Str_Ptr);			// 前电缸控制
+		ECV_Ctrl_Func(BECV_Str_Ptr);			// 后电缸控制
+		ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
 
-
+		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
 		{
@@ -157,12 +149,6 @@ int main(void)
 		{
 			//MOTOR_POWER_ON();
 			ManualModeFunc(ctrlParasPtr->manualCtrl);
-			#if USE_ECV
-			if((Man_CirL == ctrlParasPtr->manualCtrl) || (Man_CirR == ctrlParasPtr->manualCtrl))
-			{
-				ctrlParasPtr->manualCtrl = Man_Stop;
-			}
-			#endif
 		}
 		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
 		{
@@ -180,6 +166,7 @@ int main(void)
 			Magn_Sensor_Scan();		// 磁传感器数据处理
 			Receive_handle2();		// ZigBee数据接收处理函数
 
+			ZigbeeRecv_Simu();
 			
 			if(0 == ctrlParasPtr->start_origin_mode)
 			//if(0)
@@ -208,7 +195,7 @@ int main(void)
 				RFID_Goal_Node_Analy();			// 分析哪个RFID点转
 				
 				Walking_Step_Controler();		// 整个大逻辑的控制
-
+				
 
 				/****小车驱动轮控制****/
 				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
@@ -257,11 +244,15 @@ int main(void)
 				// 在原点待机时自动回正
 				if(ControlCenter == ctrlParasPtr->goalStation)
 				{
-					//SIMU_PWM_BreathWarningLED_Ctrl();
+					SIMU_PWM_BreathWarningLED_Ctrl();
 					
 					ctrlParasPtr->cirDuty = 8;
 					Origin_PatCtrl(ctrlParasPtr->cirDuty);
 					//AutoRunningFunc();
+				}
+				else
+				{
+					SIMU_PWM_BreathWarningLED_Ctrl();
 				}
 				
 				//LeftOrRight_Counter();
@@ -278,11 +269,11 @@ int main(void)
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
 				
-			#if 0
+			#if 1
 				
-				if((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag))
+				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				{
-					Show_Infomation();
+					//Show_Infomation();
 					//show_Excel_Analysis_Info();
 				}
 				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
@@ -369,163 +360,168 @@ int main(void)
 		*/
 		//Lcd_Handle();
 		//Get_Weight_Data();
-		//MA_TEST();
 				
 		//Lcd_Handle();
 
 		/*
 		static u32 timRec = 0;
-		static u8 step = 0;
-
-		if(0 == step)
+		
+		if(0 == timRec)
 		{
-			FECV_UP();
-			BECV_UP();
-			if(Delay_Func(&timRec, 4000))
+			ctrlParasPtr->rightHallCounter = 0;
+			ctrlParasPtr->leftHallCounter = 0;
+			timRec = SystemRunningTime;
+			set_duty_Com(100, 100);
+		}
+		else
+		{
+			if(SystemRunningTime - timRec >= 10000 * 60)
 			{
-				step = 1;
-				BECV_STOP();
+				printf("leftH = %d, rightH = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
 				timRec = 0;
-				//printf("BECV_STOP\r\n");
-				WarningLedCtrlPtr->twinkleFlag = 1;
 			}
+			
 		}
-		else if(1 == step)
-		{
-			if(Delay_Func(&timRec, 7000))
-			{
-				FECV_STOP();
-				step = 2;
-				//printf("FECV_STOP\r\n");
-				WarningLedCtrlPtr->twinkleFlag = 1;
-			}
-		}
-
-		WarningLedCtrlPtr->twinkleCtrlFunc();
 		*/
+
+		
+	#if 1
 		/*
-		static u8 step = 0;
-		static u32 timRec = 0;
+		static s8 flag = 0;
 		
-				
-		if(0 == step)
-		{
-			if(0 == Return_SW)
-			{
-				Delay_ms(20);
-				if(0 == Return_SW)
-				{
-					while(0 == Return_SW);
-					step = 1;
-					BECV_UP();
-					FECV_UP();
-					timRec = 0;
-					printf("step = 1\r\n");
-				}
-				
-			}
-		}
-		else if(1 == step)
-		{
-			if(Delay_Func(&timRec, 1200))
-			{
-				BECV_STOP();
-				FECV_STOP();
-			}
+		ECV_Ctrl_Func_W(WECV_Str_Ptr);
+		WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 
+		if(0 == Return_SW)
+		{
+			Delay_ms(20);
+			
 			if(0 == Return_SW)
 			{
-				Delay_ms(20);
-				if(0 == Return_SW)
-				{
-					while(0 == Return_SW);
-					step = 2;
-					BECV_UP();
-					FECV_UP();
-					timRec = 0;
-					printf("step = 2\r\n");
-				}
-			}
-		}
-		else if(2 == step)
-		{
-			if(Delay_Func(&timRec, 2000))
-			{
-				BECV_STOP();
-				FECV_STOP();
-			}
+				while(0 == Return_SW);
 
-			if(0 == Return_SW)
-			{
-				Delay_ms(20);
-				if(0 == Return_SW)
+				if(0 == flag)
 				{
-					while(0 == Return_SW);
-					step = 3;
-					BECV_DOWN();
-					timRec = 0;
-					printf("step = 3\r\n");
+					WECV_Str_Ptr->Dir = ECV_DOWN;
+					printf("ECV_DOWN\r\n");
+					flag = 1;
+				}
+				else if(1 == flag)
+				{
+					WECV_Str_Ptr->Dir = ECV_UP;
+					printf("ECV_UP\r\n");
+					flag = 0;
 				}
 			}
+			
 		}
-		else if(3 == step)
-		{
-			if(Delay_Func(&timRec, 1000))
-			{
-				BECV_STOP();
-			}
 
-			if(0 == Return_SW)
-			{
-				Delay_ms(20);
-				if(0 == Return_SW)
-				{
-					while(0 == Return_SW);
-					step = 4;
-					BECV_DOWN();
-					FECV_DOWN();
-					timRec = 0;
-					printf("step = 4\r\n");
-				}
-			}
-		}
-		else if(4 == step)
+		if(WECV_UP_LIMT_SW_RESP)
 		{
-			if(0 == Return_SW)
-			{
-				Delay_ms(20);
-				if(0 == Return_SW)
-				{
-					while(0 == Return_SW);
-					step = 5;
-					BECV_UP();
-					FECV_STOP();
-					timRec = 0;
-					printf("step = 5\r\n");
-				}
-			}
+			//printf("WECV_UP_LIMT_SW_RESP\r\n");
 		}
-		else if(5 == step)
+		else if(WECV_DOWN_LIMT_SW_RESP)
 		{
-			if(Delay_Func(&timRec, 2500))
-			{
-				BECV_DOWN();
-				step = 6;
-				timRec = 0;
-				printf("step = 6\r\n");
-			}
-		}
-		else if(6 == step)
-		{
-			if(Delay_Func(&timRec, 1900))
-			{
-				BECV_STOP();
-				timRec = 0;
-				step = 0;
-			}
+			//printf("WECV_DOWN_LIMT_SW_RESP\r\n");
 		}
 		*/
+	#else
 		
+		static s8 	flag 	= 0;
+		static u32 	timRec 	= 0;
+		
+		ECV_Ctrl_Func_F(FECV_Str_Ptr);
+		FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+		
+		if(0 == Return_SW)
+		{
+			Delay_ms(20);
+			
+			if(0 == Return_SW)
+			{
+				while(0 == Return_SW);
+
+				if(0 == flag)
+				{
+					FECV_Str_Ptr->Dir = ECV_UP;
+					
+					flag = 1;
+				}
+				else if(1 == flag)
+				{
+					FECV_Str_Ptr->Dir = ECV_DOWN;
+					
+					flag = 0;
+				}
+			}
+			
+		}
+
+		if(ECV_STOP != FECV_Str_Ptr->Dir)
+		{
+			if(0 == timRec)
+			{
+				timRec = SystemRunningTime;
+			}
+			else
+			{
+				if(SystemRunningTime - timRec >= 30000)
+				{
+					FECV_Str_Ptr->Dir = ECV_STOP;
+					timRec = 0;
+				}
+			}
+		}
+		
+	#endif
+
+		static u8 flag = 0;
+		Ecv_Para temp;
+
+		ECV_Ctrl_Func(BECV_Str_Ptr);
+		
+		BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+		
+		if(0 == Return_SW)
+		{
+			Delay_ms(20);
+			
+			if(0 == Return_SW)
+			{
+				while(0 == Return_SW);
+				
+				if(0 == flag)
+				{
+					temp.Dir 				= ECV_DOWN;
+					temp.EcvHallCountCmp 	= 100;
+					temp.EcvSpeed			= 100;
+					temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
+
+					BECV_Str_Ptr->ECV_SetPara(&temp);
+					
+					flag = 1;
+				}
+				else if(1 == flag)
+				{
+					temp.Dir 				= ECV_UP;
+					temp.EcvHallCountCmp 	= 100;
+					temp.EcvSpeed			= 100;
+					temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
+					
+					BECV_Str_Ptr->ECV_SetPara(&temp);
+					
+					flag = 0;
+				}
+			}
+		}
+		
+		//BECV_Str_Ptr->ECV_UpDownFunc(ECV_DOWN);
+		//BECV_Str_Ptr->ECV_SetSpeedFunc(100);
+
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+			BECV_Str_Ptr->UseStatus = ECV_UNUSED;
+		}
 		
 		#endif
 		

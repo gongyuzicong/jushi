@@ -666,7 +666,7 @@ void ZigbeeWaitForAck(void)
 					{
 						if(0 == cir)
 						{
-							printf("resend\r\n");
+							//printf("resend\r\n");
 						}
 						SendChar_Zigbee(ZigbeeResendInfo_Ptr->resendInfo[cir]);
 					}
@@ -679,7 +679,7 @@ void ZigbeeWaitForAck(void)
 					resendCount = 0;
 					ZigbeeResendInfo_Ptr->resendFlag = 0;
 					recTime = 0;
-					printf("resend failed\r\n");
+					//printf("resend failed\r\n");
 				}
 			}
 		}

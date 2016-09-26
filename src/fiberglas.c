@@ -119,12 +119,10 @@ void Get_Weight_Offset_Data(void)
 
 void Get_Weight_Data(void)
 {
-	u8 cir=0;
 	int Adc;
 	double Volts;
 	float weight_g;
-	float weight_Kg;
-	static u32 timRec = 0;
+	//float weight_Kg;
 	float offset = 0;
 	
 	#if 0
@@ -152,7 +150,7 @@ void Get_Weight_Data(void)
 	weight_g = (Volts / 0.000025);
 	offset = (((u32)weight_g / 1000) * 12);
 	//weight_g += offset;
-	weight_Kg = weight_g / 1000.0;
+	//weight_Kg = weight_g / 1000.0;
 	//weight = (Volts / 0.000025);
 	//weight += (((u32)(Volts / 0.000025) / 1000) * 0.01);
 	
@@ -302,12 +300,11 @@ void Update_Offset_Func_Ctrl(void)
 void Update_Offset_Func_Auto(void)
 {
 	static u32 timRec = 0;
-	int Adc;
-	static u8 flag = 0;
+	//int Adc;
 
 	if(Delay_Func(&timRec, 1000))
 	{
-		Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
+		//Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
 		
 		
 	}
@@ -572,7 +569,7 @@ void ChangeWeightI2F(FiberglasInfoStr_P ptr)
 
 void SaveOneFiberglasInfoTo_EEPROM(FiberglasInfoStr_P ptr, u16 addr)
 {
-	u8 temp[1];
+	
 	
 	
 	

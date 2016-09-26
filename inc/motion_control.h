@@ -105,9 +105,6 @@
 #define MOTOR_LEFT_PG	PEin(12)
 #define MOTOR_LEFT_ALM	PEin(13)
 /****MOTOR IN: END****/
-#define ECV1_POWER			PDout(13)
-#define ECV2_POWER			PDout(14)
-#define ECV3_POWER			PEout(6)	//
 #define MOTOR_POWER			PDout(15)
 #define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
 #define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
@@ -458,12 +455,11 @@ u8 Origin_PatCtrl(u8);
 void AutoRunningFunc(void);
 void CrossRoad_Count2(void);
 void ManualModeFunc(ManualMode_Ctrl);
-void MA_TEST(void);
 void AGV_Correct_2(void);
 void Recv_RFID_CrossRoad(u8);
 u8 Origin_PatCtrl2(u8);
-u8 ARM_Reset(void);
-void ARM_Reset2(void);
+void set_duty_Com(u8, u8);
+void ZigbeeRecv_Simu(void);
 
 
 extern ControlerParaStruct_P ctrlParasPtr;

@@ -53,6 +53,9 @@ void CB_LED_GPIO_CFG(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 	//GPIO_ResetBits(GPIOC, GPIO_Pin_6 | GPIO_Pin_7);
+
+	GPIO_SetBits(GPIOC, GPIO_Pin_6 | GPIO_Pin_7);
+	GPIO_SetBits(GPIOD, GPIO_Pin_3);
 }
 
 void CB_USART_GPIO_CFG(void)
