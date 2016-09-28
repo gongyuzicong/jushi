@@ -9,6 +9,9 @@
 
 
 #define USE_ECV					1
+
+#define USE_WECV				0
+
 #define WECV_UP_LIMT_SW			PEin(1)
 #define WECV_DOWN_LIMT_SW		PEin(3)
 #define WECV_UP_LIMT_SW_RESP	(0 == WECV_UP_LIMT_SW)
@@ -28,11 +31,19 @@
 
 #define LMT_SW					PEin(0)			// 响应为 0
 #define Return_SW				PDin(10)		// 响应为 0
+#define Return_SW_Respond		(0 == Return_SW)
+#define Return_SW_UnRespond		(1 == Return_SW)
 
 #define KEY_1					PCin(1)			// 响应为 0
 #define KEY_2					PCin(2)			// 响应为 0
 
-#define LMT2_SW					PEin(2)			//
+#define FLMT_SW					PEin(2)			//
+#define RLMT_SW					PCin(2)
+#define FLMT_SW_RESPOND			(0 == FLMT_SW)
+#define RLMT_SW_RESPOND			(0 == RLMT_SW)
+#define FLMT_SW_UNRESPOND		(1 == FLMT_SW)
+#define RLMT_SW_UNRESPOND		(1 == RLMT_SW)
+
 
 #define BUZZER_1				PEout(9)
 #define BUZZER_2				PEout(10)

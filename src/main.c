@@ -92,11 +92,13 @@ int main(void)
 	
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	WECV_Str_Ptr->Dir = ECV_DOWN;
+
+	//Delay_ns(3);
 	
-	//M_A_Init();
+	M_A_Init();
 	
-	//MOTOR_POWER_ON();
-	MOTOR_POWER_OFF();
+	MOTOR_POWER_ON();
+	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
 	
@@ -113,17 +115,17 @@ int main(void)
 	CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
 	//CHANGE_TO_GO_STRAIGHT_MODE();
 	
-	
 	while(1)
 	{		
 		
-		#if 0
+		#if 1
 		
 		#if USE_IWDG
 		u32 timRec = 0;
 		if(Delay_Func(&timRec, 500))
 		{
 			IWDG_RELOAD();
+			timRec = 0;
 		}
 		#endif
 		
@@ -152,7 +154,6 @@ int main(void)
 		}
 		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
 		{
-			
 			MOTOR_POWER_ON();
 			
 			if(1 == RFID_Info_Ptr->noValide)
@@ -165,7 +166,7 @@ int main(void)
 		{
 			Magn_Sensor_Scan();		// 磁传感器数据处理
 			Receive_handle2();		// ZigBee数据接收处理函数
-
+			
 			ZigbeeRecv_Simu();
 			
 			if(0 == ctrlParasPtr->start_origin_mode)
@@ -196,7 +197,7 @@ int main(void)
 				
 				Walking_Step_Controler();		// 整个大逻辑的控制
 				
-
+				
 				/****小车驱动轮控制****/
 				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 				{
@@ -474,7 +475,7 @@ int main(void)
 		}
 		
 	#endif
-
+		/*
 		static u8 flag = 0;
 		Ecv_Para temp;
 
@@ -521,6 +522,16 @@ int main(void)
 		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
 		{
 			BECV_Str_Ptr->UseStatus = ECV_UNUSED;
+		}
+		*/
+
+		if(0 == FLMT_SW)
+		{
+			printf("0\r\n");
+		}
+		else if(1 == FLMT_SW)
+		{
+			printf("1\r\n");
 		}
 		
 		#endif

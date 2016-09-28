@@ -301,6 +301,7 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 		ptr->ECV_SetSpeedFunc(0);
 		ptr->EcvEnableHallFlag 		= 0;
 		ptr->EcvHallCountRec 		= 0;
+		ptr->EcvHallCount			= 0;
 		ptr->EcvHallCountTimeOut 	= SystemRunningTime;
 	}
 	else
@@ -314,15 +315,22 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 			if(CheckFECV_Limt(ptr) || (ptr->EcvHallCount >= ptr->EcvHallCountCmp))
 			{
 				ptr->Dir 			= ECV_STOP;
+				ptr->EcvHallCount	= 0;
+				ptr->EcvHallCountRec= 0;
 				ptr->UseStatus 		= ECV_COMPLETE;
+				//ptr->ECV_SetSpeedFunc(0);
 			}
+			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
 		}
 		else if(ECV_USE_HALL_COUNT_MODE_DISABLE == ptr->HallCountMode)
 		{
 			if(CheckFECV_Limt(ptr))
 			{
 				ptr->Dir 			= ECV_STOP;
+				ptr->EcvHallCount	= 0;
+				ptr->EcvHallCountRec= 0;
 				ptr->UseStatus 		= ECV_COMPLETE;
+				//ptr->ECV_SetSpeedFunc(0);
 			}
 		}
 
@@ -384,34 +392,45 @@ void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P ptr)
 
 void M_A_Init(void)
 {
-	Ecv_Para temp;
+	static u32 timRec = 0;
+	u32 timFlag = 30000;
+	Ecv_Para temp;	
+
+	FECV_Str_Ptr->ECV_SetSpeedFunc(100);
+	FECV_Str_Ptr->ECV_UpDownFunc(ECV_DOWN);
+	
 	temp.Dir 			= ECV_DOWN;
 	temp.EcvSpeed 		= 100;
 	temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 	BECV_Str_Ptr->ECV_SetPara(&temp);
-	BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+	timRec = SystemRunningTime;
+	BECV_Str_Ptr->EcvHallCountTimeOut = SystemRunningTime;
 	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
 	{
 		ECV_Ctrl_Func(BECV_Str_Ptr);
+		
+		if(SystemRunningTime - timRec >= timFlag)
+		{
+			FECV_Str_Ptr->ECV_SetSpeedFunc(0);
+			FECV_Str_Ptr->Dir = ECV_STOP;
+		}
 	}
+	BECV_Str_Ptr->ECV_SetSpeedFunc(0);
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
+	
 	temp.Dir 			 = ECV_UP;
 	temp.HallCountMode 	 = ECV_USE_HALL_COUNT_MODE_ENABLE;
 	temp.EcvHallCountCmp = HallCountCmpManager_Str_Ptr->BecvInit;
 	BECV_Str_Ptr->ECV_SetPara(&temp);
-	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
-	{
-		ECV_Ctrl_Func(BECV_Str_Ptr);
-	}
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
-	/*
-	FECV_Str_Ptr->ECV_SetSpeedFunc(100);
-	FECV_Str_Ptr->ECV_UpDownFunc(ECV_UP);
-	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
-	Delay_ns(3);
+	
+	while(SystemRunningTime - timRec < timFlag);
+
 	FECV_Str_Ptr->ECV_SetSpeedFunc(0);
 	FECV_Str_Ptr->Dir = ECV_STOP;
-	*/
+
+	WECV_Str_Ptr->Dir = ECV_DOWN;
+	
 }
 
 
@@ -548,7 +567,7 @@ void ECV_Struct_Init(void)
 	HallCountCmpManager_Str_Ptr->FecvBigFiberHall 	= 0;
 	HallCountCmpManager_Str_Ptr->FecvSmallFiberHall = 0;
 
-	HallCountCmpManager_Str_Ptr->BecvInit			= 100;
+	HallCountCmpManager_Str_Ptr->BecvInit			= 70;
 	HallCountCmpManager_Str_Ptr->BecvBigFiberHall	= 0;
 	HallCountCmpManager_Str_Ptr->BecvSmallFiberHall	= 0;
 }

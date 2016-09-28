@@ -486,7 +486,7 @@ void EXTI9_5_IRQHandler(void)
 		if(1 == ECV2_HALL_FLAG)
 		{
 			ECV2_HALL++;
-			//printf("ECV2_HALL = %d\r\n", ECV2_HALL);
+			printf("BECV_HALL = %d\r\n", ECV2_HALL);
 		}
 		else
 		{
@@ -495,7 +495,6 @@ void EXTI9_5_IRQHandler(void)
 		
 		EXTI->PR = ((u32)0x00100);
 	}
-	
 	// E3-HALL
 	if (((EXTI->PR & ((u32)0x00200)) != 0) && ((EXTI->IMR & ((u32)0x00200)) != 0))
 	{
