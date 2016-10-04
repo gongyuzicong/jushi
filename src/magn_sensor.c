@@ -778,10 +778,8 @@ void Show_Infomation(void)
 	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
 	printf("f = %d, \t", ctrlParasPtr->comflag);
 	
-	printf("FLCD[%d] = %d, FRCD[%d] = %d, BLCD[%d] = %d, BRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], BLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], BRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
+	printf("FLCD[%d] = %d, FRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
+											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
 	
 	Show_Check_Magn_Direction(FMSDS_Ptr);
 	printf("\r\n");

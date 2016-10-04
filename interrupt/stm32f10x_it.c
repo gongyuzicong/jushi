@@ -292,6 +292,7 @@ void EXTI4_IRQHandler(void)
 		if(1 == ECV1_HALL_FLAG)
 		{
 			ECV1_HALL++;
+			//printf("FECV_HALL = %d\r\n", ECV1_HALL);
 		}
 		else
 		{
@@ -486,7 +487,7 @@ void EXTI9_5_IRQHandler(void)
 		if(1 == ECV2_HALL_FLAG)
 		{
 			ECV2_HALL++;
-			printf("BECV_HALL = %d\r\n", ECV2_HALL);
+			//printf("BECV_HALL = %d\r\n", ECV2_HALL);
 		}
 		else
 		{
@@ -502,7 +503,7 @@ void EXTI9_5_IRQHandler(void)
 		if(1 == ECV3_HALL_FLAG)
 		{
 			ECV3_HALL++;
-			//printf("ECV3_HALL = %d\r\n", ECV3_HALL);
+			//printf("WECV_HALL = %d\r\n", ECV3_HALL);
 		}
 		else
 		{
@@ -845,14 +846,22 @@ void EXTI15_10_IRQHandler(void)
 	{
 		ctrlParasPtr->rightHallIntervalTime = SystemRunningTime - rTimeRecode;
 
-		if(0xFFFFFFFF == ctrlParasPtr->rightHallCounter)
+		if(1 == MOTOR1_HALL_COUNT_FLAG)
 		{
-			ctrlParasPtr->rightHallCounter = 0;
+			if(0xFFFFFFFF == ctrlParasPtr->rightHallCounter)
+			{
+				ctrlParasPtr->rightHallCounter = 0;
+			}
+			else
+			{
+				ctrlParasPtr->rightHallCounter++;
+			}
 		}
 		else
 		{
-			ctrlParasPtr->rightHallCounter++;
+			ctrlParasPtr->rightHallCounter = 0;
 		}
+		
 
 		if(1 == ctrlParasPtr->CrossRoadHallCountFlag)
 		{
@@ -874,14 +883,22 @@ void EXTI15_10_IRQHandler(void)
 	{
 		ctrlParasPtr->leftHallIntervalTime = SystemRunningTime - lTimeRecode;
 
-		if(0xFFFFFFFF == ctrlParasPtr->leftHallCounter)
+		if(1 == MOTOR2_HALL_COUNT_FLAG)
 		{
-			ctrlParasPtr->leftHallCounter = 0;
+			if(0xFFFFFFFF == ctrlParasPtr->leftHallCounter)
+			{
+				ctrlParasPtr->leftHallCounter = 0;
+			}
+			else
+			{
+				ctrlParasPtr->leftHallCounter++;
+			}
 		}
 		else
 		{
-			ctrlParasPtr->leftHallCounter++;
+			ctrlParasPtr->rightHallCounter = 0;
 		}
+		
 
 		if(1 == ctrlParasPtr->CrossRoadHallCountFlag)
 		{

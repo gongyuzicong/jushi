@@ -93,12 +93,11 @@ int main(void)
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	WECV_Str_Ptr->Dir = ECV_DOWN;
 
-	//Delay_ns(3);
 	
 	M_A_Init();
 	
-	MOTOR_POWER_ON();
-	//MOTOR_POWER_OFF();
+	//MOTOR_POWER_ON();
+	MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
 	
@@ -111,9 +110,7 @@ int main(void)
 	
 	ctrlParasPtr->gear = 10;
 	//CHANGE_TO_GO_STRAIGHT_MODE();
-	//ctrlParasPtr->FSflag = 1;
 	CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
-	//CHANGE_TO_GO_STRAIGHT_MODE();
 	
 	while(1)
 	{		
@@ -135,7 +132,7 @@ int main(void)
 		SIMU_PWM_BreathBoardLED_Ctrl();			// 模拟PWM控制主控板LED呼吸灯
 		Scan_Weight_Func();						// 扫描称重模块数据
 		WarningLedCtrlPtr->twinkleCtrlFunc();	// 警告灯闪烁控制
-		ECV_Ctrl_Func_F(FECV_Str_Ptr);			// 前电缸控制
+		ECV_Ctrl_Func(FECV_Str_Ptr);			// 前电缸控制
 		ECV_Ctrl_Func(BECV_Str_Ptr);			// 后电缸控制
 		ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
 
@@ -151,6 +148,8 @@ int main(void)
 		{
 			//MOTOR_POWER_ON();
 			ManualModeFunc(ctrlParasPtr->manualCtrl);
+
+			ManualModeEcvCtrlFunc();
 		}
 		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
 		{
@@ -198,7 +197,7 @@ int main(void)
 				Walking_Step_Controler();		// 整个大逻辑的控制
 				
 				
-				/****小车驱动轮控制****/
+				/************小车驱动轮控制************/
 				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 				{
 					
@@ -219,12 +218,22 @@ int main(void)
 					else if(cirLeft == ctrlParasPtr->agvStatus)			// 左转状态
 					{
 						//walking_cirLeft(ctrlParasPtr->gear);
+						#if USE_HALL_CTRL
+						walking_cir_hall(ctrlParasPtr->cirDuty);
+						#else
 						walking_cir(ctrlParasPtr->cirDuty);
+						#endif
+						
 					}
 					else if(cirRight == ctrlParasPtr->agvStatus)		// 右转状态
 					{
 						//walking_cirRight(ctrlParasPtr->gear);
+						#if USE_HALL_CTRL
+						walking_cir_hall(ctrlParasPtr->cirDuty);
+						#else
 						walking_cir(ctrlParasPtr->cirDuty);
+						#endif
+						
 					}
 					else if(gSslow == ctrlParasPtr->agvStatus)			// 低速直行
 					{
@@ -270,11 +279,11 @@ int main(void)
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
 				
-			#if 1
+			#if 0
 				
 				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				{
-					//Show_Infomation();
+					Show_Infomation();
 					//show_Excel_Analysis_Info();
 				}
 				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
@@ -393,13 +402,13 @@ int main(void)
 		ECV_Ctrl_Func_W(WECV_Str_Ptr);
 		WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 
-		if(0 == Return_SW)
+		if(0 == Return_SW_RF)
 		{
 			Delay_ms(20);
 			
-			if(0 == Return_SW)
+			if(0 == Return_SW_RF)
 			{
-				while(0 == Return_SW);
+				while(0 == Return_SW_RF);
 
 				if(0 == flag)
 				{
@@ -434,13 +443,13 @@ int main(void)
 		ECV_Ctrl_Func_F(FECV_Str_Ptr);
 		FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 		
-		if(0 == Return_SW)
+		if(0 == Return_SW_RF)
 		{
 			Delay_ms(20);
 			
-			if(0 == Return_SW)
+			if(0 == Return_SW_RF)
 			{
-				while(0 == Return_SW);
+				while(0 == Return_SW_RF);
 
 				if(0 == flag)
 				{
@@ -483,13 +492,13 @@ int main(void)
 		
 		BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 		
-		if(0 == Return_SW)
+		if(0 == Return_SW_RF)
 		{
 			Delay_ms(20);
 			
-			if(0 == Return_SW)
+			if(0 == Return_SW_RF)
 			{
-				while(0 == Return_SW);
+				while(0 == Return_SW_RF);
 				
 				if(0 == flag)
 				{
@@ -525,19 +534,12 @@ int main(void)
 		}
 		*/
 
-		if(0 == FLMT_SW)
-		{
-			printf("0\r\n");
-		}
-		else if(1 == FLMT_SW)
-		{
-			printf("1\r\n");
-		}
+		ManualModeEcvCtrlFunc();
 		
 		#endif
 		
 	}
-
+	
 	
 }
 

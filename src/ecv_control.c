@@ -48,11 +48,11 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 	if(ptr->EcvHallCountRec < ptr->EcvHallCount)
 	{
 		ptr->EcvHallCountRec 		= ptr->EcvHallCount;
-		ptr->EcvHallCountTimeOut 	= SystemRunningTime;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
 	}
 	else if(ptr->EcvHallCountRec == ptr->EcvHallCount)
 	{
-		if(SystemRunningTime - ptr->EcvHallCountTimeOut >= 5000)
+		if(SystemRunningTime - ptr->EcvHallCountTimeRec >= ptr->EcvHallCountTimeOut_ms * 10)
 		{
 			flag 					= 1;
 			ptr->EcvHallCountRec 	= 0;
@@ -296,13 +296,13 @@ void WECV_Clean_Use_Status(void)
 
 void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 {
-	if(ECV_STOP== ptr->Dir)
+	if(ECV_STOP == ptr->Dir)
 	{
 		ptr->ECV_SetSpeedFunc(0);
 		ptr->EcvEnableHallFlag 		= 0;
 		ptr->EcvHallCountRec 		= 0;
 		ptr->EcvHallCount			= 0;
-		ptr->EcvHallCountTimeOut 	= SystemRunningTime;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
 	}
 	else
 	{
@@ -374,7 +374,7 @@ void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P ptr)
 	{
 		ptr->ECV_SetSpeedFunc(0);
 		ptr->EcvEnableHallFlag 		= 0;
-		ptr->EcvHallCountTimeOut 	= SystemRunningTime;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
 	}
 	else
 	{
@@ -392,43 +392,39 @@ void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P ptr)
 
 void M_A_Init(void)
 {
-	static u32 timRec = 0;
-	u32 timFlag = 30000;
 	Ecv_Para temp;	
 
-	FECV_Str_Ptr->ECV_SetSpeedFunc(100);
-	FECV_Str_Ptr->ECV_UpDownFunc(ECV_DOWN);
-	
 	temp.Dir 			= ECV_DOWN;
 	temp.EcvSpeed 		= 100;
 	temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+	FECV_Str_Ptr->ECV_SetPara(&temp);
+	//FECV_Str_Ptr->ECV_Clean_Use_Status();
+	FECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+	
+	temp.Dir 			= ECV_DOWN;
+	temp.EcvSpeed 		= 40;
+	temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 	BECV_Str_Ptr->ECV_SetPara(&temp);
-	timRec = SystemRunningTime;
-	BECV_Str_Ptr->EcvHallCountTimeOut = SystemRunningTime;
+	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+	
 	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
 	{
+		ECV_Ctrl_Func(FECV_Str_Ptr);
 		ECV_Ctrl_Func(BECV_Str_Ptr);
-		
-		if(SystemRunningTime - timRec >= timFlag)
-		{
-			FECV_Str_Ptr->ECV_SetSpeedFunc(0);
-			FECV_Str_Ptr->Dir = ECV_STOP;
-		}
 	}
+	
 	BECV_Str_Ptr->ECV_SetSpeedFunc(0);
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
+	
+
 	
 	temp.Dir 			 = ECV_UP;
 	temp.HallCountMode 	 = ECV_USE_HALL_COUNT_MODE_ENABLE;
 	temp.EcvHallCountCmp = HallCountCmpManager_Str_Ptr->BecvInit;
 	BECV_Str_Ptr->ECV_SetPara(&temp);
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
+	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
 	
-	while(SystemRunningTime - timRec < timFlag);
-
-	FECV_Str_Ptr->ECV_SetSpeedFunc(0);
-	FECV_Str_Ptr->Dir = ECV_STOP;
-
 	WECV_Str_Ptr->Dir = ECV_DOWN;
 	
 }
@@ -469,7 +465,6 @@ void ECV_GPIO_Config(void)
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
 	
-	
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_14 | GPIO_Pin_15;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
@@ -488,6 +483,93 @@ void ECV_GPIO_Config(void)
 	
 	#endif
 }
+
+
+void ECV_HALL_Config(void)
+{
+	/* 定义EXIT初始化结构体 EXTI_InitStructure */
+	EXTI_InitTypeDef EXTI_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	GPIO_InitTypeDef  GPIO_InitStructure; 
+
+	GPIO_InitStructure.GPIO_Pin 	=  GPIO_Pin_8 | GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_IN_FLOATING;  
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);	/*打开APB2总线上的GPIOC时钟*/
+
+	GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_4;
+	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_IN_FLOATING;  
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);	/*打开APB2总线上的GPIOC时钟*/
+	
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+
+	
+	// E1-HALL config PD4
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOD, GPIO_PinSource4);
+
+	/* 设置外部中断0通道（EXIT Line4）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line 	= EXTI_Line4;
+  	EXTI_InitStructure.EXTI_Mode 	= EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);									//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel 						= EXTI4_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority 	= 2;					//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority 			= 3;					//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd 					= ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);													//初始化
+	
+	
+	
+	// E2-HALL config PC8
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource8);
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line 	= EXTI_Line8;
+  	EXTI_InitStructure.EXTI_Mode 	= EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);								//初始化
+	
+	
+	
+	// E3-HALL config PC9
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource9);
+
+	/* 设置外部中断0通道（EXIT Line2）在下降沿时触发中断 */  
+  	EXTI_InitStructure.EXTI_Line 	= EXTI_Line9;
+  	EXTI_InitStructure.EXTI_Mode 	= EXTI_Mode_Interrupt;
+  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  	EXTI_Init(&EXTI_InitStructure);
+
+	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);									//选择中断分组
+	NVIC_InitStructure.NVIC_IRQChannel 						= EXTI9_5_IRQChannel;	//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority 	= 2;					//抢断式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority 			= 3;					//响应式中断优先级设置
+	NVIC_InitStructure.NVIC_IRQChannelCmd 					= ENABLE;				//使能中断
+	NVIC_Init(&NVIC_InitStructure);													//初始化
+	
+	
+	
+}
+
 
 void ECV_SW_Init(void)
 {
@@ -546,6 +628,10 @@ void ECV_Struct_Init(void)
 
 	*BECV_Str_Ptr = *WECV_Str_Ptr = *FECV_Str_Ptr;
 
+	FECV_Str_Ptr->EcvHallCountTimeOut_ms= 1000;
+	BECV_Str_Ptr->EcvHallCountTimeOut_ms= 1000;
+	WECV_Str_Ptr->EcvHallCountTimeOut_ms= 1000;
+
 	FECV_Str_Ptr->ECV_PowerOnOffFunc 	= FECV_PowerOnOffFunc;
 	FECV_Str_Ptr->ECV_UpDownFunc 		= FECV_UpDownFunc;
 	FECV_Str_Ptr->ECV_SetSpeedFunc 		= FECV_SetSpeedFunc;
@@ -573,9 +659,12 @@ void ECV_Struct_Init(void)
 }
 
 
+
 void ECV_Init(void)
 {
 	ECV_GPIO_Config();
+
+	ECV_HALL_Config();
 
 	ECV_Pwm_Init();
 

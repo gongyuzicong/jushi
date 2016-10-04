@@ -298,28 +298,8 @@ void keyConfig(void)
 }
 
 
-
-
-
 /***********************old key opts**************************/
 
-void send(void)
-{
-	SendChar_USART3(0x2E);
-	SendChar_USART3(0x83);
-	SendChar_USART3(0x02);
-	SendChar_USART3(0x11);
-	SendChar_USART3(0x06);
-}
-
-void send2(void)
-{
-	SendChar_USART3(0x2E);
-	SendChar_USART3(0x83);
-	SendChar_USART3(0x02);
-	SendChar_USART3(0x11);
-	SendChar_USART3(0x07);
-}
 
 
 

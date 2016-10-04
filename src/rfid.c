@@ -133,10 +133,10 @@ void RFID_Usart_Init(void)
 	NVIC_Init(&NVIC_InitStructure);								//≥ı ºªØ
 
 	
-	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
-	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
-	USART_ClockInitStructure.USART_CPHA = USART_CPHA_1Edge;
-	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
+	USART_ClockInitStructure.USART_Clock 	= USART_Clock_Disable;
+	USART_ClockInitStructure.USART_CPOL 	= USART_CPOL_Low;
+	USART_ClockInitStructure.USART_CPHA 	= USART_CPHA_1Edge;
+	USART_ClockInitStructure.USART_LastBit 	= USART_LastBit_Disable;
 	USART_ClockInit(USART3, &USART_ClockInitStructure);
 	
 	

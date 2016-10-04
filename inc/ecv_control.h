@@ -30,9 +30,25 @@
 #define LMT_INL					PCin(4)			// 响应为 0
 
 #define LMT_SW					PEin(0)			// 响应为 0
-#define Return_SW				PDin(10)		// 响应为 0
-#define Return_SW_Respond		(0 == Return_SW)
-#define Return_SW_UnRespond		(1 == Return_SW)
+
+#define Return_SW_LF				PCin(1)		// 响应为 0
+#define Return_SW_LF_Respond		(0 == Return_SW_LF)
+#define Return_SW_LF_UnRespond		(1 == Return_SW_LF)
+
+#define Return_SW_LR				PDin(9)		// 响应为 0
+#define Return_SW_LR_Respond		(0 == Return_SW_LR)
+#define Return_SW_LR_UnRespond		(1 == Return_SW_LR)
+
+#define Return_SW_RF				PDin(10)		// 响应为 0
+#define Return_SW_RF_Respond		(0 == Return_SW_RF)
+#define Return_SW_RF_UnRespond		(1 == Return_SW_RF)
+
+#define Return_SW_RR				PDin(11)		// 响应为 0
+#define Return_SW_RR_Respond		(0 == Return_SW_RR)
+#define Return_SW_RR_UnRespond		(1 == Return_SW_RR)
+
+#define Return_SW_Respond			(Return_SW_LF_Respond || Return_SW_LR_Respond || Return_SW_RF_Respond || Return_SW_RR_Respond)
+#define Return_SW_UnRespond		(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_UnRespond)
 
 #define KEY_1					PCin(1)			// 响应为 0
 #define KEY_2					PCin(2)			// 响应为 0
@@ -168,7 +184,8 @@ typedef struct
 	u8	EcvEnableHallFlag;							// 电缸霍尔信号计数使能
 	u16	EcvHallCount;								// 电缸霍尔信号计数
 	u16 EcvHallCountRec;							// 电缸霍尔信号计数临时变量
-	u32 EcvHallCountTimeOut;						// 电缸霍尔信号计数超时时间, 一般不要更改
+	u32 EcvHallCountTimeRec;						// 电缸霍尔信号计数间隔时间
+	u32 EcvHallCountTimeOut_ms;						// 电缸霍尔信号计数超时时间, 一般不要更改
 	u16 EcvHallCountCmp;							// 设置用来比较的霍尔计数
 	EcvDir				Dir;						// 控制电缸方向
 	ECV_PowerOnOff 		Power;						// 控制电缸电源

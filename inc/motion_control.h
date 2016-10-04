@@ -11,6 +11,8 @@
 
 #define MAX_HALL_COUNT		1
 
+#define USE_HALL_CTRL		0
+
 #define Warning_LED_RED			PDout(3)
 #define Warning_LED_GREEN		PCout(6)
 #define Warning_LED_ORANGE		PCout(7)
@@ -18,7 +20,10 @@
 #define ProtectSW_F				PDin(5)
 #define ProtectSW_R				PEin(4)
 
-
+//#define MOTOR1_HALL_COUNT_FLAG	ctrlParasPtr->rightHallCounterFlag
+//#define MOTOR2_HALL_COUNT_FLAG	ctrlParasPtr->leftHallCounterFlag
+#define MOTOR1_HALL_COUNT_FLAG		ctrlParasPtr->HallCounterFlag
+#define MOTOR2_HALL_COUNT_FLAG		ctrlParasPtr->HallCounterFlag
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
@@ -196,23 +201,31 @@ typedef enum
 }WalkStep;
 
 
+#define MOTOR1_HallCtrlFlag()		{MotorLeftHallCtrlPtr->MotorHallCtrlFlag = 1;}
+#define MOTOR2_HallCtrlFlag()		{MotorLeftHallCtrlPtr->MotorHallCtrlFlag = 1;}
+#define MOTORLeft_HallCtrlFlag()	{MOTOR1_HallCtrlFlag();}
+#define MotorRight_HallCtrlFlag()	{MOTOR2_HallCtrlFlag();}
+#define Motor_HallCtrlFlag()		{MOTORLeft_HallCtrlFlag(); MotorRight_HallCtrlFlag();}
+
+
+
 typedef struct
 {
-	u8 settedSpeed;
-	u8 rightMotorSettedSpeed;
-	u8 leftMotorSettedSpeed;		
-	u8 rightMotorRealSpeed;	// 电机实际速度
-	u8 leftMotorRealSpeed;	// 电机实际速度
-	u8 rightInc;
-	u8 leftInc;
+	u8 	settedSpeed;
+	u8 	rightMotorSettedSpeed;
+	u8 	leftMotorSettedSpeed;	
+	u8 	rightMotorRealSpeed;	// 电机实际速度
+	u8 	leftMotorRealSpeed;		// 电机实际速度
+	u8 	rightInc;
+	u8 	leftInc;
 	AgvStatus agvStatus;
 	AgvSpeedMode speedMode;
 	AgvWalkMode agvWalkingMode;
 	ManualMode_Ctrl manualCtrl;
-	u8 speedModeValue_Right;
-	u8 speedModeValue_Left;
-	s8 rightMotorSpeedOffset;
-	s8 leftMotorSpeedOffset;
+	u8 	speedModeValue_Right;
+	u8 	speedModeValue_Left;
+	s8 	rightMotorSpeedOffset;
+	s8 	leftMotorSpeedOffset;
 
 	u8* rightMotorSettedSpeed_p;
 	u8* leftMotorSettedSpeed_p;
@@ -225,15 +238,21 @@ typedef struct
 
 	u32 rightHallCounter;
 	u32 leftHallCounter;
+
+	u32 rightHallCounterCMP;
+	u32 leftHallCounterCMP;
+
+	u8	rightHallCounterFlag;
+	u8	leftHallCounterFlag;
 	
 	u32 HLavg;
 	u32 HRavg;
-	u8 gear;
+	u8 	gear;
 
 
-	u8 FSflag;
-	u8 BSflag;
-	u8 fgvflag;
+	u8 	FSflag;
+	u8 	BSflag;
+	u8 	fgvflag;
 
 	Damper dampingFlag;
 	u32 dampingTimeRec;
@@ -244,31 +263,33 @@ typedef struct
 
 	WalkStep walkingstep;
 
-	u8 crossRoadCountF;
-	u8 crossRoadUpdateF;
+	u8 	crossRoadCountF;
+	u8 	crossRoadUpdateF;
 
-	u8 crossRoadCountR;
-	u8 crossRoadUpdateR;
+	u8 	crossRoadCountR;
+	u8 	crossRoadUpdateR;
 
-	u8 T1DF;
+	u8 	T1DF;
 
-	u8 T1dutyRec;
+	u8 	T1dutyRec;
 
-	u8 LP_duty;
-	u8 RP_duty;
-	u8 LD_duty;
-	u8 RD_duty;
+	u8 	LP_duty;
+	u8 	RP_duty;
+	u8 	LD_duty;
+	u8 	RD_duty;
 
-	u8 start_origin_mode;
-	u8 originFlag;
-	u8 armResetFlag;
+	u8 	start_origin_mode;
+	u8 	originFlag;
+	u8 	armResetFlag;
 
-	u8 cirDuty;
-	u8 rifdAdaptFlag;
+	u8 	cirDuty;
+	u8 	rifdAdaptFlag;
 
 	u16 CrossRoadHallCountL;
 	u16 CrossRoadHallCountR;
-	u8 CrossRoadHallCountFlag;
+	u8 	CrossRoadHallCountFlag;
+
+	u8 	HallCounterFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -284,10 +305,10 @@ typedef struct
 	u32 T1;
 	u32 T2;
 	u32 T3;
-	u8 T1_update;
-	u8 T2_update;
-	u8 T3_update;
-	u8 All_update;
+	u8 	T1_update;
+	u8 	T2_update;
+	u8 	T3_update;
+	u8 	All_update;
 }Trec, *Trec_P;
 
 typedef struct
@@ -307,13 +328,13 @@ typedef struct
 {
 	Result_Judge result;
 	u32 timRec;
-	u8 duty;
-	u8 goodDuty;
-	u8 upLock;
-	u8 lowLock;
-	u8 goodLock;
-	u8 upLimDuty;
-	u8 lowLimDuty;
+	u8 	duty;
+	u8 	goodDuty;
+	u8 	upLock;
+	u8 	lowLock;
+	u8 	goodLock;
+	u8 	upLimDuty;
+	u8 	lowLimDuty;
 }T1_AutoAdapt_Info, *T1_AutoAdapt_Info_P;
 
 typedef struct
@@ -381,17 +402,17 @@ typedef struct
 
 typedef struct
 {
-	u8 twinkleFlag;
+	u8 	twinkleFlag;
 	u16 intervalTime_ms;
-	u8 twinkleNum;
+	u8 	twinkleNum;
 	void (*twinkleCtrlFunc)(void);
 }LED_Twinkle, *LED_Twinkle_P;
 
 typedef struct
 {
-	u8 buzzerFlag;
+	u8 	buzzerFlag;
 	u16 buzzerTime_ms;
-	u8 buzzerNum;
+	u8 	buzzerNum;
 	void (*buzzerCtrlFunc)(void);
 }Buzzer_Ctrl, *Buzzer_Ctrl_P;
 
@@ -460,14 +481,14 @@ void Recv_RFID_CrossRoad(u8);
 u8 Origin_PatCtrl2(u8);
 void set_duty_Com(u8, u8);
 void ZigbeeRecv_Simu(void);
+void ManualModeEcvCtrlFunc(void);
+
 
 
 extern ControlerParaStruct_P ctrlParasPtr;
 extern u32 responseTime;
 extern u8 FLeftCompDuty[101];
 extern u8 FRightCompDuty[101];
-extern u8 BLeftCompDuty[101];
-extern u8 BRightCompDuty[101];
 extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;
