@@ -15,7 +15,7 @@
 #define WECV_UP_LIMT_SW			PEin(1)
 #define WECV_DOWN_LIMT_SW		PEin(3)
 #define WECV_UP_LIMT_SW_RESP	(0 == WECV_UP_LIMT_SW)
-#define WECV_DOWN_LIMT_SW_RESP	(0 == WECV_DOWN_LIMT_SW)
+#define WECV_DOWN_LIMT_SW_RESP	(0 == WECV_DOWN_LIMT_SW)	// 这个宏除了在 ECV_Ctrl_Func_W 这个函数之外的地方严禁使用
 
 #define ECV1_PWM				PBout(8)		// 前电缸
 #define ECV1_DIR				PCout(14)		// 电缸方向 0: 缩   1: 推
@@ -48,7 +48,7 @@
 #define Return_SW_RR_UnRespond		(1 == Return_SW_RR)
 
 #define Return_SW_Respond			(Return_SW_LF_Respond || Return_SW_LR_Respond || Return_SW_RF_Respond || Return_SW_RR_Respond)
-#define Return_SW_UnRespond		(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_UnRespond)
+#define Return_SW_UnRespond			(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_UnRespond)
 
 #define KEY_1					PCin(1)			// 响应为 0
 #define KEY_2					PCin(2)			// 响应为 0
@@ -177,6 +177,13 @@ typedef struct
 	EcvHallCountMode 	HallCountMode;				// 霍尔计数对比模式
 }Ecv_Para, *Ecv_Para_P;
 
+typedef enum
+{
+	ECV_UNKNOW,
+	ECV_UP_LIMT,
+	ECV_DOWN_LIMT,
+}EcvLocation, *EcvLocation_P;
+
 typedef struct
 {
 	u8 	EcvSpeed;									// 电缸速度, 范围 0 ~ 100
@@ -191,6 +198,7 @@ typedef struct
 	ECV_PowerOnOff 		Power;						// 控制电缸电源
 	EcvHallCountMode 	HallCountMode;				// 霍尔计数对比模式
 	EcvUseStatus 		UseStatus;					// 电缸使用状态
+	EcvLocation			Location;
 	
 	void (*ECV_PowerOnOffFunc)(ECV_PowerOnOff);		// 电缸电源开关函数 0: 关闭 1: 开启
 	void (*ECV_UpDownFunc)(EcvDir);					// 电缸升降函数
@@ -207,6 +215,7 @@ void ECV_Init(void);
 void M_A_Init(void);
 void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P);
 void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P);
+void M_A_Init2(void);
 
 
 extern PwmParaStruct_P 		timer4PwmParaPtr;

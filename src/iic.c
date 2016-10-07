@@ -42,12 +42,12 @@ u8 IIC_Wait_Ack(void)
 {
 	u8 ucErrTime=0;
 	SDA_IN();       
-	IIC_SDA=1;Delay_us(1);	   
-	IIC_SCL=1;Delay_us(1);	 
+	IIC_SDA=1;Delay_us(10);	   
+	IIC_SCL=1;Delay_us(10);	 
 	while(READ_SDA)
 	{
 		ucErrTime++;
-		if(ucErrTime>250)
+		if(ucErrTime>500)
 		{
 			IIC_Stop();
 			return 1;

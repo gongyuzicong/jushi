@@ -9,7 +9,7 @@ void SET_date(u8 *date)//设定日期
 	IIC_Wait_Ack();
 	IIC_Send_Byte(0x05);
 	IIC_Wait_Ack();
-	IIC_Send_Byte(date[2]);
+	IIC_Send_Byte(date[2]);		// 
 	IIC_Wait_Ack();
 	IIC_Send_Byte(0x00);
 	IIC_Wait_Ack();
@@ -57,7 +57,10 @@ void READ_datetime(u8 *date,u8 *time)//读取日期和时间
 
 
 
-
+void UartSetHandle(u8 data)
+{
+	
+}
 
 
 

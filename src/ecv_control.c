@@ -352,16 +352,21 @@ void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P ptr)
 
 		ptr->EcvEnableHallFlag = 1;
 
-		if(((ECV_UP == ptr->Dir) && (WECV_DOWN_LIMT_SW_RESP)) ||\
-			((ECV_DOWN == ptr->Dir) && (WECV_UP_LIMT_SW_RESP)))
+		if((ECV_UP == ptr->Dir) && (WECV_DOWN_LIMT_SW_RESP))
 		{
-			ptr->Dir = ECV_STOP;
-			printf("ECV_STOP\r\n");
+			ptr->Dir		= ECV_STOP;
+			ptr->Location	= ECV_UP_LIMT;
+		}
+		else if((ECV_DOWN == ptr->Dir) && (WECV_UP_LIMT_SW_RESP))
+		{
+			ptr->Dir		= ECV_STOP;
+			ptr->Location	= ECV_DOWN_LIMT;
 		}
 		else
 		{
 			ptr->ECV_SetSpeedFunc(ptr->EcvSpeed);
 		}
+		
 		//ptr->ECV_PowerOnOffFunc(ptr->Power);
 	}
 	
@@ -428,6 +433,52 @@ void M_A_Init(void)
 	WECV_Str_Ptr->Dir = ECV_DOWN;
 	
 }
+
+void M_A_Init2(void)
+{
+	Ecv_Para temp;	
+
+	temp.Dir 			= ECV_DOWN;
+	temp.EcvSpeed 		= 100;
+	temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+	FECV_Str_Ptr->ECV_SetPara(&temp);
+	//FECV_Str_Ptr->ECV_Clean_Use_Status();
+	FECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+	
+	temp.Dir 			= ECV_DOWN;
+	temp.EcvSpeed 		= 40;
+	temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+	BECV_Str_Ptr->ECV_SetPara(&temp);
+	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+	
+	while((ECV_USEING == BECV_Str_Ptr->UseStatus) || (ECV_USEING == FECV_Str_Ptr->UseStatus))
+	{
+		ECV_Ctrl_Func(FECV_Str_Ptr);
+		ECV_Ctrl_Func(BECV_Str_Ptr);
+	}
+	
+	BECV_Str_Ptr->ECV_SetSpeedFunc(0);
+	BECV_Str_Ptr->ECV_Clean_Use_Status();
+	FECV_Str_Ptr->ECV_Clean_Use_Status();
+
+	
+	temp.Dir 			 = ECV_UP;
+	temp.HallCountMode 	 = ECV_USE_HALL_COUNT_MODE_ENABLE;
+	temp.EcvHallCountCmp = HallCountCmpManager_Str_Ptr->BecvInit;
+	BECV_Str_Ptr->ECV_SetPara(&temp);
+	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+
+	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
+	{
+		ECV_Ctrl_Func(BECV_Str_Ptr);
+	}
+
+	BECV_Str_Ptr->ECV_Clean_Use_Status();
+	
+	WECV_Str_Ptr->Dir = ECV_DOWN;
+	
+}
+
 
 
 void ECV_GPIO_Config(void)
@@ -625,6 +676,7 @@ void ECV_Struct_Init(void)
 	FECV_Str_Ptr->HallCountMode 		= ECV_USE_HALL_COUNT_MODE_ENABLE;
 	FECV_Str_Ptr->Power					= ECV_POWER_OFF;
 	FECV_Str_Ptr->UseStatus				= ECV_UNUSED;
+	FECV_Str_Ptr->Location				= ECV_UNKNOW;
 
 	*BECV_Str_Ptr = *WECV_Str_Ptr = *FECV_Str_Ptr;
 
@@ -653,7 +705,7 @@ void ECV_Struct_Init(void)
 	HallCountCmpManager_Str_Ptr->FecvBigFiberHall 	= 0;
 	HallCountCmpManager_Str_Ptr->FecvSmallFiberHall = 0;
 
-	HallCountCmpManager_Str_Ptr->BecvInit			= 70;
+	HallCountCmpManager_Str_Ptr->BecvInit			= 100;
 	HallCountCmpManager_Str_Ptr->BecvBigFiberHall	= 0;
 	HallCountCmpManager_Str_Ptr->BecvSmallFiberHall	= 0;
 }

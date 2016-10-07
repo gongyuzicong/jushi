@@ -846,7 +846,7 @@ void EXTI15_10_IRQHandler(void)
 	{
 		ctrlParasPtr->rightHallIntervalTime = SystemRunningTime - rTimeRecode;
 
-		if(1 == MOTOR1_HALL_COUNT_FLAG)
+		if(1 == MOTOR1_HALL_COUNT_FLAG)		// right
 		{
 			if(0xFFFFFFFF == ctrlParasPtr->rightHallCounter)
 			{
@@ -883,7 +883,7 @@ void EXTI15_10_IRQHandler(void)
 	{
 		ctrlParasPtr->leftHallIntervalTime = SystemRunningTime - lTimeRecode;
 
-		if(1 == MOTOR2_HALL_COUNT_FLAG)
+		if(1 == MOTOR2_HALL_COUNT_FLAG)		// left
 		{
 			if(0xFFFFFFFF == ctrlParasPtr->leftHallCounter)
 			{

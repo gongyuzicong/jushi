@@ -2,10 +2,11 @@
 
 
 #if USE_CIRCLE_INFO_RECODER
-CIRCLE_INFO_STRUCT CircleInfoStr;
-CIRCLE_INFO_STRUCT_P CircleInfoStrPtr = &CircleInfoStr;
-CIRCLE_INFO_STRUCT ReadCircleInfoStr;
-CIRCLE_INFO_STRUCT_P ReadCircleInfoStrPtr = &ReadCircleInfoStr;
+
+CIRCLE_INFO_STRUCT 		CircleInfoStr;
+CIRCLE_INFO_STRUCT_P 	CircleInfoStrPtr = &CircleInfoStr;
+CIRCLE_INFO_STRUCT 		ReadCircleInfoStr;
+CIRCLE_INFO_STRUCT_P 	ReadCircleInfoStrPtr = &ReadCircleInfoStr;
 
 
 void Write_CircleInfo_Count(u16 data)
@@ -27,10 +28,20 @@ u16 Get_CircleInfo_Count(void)
 
 void Clean_CircleInfo_Count(void)
 {
-	CircleInfoStrPtr->CircleRecoderCount = 0;
-
-	EEPROM_Write_Byte( EEPROM_REC_COUNT_ADDR, 0x00 );
-	EEPROM_Write_Byte( EEPROM_REC_COUNT_ADDR + 0x1, 0x00 );
+	
+	Write_CircleInfo_Count(0x0000);
+	
+	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
+	
+	if(0 == CircleInfoStrPtr->CircleRecoderCount)
+	{
+		printf("clean success!\r\n");
+	}
+	else
+	{
+		printf("clean failed! CircleRecoderCount = %d\r\n", CircleInfoStrPtr->CircleRecoderCount);
+	}
+	
 }
 
 void Clean_CircleInfoStr(CIRCLE_INFO_STRUCT_P ptr)
@@ -64,10 +75,34 @@ void Clean_CircleInfoStr(CIRCLE_INFO_STRUCT_P ptr)
 	
 }
 
+void Save_1Byte(u16 addr, u8 data)
+{
+	EEPROM_Write_Byte(addr, data);
+
+	//*addr += 1;
+}
+
+void Save_2Byte(u16 addr, u16 data)
+{
+	EEPROM_Write_Byte(addr, (data  >> 8));
+	EEPROM_Write_Byte(addr + 0x1, (data & 0xFF));
+	
+	//*addr += 2;
+}
+
+void Save_4Byte(u16 addr, u32 data)
+{
+	EEPROM_Write_Byte(addr, (data  >> 24));
+	EEPROM_Write_Byte(addr + 0x1, (data >> 16) & 0xFF);
+	EEPROM_Write_Byte(addr + 0x2, (data >> 8)  & 0xFF);
+	EEPROM_Write_Byte(addr + 0x3, (data & 0xFF));
+	
+	//*addr += 4;
+}
 
 void Save_OneCircleInfo(CIRCLE_INFO_STRUCT_P ptr)
 {
-	u16 StrAddr = EEPROM_REC_CIRCLE_BASE_ADDR + (ptr->CircleRecoderCount - 1) * ONE_CIRCLE_INFO_SIZE_BYTE;
+	u16 StrAddr = EEPROM_REC_CIRCLE_BASE_ADDR + ptr->CircleRecoderCount * ONE_CIRCLE_INFO_SIZE_BYTE;
 	
 	// save station ID
 	EEPROM_Write_Byte(StrAddr, ptr->Station);
@@ -156,6 +191,8 @@ void Save_OneCircleInfo(CIRCLE_INFO_STRUCT_P ptr)
 	EEPROM_Write_Byte(StrAddr + 0x1, (ptr->TakeAwayTime & 0xFF));
 	StrAddr += TAKE_AWAY_TIME_SIZE;
 
+	ptr->CircleRecoderCount++;
+	
 	Write_CircleInfo_Count(ptr->CircleRecoderCount);
 	
 	
@@ -222,6 +259,92 @@ void Save_OneCircleInfo2(CIRCLE_INFO_STRUCT_P ptr)
 
 	Write_CircleInfo_Count(ptr->CircleRecoderCount);
 }
+
+void Save_OneCircleInfo3(CIRCLE_INFO_STRUCT_P ptr)
+{
+	u16 StrAddr = EEPROM_REC_CIRCLE_BASE_ADDR + (ptr->CircleRecoderCount - 1) * ONE_CIRCLE_INFO_SIZE_BYTE;
+	
+	// save station ID
+	Save_1Byte(StrAddr, ptr->Station);
+	StrAddr += STATION_DATA_SIZE;
+	
+	// save requst time
+	Save_1Byte(StrAddr, ptr->REQ_TIME.year);
+	StrAddr += REQ_TIME_YEAR_SIZE;
+
+	Save_1Byte(StrAddr, ptr->REQ_TIME.month);
+	StrAddr += REQ_TIME_MONTH_SIZE;
+
+	Save_1Byte(StrAddr, ptr->REQ_TIME.day);
+	StrAddr += REQ_TIME_DAY_SIZE;
+
+	Save_1Byte(StrAddr, ptr->REQ_TIME.hour);
+	StrAddr += REQ_TIME_HOUR_SIZE;
+
+	Save_1Byte(StrAddr, ptr->REQ_TIME.minute);
+	StrAddr += REQ_TIME_MINUTE_SIZE;
+
+	Save_1Byte(StrAddr, ptr->REQ_TIME.second);
+	StrAddr += REQ_TIME_SECOND_SIZE;
+
+	// save respond time
+	Save_1Byte(StrAddr, ptr->RESPOND_TIME.year);
+	StrAddr += REQ_TIME_YEAR_SIZE;
+
+	Save_1Byte(StrAddr, ptr->RESPOND_TIME.month);
+	StrAddr += REQ_TIME_MONTH_SIZE;
+
+	Save_1Byte(StrAddr, ptr->RESPOND_TIME.day);
+	StrAddr += REQ_TIME_DAY_SIZE;
+
+	Save_1Byte(StrAddr, ptr->RESPOND_TIME.hour);
+	StrAddr += REQ_TIME_HOUR_SIZE;
+
+	Save_1Byte(StrAddr, ptr->RESPOND_TIME.minute);
+	StrAddr += REQ_TIME_MINUTE_SIZE;
+
+	Save_1Byte(StrAddr, ptr->RESPOND_TIME.second);
+	StrAddr += REQ_TIME_SECOND_SIZE;
+
+	// save circle time info
+	Save_4Byte(StrAddr, ptr->CircleTime.Go2RFIDTime);
+	StrAddr += GO2_RFID_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.GoCirTime);
+	StrAddr += GO_CIR_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.EntryTime);
+	StrAddr += ENTRY_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.CatchTime);
+	StrAddr += CATCH_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.ExitTime);
+	StrAddr += EXIT_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.WeightTime);
+	StrAddr += WEIGHT_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.BackCirTime);
+	StrAddr += BACK_CIR_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.BackTime);
+	StrAddr += BACK_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->CircleTime.BackToOriginTime);
+	StrAddr += BACK_TO_ORI_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->ManualOptTime);
+	StrAddr += MANUAL_OPT_TIME_SIZE;
+
+	Save_4Byte(StrAddr, ptr->TakeAwayTime);
+	StrAddr += TAKE_AWAY_TIME_SIZE;
+
+	Write_CircleInfo_Count(ptr->CircleRecoderCount);
+	
+	
+}
+
 
 void Read_OneCircleInfo(CIRCLE_INFO_STRUCT_P ptr, u16 baseAddr)
 {
@@ -389,7 +512,7 @@ void Show_CircleInfo(CIRCLE_INFO_STRUCT_P ptr)
 	//printf("工站,请求时间,响应时间,从原点到达RFID,转向,靠近络纱机,抓取纱团,退回RFID,抬高机械手和称重,转向,返回到取物点,回到原点,人工操作,等待龙门抓取纱团\r\n");
 
 	printf("%d,", ptr->Station);
-	printf("20%02x-%02x-%02x %02x:%02x:%02x,", ptr->REQ_TIME.year, ptr->REQ_TIME.month, ptr->REQ_TIME.day, ptr->REQ_TIME.hour, ptr->REQ_TIME.minute, ptr->REQ_TIME.second);
+	//printf("20%02x-%02x-%02x %02x:%02x:%02x,", ptr->REQ_TIME.year, ptr->REQ_TIME.month, ptr->REQ_TIME.day, ptr->REQ_TIME.hour, ptr->REQ_TIME.minute, ptr->REQ_TIME.second);
 	printf("20%02x-%02x-%02x %02x:%02x:%02x,", ptr->RESPOND_TIME.year, ptr->RESPOND_TIME.month, ptr->RESPOND_TIME.day, ptr->RESPOND_TIME.hour, ptr->RESPOND_TIME.minute, ptr->RESPOND_TIME.second);
 
 	temp = ptr->CircleTime.Go2RFIDTime / 10.0;
@@ -446,8 +569,8 @@ void Print_CircleInfo(void)
 {
 	u16 cir = 0;
 	
-	printf("工站,请求时间,响应时间,从原点到达RFID,转向,靠近络纱机,抓取纱团,退回RFID,抬高机械手和称重,转向,返回到取物点,回到原点,人工操作,等待龙门抓取纱团\r\n");
-
+	printf("工站,请求时间,从原点到达RFID,转向,靠近络纱机,抓取纱团,退回RFID,抬高机械手和称重,转向,返回到取物点,回到原点,人工操作,等待龙门抓取纱团\r\n");
+	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
 	for(cir = 0; cir < CircleInfoStrPtr->CircleRecoderCount; cir++)
 	{
 		Read_OneCircleInfo(ReadCircleInfoStrPtr, (EEPROM_REC_CIRCLE_BASE_ADDR + cir * ONE_CIRCLE_INFO_SIZE_BYTE));
@@ -460,21 +583,21 @@ void Print_CircleInfo(void)
 
 void CircleInfo_Test(void)
 {
-	CircleInfoStrPtr->CircleRecoderCount++;
 	CircleInfoStrPtr->Station = 1 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->REQ_TIME = BackgroudRTC_Rec;
+	printf("CircleRecoderCount = %d\r\n", CircleInfoStrPtr->CircleRecoderCount);
+	//CircleInfoStrPtr->REQ_TIME = BackgroudRTC_Rec;
 	CircleInfoStrPtr->RESPOND_TIME = BackgroudRTC_Rec;
-	CircleInfoStrPtr->CircleTime.Go2RFIDTime = 82 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.GoCirTime = 53 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.EntryTime = 45 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.CatchTime = 5 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.ExitTime = 51 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.WeightTime = 63 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.BackCirTime = 49 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.BackTime = 142 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->CircleTime.BackToOriginTime = 56 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->ManualOptTime = 135 + CircleInfoStrPtr->CircleRecoderCount;
-	CircleInfoStrPtr->TakeAwayTime = 67 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.Go2RFIDTime 		= 82 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.GoCirTime 			= 53 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.EntryTime 			= 45 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.CatchTime 			= 5  + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.ExitTime 			= 51 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.WeightTime 		= 63 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.BackCirTime 		= 49 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.BackTime 			= 142 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->CircleTime.BackToOriginTime 	= 56 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->ManualOptTime 				= 135 + CircleInfoStrPtr->CircleRecoderCount;
+	CircleInfoStrPtr->TakeAwayTime 					= 67 + CircleInfoStrPtr->CircleRecoderCount;
 	
 	Save_OneCircleInfo(CircleInfoStrPtr);
 	
@@ -491,7 +614,7 @@ void CircleInfo_CMD_Handle(u8 data)
 	{
 		// 清除数据
 		Clean_CircleInfo_Count();
-		//printf("clean!!!\r\n");
+		printf("clean success!!!\r\n");
 	}
 	else if(0x03 == data)
 	{
@@ -506,7 +629,6 @@ void circle_recoder_init(void)
 	
 	CircleInfoStrPtr->CircleRecoderCount = 0;
 	CircleInfoStrPtr->TimeTempRec = 0;
-	CircleInfoStrPtr->SaveFlag = 1;
 	
 	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
 	//printf("CircleRecoderCount = %d\r\n", CircleInfoStrPtr->CircleRecoderCount);

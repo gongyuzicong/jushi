@@ -85,26 +85,25 @@ int main(void)
 	Warning_LED_GREEN 	= 0;
 	Warning_LED_ORANGE 	= 0;
 	//MPU6050_Data_init3();
-
+	
 	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
 	BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	WECV_Str_Ptr->Dir = ECV_DOWN;
-
 	
-	M_A_Init();
 	
-	//MOTOR_POWER_ON();
-	MOTOR_POWER_OFF();
+	M_A_Init2();
+	
+	MOTOR_POWER_ON();
+	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
 	
 	#if USE_IWDG
 	IWatch_Dog_Init();
 	#endif
-	
 	
 	printf("Start\r\n");
 	
@@ -113,7 +112,7 @@ int main(void)
 	CHANGE_TO_GO_STRAIGHT_SLOW_MODE();
 	
 	while(1)
-	{		
+	{
 		
 		#if 1
 		
@@ -135,7 +134,7 @@ int main(void)
 		ECV_Ctrl_Func(FECV_Str_Ptr);			// 前电缸控制
 		ECV_Ctrl_Func(BECV_Str_Ptr);			// 后电缸控制
 		ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
-
+		
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
@@ -149,7 +148,21 @@ int main(void)
 			//MOTOR_POWER_ON();
 			ManualModeFunc(ctrlParasPtr->manualCtrl);
 
-			ManualModeEcvCtrlFunc();
+			if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_Respond && Return_SW_RR_Respond)
+			{
+				Delay_ms(20);
+				if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_Respond && Return_SW_RR_Respond)
+				{
+					while(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_Respond && Return_SW_RR_Respond);
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+				}
+				
+			}
+			else
+			{
+				ManualModeEcvCtrlFunc();
+			}
+			
 		}
 		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
 		{
@@ -167,6 +180,7 @@ int main(void)
 			Receive_handle2();		// ZigBee数据接收处理函数
 			
 			ZigbeeRecv_Simu();
+			
 			
 			if(0 == ctrlParasPtr->start_origin_mode)
 			//if(0)
@@ -217,7 +231,6 @@ int main(void)
 					}
 					else if(cirLeft == ctrlParasPtr->agvStatus)			// 左转状态
 					{
-						//walking_cirLeft(ctrlParasPtr->gear);
 						#if USE_HALL_CTRL
 						walking_cir_hall(ctrlParasPtr->cirDuty);
 						#else
@@ -227,7 +240,6 @@ int main(void)
 					}
 					else if(cirRight == ctrlParasPtr->agvStatus)		// 右转状态
 					{
-						//walking_cirRight(ctrlParasPtr->gear);
 						#if USE_HALL_CTRL
 						walking_cir_hall(ctrlParasPtr->cirDuty);
 						#else
@@ -283,10 +295,11 @@ int main(void)
 				
 				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				{
-					Show_Infomation();
+					//Show_Infomation();
 					//show_Excel_Analysis_Info();
 				}
-				else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
+				//else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
+				else if((backStatus == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
 				{
 					Show_Infomation();
 					//show_Excel_Analysis_Info();
@@ -426,14 +439,7 @@ int main(void)
 			
 		}
 
-		if(WECV_UP_LIMT_SW_RESP)
-		{
-			//printf("WECV_UP_LIMT_SW_RESP\r\n");
-		}
-		else if(WECV_DOWN_LIMT_SW_RESP)
-		{
-			//printf("WECV_DOWN_LIMT_SW_RESP\r\n");
-		}
+		
 		*/
 	#else
 		

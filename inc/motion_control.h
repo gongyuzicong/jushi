@@ -290,6 +290,8 @@ typedef struct
 	u8 	CrossRoadHallCountFlag;
 
 	u8 	HallCounterFlag;
+
+	u8 	Use_WECV;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -443,10 +445,8 @@ void AGV_Walking_Test(void);
 void AVG_Calu_Program(void);
 void CleanAllSpeed(void);
 void AGV_Correct_1(void);
-void walking_cirLeft(u8);
 void RFID_Goal_Node_Analy(void);
 void Walking_Step_Controler(void);
-void walking_cirRight(u8);
 void AGV_Correct_gS_8ug(u8 gear);
 void gS_back_mode(u8);
 void gS_startup_mode(u8);
@@ -488,7 +488,6 @@ void ManualModeEcvCtrlFunc(void);
 extern ControlerParaStruct_P ctrlParasPtr;
 extern u32 responseTime;
 extern u8 FLeftCompDuty[101];
-extern u8 FRightCompDuty[101];
 extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;

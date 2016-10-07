@@ -777,10 +777,7 @@ void Show_Infomation(void)
 	printf("LMD = %2d,\t", ctrlParasPtr->leftMotorSettedSpeed);
 	printf("RMD = %2d,\t", ctrlParasPtr->rightMotorSettedSpeed);
 	printf("f = %d, \t", ctrlParasPtr->comflag);
-	
-	printf("FLCD[%d] = %d, FRCD[%d] = %d\r\n", AgvGear[ctrlParasPtr->gear], FLeftCompDuty[AgvGear[ctrlParasPtr->gear]],\
-											   AgvGear[ctrlParasPtr->gear], FRightCompDuty[AgvGear[ctrlParasPtr->gear]]);
-	
+		
 	Show_Check_Magn_Direction(FMSDS_Ptr);
 	printf("\r\n");
 	Show_Magn_VelocityXt_Clau(FMSDS_Ptr);
