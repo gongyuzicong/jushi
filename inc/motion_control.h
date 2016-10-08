@@ -352,26 +352,6 @@ typedef struct
 
 typedef struct
 {
-	Result_Judge result;
-	//u32 timRec;
-	u8 dutyr;
-	u8 lock;
-	Duty dt[20];
-	u8 dt_head;
-}T1_AutoAdapt_Info2, *T1_AutoAdapt_Info2_P;
-
-
-
-typedef struct
-{
-	Result_Judge result;
-	u8 lock;
-	u8 duty;
-	u8 goodDuty;
-}Damp_AutoAdapt_Info, *Damp_AutoAdapt_Info_P;
-
-typedef struct
-{
 	s16 ax;
 	s16 ay;
 	s16 az;
@@ -448,10 +428,7 @@ void AGV_Correct_1(void);
 void RFID_Goal_Node_Analy(void);
 void Walking_Step_Controler(void);
 void AGV_Correct_gS_8ug(u8 gear);
-void gS_back_mode(u8);
 void gS_startup_mode(u8);
-void gS_slow(u8);
-void back_slow(u8);
 void AGV_Correct_back_ug(u8);
 void CrossRoad_Hall_Count_Start(void);
 void CrossRoad_Hall_Count_Stop(void);

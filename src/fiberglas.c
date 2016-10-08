@@ -72,6 +72,7 @@ void Read_RTC_Data(void)
 	
 	if(Delay_Func(&timRec, 1000))
 	{
+		timRec = 0;
 		Get_RTC_Data(&BackgroudRTC_Rec);
 
 		BackgroudRTC_Rec_Hex.year = BCD_CHANGE2HEX_U8(BackgroudRTC_Rec.year);
