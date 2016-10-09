@@ -35,6 +35,9 @@ u8 nc_send3[8]=
 	{0xfe, 0x08, 0x8c, 0xfe, 0x01, 0x02, 0x7F, 0x03};//小车异常
 u8 nc_send4[8]=
 	{0xfe, 0x08, 0x71, 0xdc, 0x01, 0x02, 0x7F, 0x01};//小车已取物，发送给按钮使其停止亮灯
+u8 nc_send5[8]=
+	{0xfe, 0x08, 0x00, 0x00, 0x01, 0x02, 0x7F, 0x05};//小车告诉络纱机上线
+
 
 u8 zigbeeAck[8] = {0xfe, 0x08, 0x00, 0x00, 0x01, 0x02, 0x8f, 0xff};
 u8 zigbeeAck_LM[8] = {0xfe, 0x08, 0x8c, 0xfe, 0x01, 0x02, 0x8f, 0xff};
@@ -471,7 +474,7 @@ void Receive_handle2(void)
 			u16 node = 0;
 			u8 cir = 0;
 			
-			if(0x01 == (nc_receive[7] & 0x0f))			// 请求取物
+			if((0x01 == (nc_receive[7] & 0x0f)) || (0x03 == (nc_receive[7] & 0x0f)))	// 请求取物/自动呼叫
 			{
 				if(0xC1 == nc_receive[7])
 				{
@@ -505,8 +508,18 @@ void Receive_handle2(void)
 						{
 							nc_receive[cir] = 0x00;
 						}
+
+						if(0x01 == (nc_receive[7] & 0x0f))
+						{
+							CMD_Flag_Ptr->cmdFlag = GoodReq;
+							CMD_Flag_Ptr->Req_Flag = GoodReq;
+						}
+						else if(0x03 == (nc_receive[7] & 0x0f))
+						{
+							CMD_Flag_Ptr->cmdFlag = AutoReq;
+							CMD_Flag_Ptr->Req_Flag = AutoReq;
+						}
 						
-						CMD_Flag_Ptr->cmdFlag = GoodReq;
 						//ctrlParasPtr->start_origin_mode = 1;
 						//WarningLedCtrlPtr->twinkleFlag = 1;
 						//BuzzerCtrlPtr->buzzerFlag = 1;
@@ -549,6 +562,27 @@ void Receive_handle2(void)
 	}
 }
 
+void Send_FiberMachine(void)
+{
+	u8 cir = 8;
+	
+	nc_send5[2] = Id_Arr[Zigbee_Ptr->recvId].zigbee_ID1;
+	nc_send5[3] = Id_Arr[Zigbee_Ptr->recvId].zigbee_ID2;
+	
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_FiberMachine\r\n");
+		}
+		SendChar_Zigbee(nc_send5[cir]);
+
+		//printf("nc_send5[%d] = %d\r\n", cir, nc_send5[cir]);
+	}
+	
+	ZigbeeResendInfo_Ptr->resendFlag = 1;
+	ZigbeeResendInfo_Ptr->resendInfo = nc_send5;
+}
 
 
 void Send_GettedGoods3(void)
@@ -557,7 +591,7 @@ void Send_GettedGoods3(void)
 	
 	nc_send4[2] = Id_Arr[Zigbee_Ptr->recvId].zigbee_ID1;
 	nc_send4[3] = Id_Arr[Zigbee_Ptr->recvId].zigbee_ID2;
-		
+	
 	for(cir = 0; cir < 8; cir++)
 	{
 		if(0 == cir)

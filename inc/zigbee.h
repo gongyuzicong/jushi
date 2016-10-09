@@ -41,11 +41,13 @@ typedef enum
 	ArrGoal,
 	GoodLeav,
 	ZigbeeACK,
+	AutoReq,
 }NC_Flag;
 
 typedef struct
 {
 	NC_Flag cmdFlag;
+	NC_Flag Req_Flag;
 }RecvCmdFlag, *RecvCmdFlag_P;
 
 typedef struct
@@ -83,6 +85,7 @@ void Send_WaitForGoods(void);
 void Receive_handle2(void);
 void Send_GettedGoods3(void);
 void Send_Zigbee_LM_ACK(void);
+void Send_FiberMachine(void);
 
 extern u8 receive_state;		//接收完成标志
 extern u8 receive_count;		//接收数据计数

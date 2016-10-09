@@ -296,6 +296,8 @@ void WECV_Clean_Use_Status(void)
 
 void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 {
+	u8 speed = 0;
+	
 	if(ECV_STOP == ptr->Dir)
 	{
 		ptr->ECV_SetSpeedFunc(0);
@@ -306,19 +308,24 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 	}
 	else
 	{
-		ptr->EcvEnableHallFlag 		= 1;
+		
+		ptr->EcvEnableHallFlag = 1;
 
 		ptr->ECV_UpDownFunc(ptr->Dir);
+
+		speed = ptr->EcvSpeed;
 		
 		if(ECV_USE_HALL_COUNT_MODE_ENABLE == ptr->HallCountMode)
 		{
 			if(CheckFECV_Limt(ptr) || (ptr->EcvHallCount >= ptr->EcvHallCountCmp))
 			{
-				ptr->Dir 			= ECV_STOP;
-				ptr->EcvHallCount	= 0;
-				ptr->EcvHallCountRec= 0;
-				ptr->UseStatus 		= ECV_COMPLETE;
-				//ptr->ECV_SetSpeedFunc(0);
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				printf("ECV_STOP!\r\n");
 			}
 			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
 		}
@@ -326,15 +333,17 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 		{
 			if(CheckFECV_Limt(ptr))
 			{
-				ptr->Dir 			= ECV_STOP;
-				ptr->EcvHallCount	= 0;
-				ptr->EcvHallCountRec= 0;
-				ptr->UseStatus 		= ECV_COMPLETE;
-				//ptr->ECV_SetSpeedFunc(0);
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				printf("ECV_STOP!\r\n");
 			}
 		}
 
-		ptr->ECV_SetSpeedFunc(ptr->EcvSpeed);
+		ptr->ECV_SetSpeedFunc(speed);
 	}
 }
 
@@ -378,8 +387,8 @@ void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P ptr)
 	if(ECV_STOP == ptr->Dir)
 	{
 		ptr->ECV_SetSpeedFunc(0);
-		ptr->EcvEnableHallFlag 		= 0;
-		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+		ptr->EcvEnableHallFlag = 0;
+		ptr->EcvHallCountTimeRec = SystemRunningTime;
 	}
 	else
 	{
@@ -446,7 +455,7 @@ void M_A_Init2(void)
 	FECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
 	
 	temp.Dir 			= ECV_DOWN;
-	temp.EcvSpeed 		= 40;
+	temp.EcvSpeed 		= 60;
 	temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 	BECV_Str_Ptr->ECV_SetPara(&temp);
 	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
@@ -474,8 +483,11 @@ void M_A_Init2(void)
 	}
 
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
-	
-	WECV_Str_Ptr->Dir = ECV_DOWN;
+
+	if(!WECV_UP_LIMT_SW_RESP)
+	{
+		WECV_Str_Ptr->Dir = ECV_DOWN;
+	}
 	
 }
 

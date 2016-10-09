@@ -2016,11 +2016,11 @@ void bS_startup_mode8(u8 gear)
 				}
 				else
 				{
-					ctrlParasPtr->BSflag 	= 1;
-					ctrlParasPtr->gear 		= 12;
+					ctrlParasPtr->BSflag = 1;
+					ctrlParasPtr->gear = 15;
 				}
 				
-				ctrlParasPtr->comflag 	= 6331;
+				ctrlParasPtr->comflag = 6331;
 				
 				startCount = 0;
 				
@@ -2044,11 +2044,11 @@ void bS_startup_mode8(u8 gear)
 			
 			if(ECV_UP_LIMT == WECV_Str_Ptr->Location)
 			{
-				ctrlParasPtr->BSflag 	= 1;
-				ctrlParasPtr->gear 		= 15;
+				ctrlParasPtr->BSflag = 1;
+				ctrlParasPtr->gear = 15;
 				WECV_Str_Ptr->ECV_Clean_Use_Status();
 				//CHANGE_TO_BACK_MODE();
-				printf("#########################\r\n");
+				//printf("#########################\r\n");
 				flag = 0;
 			}
 			
@@ -4767,7 +4767,7 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 		{
 			
 			//scale_1_mode18_back(gearRecod);
-			
+			//printf("gearRecod = %d\r\n", gearRecod);
 			scale_1_mode20_back(gearRecod);
 			HighSpeed_Protect2();
 		}
@@ -5709,7 +5709,7 @@ void STATION_1AND2_WalkControl(void)
 				else
 				{
 					CHANGE_TO_GO_STRAIGHT_MODE();
-					ctrlParasPtr->gear = 13;
+					ctrlParasPtr->gear = 17;
 				}
 			}
 			else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -5820,7 +5820,7 @@ void STATION_3AND4_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 13;
+				ctrlParasPtr->gear = 17;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -5927,7 +5927,7 @@ void STATION_5AND6_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 13;
+				ctrlParasPtr->gear = 17;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -6053,7 +6053,7 @@ void STATION_7AND8_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 13;
+				ctrlParasPtr->gear = 17;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -6163,7 +6163,7 @@ void STATION_9AND10_WalkControl(void)
 			else
 			{
 				CHANGE_TO_GO_STRAIGHT_MODE();
-				ctrlParasPtr->gear = 13;
+				ctrlParasPtr->gear = 17;
 			}
 		}
 		else if(1 == ctrlParasPtr->rifdAdaptFlag)
@@ -7086,15 +7086,35 @@ void step_gVeer_Func2(void)
 				CleanAllSpeed();
 					
 				CHANGE_TO_STOP_MODE();
-				//Delay_ns(1);
-				stepFlag = 0;
-
-				#if USE_CIRCLE_INFO_RECODER
-				CircleInfoStrPtr->CircleTime.GoCirTime 	= (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-				CircleInfoStrPtr->TimeTempRec 			= SystemRunningTime;
-				#endif
 				
-				ctrlParasPtr->walkingstep = step_entry;
+				if(GoodReq == CMD_Flag_Ptr->Req_Flag)
+				{
+					stepFlag = 0;
+					ctrlParasPtr->walkingstep = step_entry;
+					#if USE_CIRCLE_INFO_RECODER
+					CircleInfoStrPtr->CircleTime.GoCirTime 	= (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+					CircleInfoStrPtr->TimeTempRec 			= SystemRunningTime;
+					#endif
+				}
+				else if(AutoReq == CMD_Flag_Ptr->Req_Flag)
+				{
+					if(2 == stepFlag)
+					{
+						stepFlag = 3;
+						CircleInfoStrPtr->CircleTime.GoCirTime	= (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+					}
+					
+					if(Return_SW_Respond)
+					{
+						stepFlag = 0;
+						CircleInfoStrPtr->TimeTempRec 			= SystemRunningTime;
+						ctrlParasPtr->walkingstep = step_entry;
+					}
+					
+				}
+				
+				
+				
 			}
 			
 		}
@@ -7296,7 +7316,11 @@ void step_exit_Func(void)
 			ctrlParasPtr->crossRoadCountF = RFID_Info_Ptr->rfidData;
 			ctrlParasPtr->crossRoadCountR = ctrlParasPtr->crossRoadCountF + 1;
 			//Delay_ns(1);
-
+			
+			#ifdef USE_SEND_ZIGBEE		
+			Send_FiberMachine();
+			#endif
+			
 			#if USE_CIRCLE_INFO_RECODER
 			CircleInfoStrPtr->CircleTime.ExitTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
@@ -7383,9 +7407,9 @@ void step_weigh_Func(void)
 		FECV_Str_Ptr->ECV_SetPara(&temp);
 		
 		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 60;
+		temp.EcvSpeed 		= 100;
 		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 35;
+		temp.EcvHallCountCmp= 60;
 		BECV_Str_Ptr->ECV_SetPara(&temp);
 
 		if(RLMT_SW_RESPOND)
@@ -7577,7 +7601,7 @@ void step_bVeer_Func2(void)
 				ctrlParasPtr->BSflag = 0;
 				ctrlParasPtr->fgvflag = 1;
 				
-				ctrlParasPtr->gear = 12;
+				ctrlParasPtr->gear = 17;
 
 				#if USE_CIRCLE_INFO_RECODER
 				CircleInfoStrPtr->CircleTime.BackCirTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
@@ -7591,7 +7615,7 @@ void step_bVeer_Func2(void)
 				ctr.EcvSpeed		= 100;
 				ctr.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 				FECV_Str_Ptr->ECV_SetPara(&ctr);
-
+				
 				ctr.Dir 			= ECV_DOWN;
 				ctr.EcvSpeed		= 80;
 				ctr.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
@@ -7636,7 +7660,7 @@ void step_gB_Func(void)
 	if((0x0000 == FMSDS_Ptr->MSD_Hex) && (0x0000 == RMSDS_Ptr->MSD_Hex))
 	{
 		CHANGE_TO_STOP_MODE();
-		ctrlParasPtr->gear = 12;
+		ctrlParasPtr->gear = 17;
 		RFID_Info_Ptr->updateFlag = 0;
 		CMD_Flag_Ptr->cmdFlag = NcNone;
 		

@@ -78,7 +78,7 @@ int main(void)
 	CB_GPIO_Config();	/*ÅäÖÃGPIO¿Ú*/
 	CB_USART_Config();	/*ÅäÖÃUSART*/
 	SystemInit();
-
+	
 	//mslRecF = FMSDS_Ptr->AgvMSLocation;
 	//mslRecR = FMSDS_Ptr->AgvMSLocation;
 	Warning_LED_RED 	= 1;
@@ -91,8 +91,6 @@ int main(void)
 	BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
-	WECV_Str_Ptr->Dir = ECV_DOWN;
-	
 	
 	M_A_Init2();
 	
