@@ -489,6 +489,7 @@ void Receive_handle2(void)
 					
 					if(ZBandRFIDmapping[node] != Zigbee_Ptr->recvId)
 					{
+						u8 data = 0;
 						#if USE_CIRCLE_INFO_RECODER
 						//CircleInfoStrPtr->CircleRecoderCount++;
 						//CircleInfoStrPtr->Station = node;
@@ -503,25 +504,29 @@ void Receive_handle2(void)
 						zigbeeAck[2] = nc_receive[2];
 						zigbeeAck[3] = nc_receive[3];
 						Send_Zigbee_ACK();
-						
-						for(cir = 0; cir < 8; cir++)
-						{
-							nc_receive[cir] = 0x00;
-						}
-
-						if(0x01 == (nc_receive[7] & 0x0f))
+						data = (nc_receive[7] & 0x0f);
+						printf("******* data = %02x ********\r\n", data);
+						if(0x01 == data)
 						{
 							CMD_Flag_Ptr->cmdFlag = GoodReq;
 							CMD_Flag_Ptr->Req_Flag = GoodReq;
+							printf("GoodReq recv\r\n");
 						}
-						else if(0x03 == (nc_receive[7] & 0x0f))
+						else if(0x03 == data)
 						{
 							CMD_Flag_Ptr->cmdFlag = AutoReq;
 							CMD_Flag_Ptr->Req_Flag = AutoReq;
+							printf("AutoReq recv\r\n");
+						}
+
+						for(cir = 0; cir < 8; cir++)
+						{
+							printf("nc_receive[%d] = %x\r\n", cir, nc_receive[cir]);
+							nc_receive[cir] = 0x00;
 						}
 						
 						//ctrlParasPtr->start_origin_mode = 1;
-						//WarningLedCtrlPtr->twinkleFlag = 1;
+						WarningLedCtrlPtr->twinkleFlag = 1;
 						//BuzzerCtrlPtr->buzzerFlag = 1;
 						printf("req %04x\r\n", node);
 					}
@@ -575,11 +580,14 @@ void Send_FiberMachine(void)
 		{
 			printf("Send_FiberMachine\r\n");
 		}
+		printf("nc_send5[%d] = %02x\r\n", cir , nc_send5[cir]);
 		SendChar_Zigbee(nc_send5[cir]);
 
 		//printf("nc_send5[%d] = %d\r\n", cir, nc_send5[cir]);
 	}
 	
+	printf("************cmdFlag = %d***********\r\n", CMD_Flag_Ptr->cmdFlag);
+	CMD_Flag_Ptr->cmdFlag = NcNone;
 	ZigbeeResendInfo_Ptr->resendFlag = 1;
 	ZigbeeResendInfo_Ptr->resendInfo = nc_send5;
 }
@@ -598,6 +606,7 @@ void Send_GettedGoods3(void)
 		{
 			printf("Send_GettedGoods3\r\n");
 		}
+		printf("nc_send4[%d] = %02x\r\n", cir, nc_send4[cir]);
 		SendChar_Zigbee(nc_send4[cir]);
 
 		//printf("nc_send4[%d] = %d\r\n", cir, nc_send4[cir]);
@@ -816,6 +825,7 @@ void Zigbee_Init(void)
 	Zigbee_Ptr->recvId = 0x0000;
 
 	CMD_Flag_Ptr->cmdFlag = NcNone;
+	CMD_Flag_Ptr->Req_Flag = NcNone;
 	
 	#if 0
 	

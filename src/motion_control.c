@@ -7090,6 +7090,7 @@ void step_gVeer_Func2(void)
 				if(GoodReq == CMD_Flag_Ptr->Req_Flag)
 				{
 					stepFlag = 0;
+					CMD_Flag_Ptr->Req_Flag = NcNone;
 					ctrlParasPtr->walkingstep = step_entry;
 					#if USE_CIRCLE_INFO_RECODER
 					CircleInfoStrPtr->CircleTime.GoCirTime 	= (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
@@ -7098,16 +7099,13 @@ void step_gVeer_Func2(void)
 				}
 				else if(AutoReq == CMD_Flag_Ptr->Req_Flag)
 				{
-					if(2 == stepFlag)
-					{
-						stepFlag = 3;
-						CircleInfoStrPtr->CircleTime.GoCirTime	= (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-					}
 					
 					if(Return_SW_Respond)
 					{
 						stepFlag = 0;
 						CircleInfoStrPtr->TimeTempRec 			= SystemRunningTime;
+						CMD_Flag_Ptr->Req_Flag = NcNone;
+						printf("AutoReq step_entry\r\n");
 						ctrlParasPtr->walkingstep = step_entry;
 					}
 					
@@ -7414,6 +7412,7 @@ void step_weigh_Func(void)
 
 		if(RLMT_SW_RESPOND)
 		{
+			
 			FECV_Str_Ptr->Dir = ECV_STOP;
 			if(BECV_Str_Ptr->Dir != ECV_STOP)
 			{
@@ -7427,9 +7426,10 @@ void step_weigh_Func(void)
 	#endif
 	
 	
-	if(Return_SW_Respond)
+	//if(Return_SW_Respond)
+	if(Return_SW_LR_Respond)
 	{
-		
+		#if 1
 		#if USE_CIRCLE_INFO_RECODER
 		CircleInfoStrPtr->ManualOptTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 		CircleInfoStrPtr->TimeTempRec 	= SystemRunningTime;
@@ -7441,8 +7441,27 @@ void step_weigh_Func(void)
 		step = 0;
 		MOTOR1_HALL_COUNT_FLAG = 1;
 		ctrlParasPtr->walkingstep = step_bVeer;
+
+		#else
+		#ifdef USE_SEND_ZIGBEE		
+		Send_FiberMachine();
+		#endif
+		#endif
 	}
-	
+	else if(Return_SW_RR_Respond)
+	{
+		Delay_ms(20);
+		if(Return_SW_RR_Respond)
+		{
+			while(Return_SW_RR_Respond){}
+
+			#ifdef USE_SEND_ZIGBEE		
+			Send_FiberMachine();
+			#endif
+			
+		}
+			
+	}
 }
 
 void step_bVeer_Func(void)
