@@ -7099,45 +7099,7 @@ void step_weigh_Func(void)
 	static u32 timRec = 0;
 	Ecv_Para temp;
 
-	#if 0
-	
-	if(0 == step)
-	{
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-		FECV_Str_Ptr->ECV_SetPara(&temp);
-		
-		temp.Dir 			= ECV_DOWN;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= HallCountCmpManager_Str_Ptr->BecvInit;
-		BECV_Str_Ptr->ECV_SetPara(&temp);
-
-		if(FLMT_SW_UNRESPOND)
-		{
-			FECV_Str_Ptr->Dir = ECV_STOP;
-			step = 1;
-			FECV_Str_Ptr->ECV_Clean_Use_Status();
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-			//printf("enter step 1\r\n");
-		}
-	}
-	else if(1 == step)
-	{
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 150;
-		FECV_Str_Ptr->ECV_SetPara(&temp);
-
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 150;
-		BECV_Str_Ptr->ECV_SetPara(&temp);
-	}
-
-	#else
+	#if 1
 	
 	if(0 == step)
 	{
@@ -7171,14 +7133,7 @@ void step_weigh_Func(void)
 	}
 	else if(1 == step)
 	{
-		if(RLMT_SW_RESPOND)
-		{
-			step = 2;
-		}
-		
-	}
-	else if(2 == step)
-	{
+
 		if(0 == timRec)
 		{
 			timRec = SystemRunningTime;
@@ -7187,13 +7142,86 @@ void step_weigh_Func(void)
 		}
 		else
 		{
+			if((SystemRunningTime - timRec >= 10000) || RLMT_SW_RESPOND)
+			{
+				temp.Dir 			= ECV_UP;
+				temp.EcvSpeed 		= 100;
+				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+				temp.EcvHallCountCmp= 800;
+				FECV_Str_Ptr->ECV_SetPara(&temp);
+				
+				temp.Dir 			= ECV_UP;
+				temp.EcvSpeed 		= 100;
+				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 200;
+				BECV_Str_Ptr->ECV_SetPara(&temp);
+				
+				step = 2;
+			}
+		}
+		
+	}
+
+	#else
+
+	if(0 == step)
+	{
+		temp.Dir 			= ECV_UP;
+		temp.EcvSpeed 		= 100;
+		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+
+		/*
+		if(FECV_Str_Ptr->EcvHallCount >= 350)
+		{
+			temp.Dir 			= ECV_UP;
+			temp.EcvSpeed 		= 100;
+			temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+			temp.EcvHallCountCmp= 60;
+			BECV_Str_Ptr->ECV_SetPara(&temp);
+		}
+		*/
+		
+		if(FLMT_SW_UNRESPOND)
+		{
+			
+			FECV_Str_Ptr->Dir = ECV_STOP;
+			if(BECV_Str_Ptr->Dir != ECV_STOP)
+			{
+				BECV_Str_Ptr->Dir = ECV_STOP;
+			}
+			
+			step = 1;
+		}
+		
+	}
+	else if(1 == step)
+	{
+		if(RLMT_SW_RESPOND)
+		{
+			step = 2;
+			timRec = 0;
+		}
+	}
+	else if(2 == step)
+	{
+		
+		if(0 == timRec)
+		{
+			timRec = SystemRunningTime;
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+		}
+		else
+		{
+			
 			if(SystemRunningTime - timRec >= 10000)
 			{
 				temp.Dir 			= ECV_UP;
 				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 				temp.EcvHallCountCmp= 800;
-				FECV_Str_Ptr->ECV_SetPara(&temp);
+				//FECV_Str_Ptr->ECV_SetPara(&temp);
 				
 				temp.Dir 			= ECV_UP;
 				temp.EcvSpeed 		= 100;
@@ -7203,7 +7231,9 @@ void step_weigh_Func(void)
 				
 				step = 3;
 			}
+			
 		}
+		
 	}
 
 	#endif

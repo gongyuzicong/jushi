@@ -267,7 +267,7 @@ int main(void)
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
 				
-			#if 0
+			#if 1
 				
 				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				{

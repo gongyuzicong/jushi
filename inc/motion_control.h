@@ -281,6 +281,7 @@ typedef struct
 	u8 	Use_WECV;
 
 	u8 	StartupFlag;
+	u8  CancelFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
