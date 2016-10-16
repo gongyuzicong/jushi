@@ -468,12 +468,15 @@ void Receive_handle2(void)
 	{
 		u8 cir = 0;
 		receive_state = 0;
-
+		
 		if(nc_receive[6] == 0x7f)
 		{
 			u16 node = 0;
 			u8 cir = 0;
+
+			node = (nc_receive[7] >> 4) + 1;
 			
+			printf("&&&&&& Receive_handle2 nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", nc_receive[6], nc_receive[7]);
 			if((0x01 == (nc_receive[7] & 0x0f)) || (0x03 == (nc_receive[7] & 0x0f)))	// 请求取物/自动呼叫
 			{
 				if(0xC1 == nc_receive[7])
@@ -485,7 +488,8 @@ void Receive_handle2(void)
 				}
 				else
 				{
-					node = (nc_receive[7] >> 4) + 1;
+					//node = (nc_receive[7] >> 4) + 1;
+					#if 0
 					
 					if(ZBandRFIDmapping[node] != Zigbee_Ptr->recvId)
 					{
@@ -510,44 +514,103 @@ void Receive_handle2(void)
 						{
 							CMD_Flag_Ptr->cmdFlag = GoodReq;
 							CMD_Flag_Ptr->Req_Flag = GoodReq;
-							printf("GoodReq recv\r\n");
+							printf("GoodReq recv = %d\r\n", node);
 						}
 						else if(0x03 == data)
 						{
 							CMD_Flag_Ptr->cmdFlag = AutoReq;
 							CMD_Flag_Ptr->Req_Flag = AutoReq;
-							printf("AutoReq recv\r\n");
+							printf("AutoReq recv = %d\r\n", node);
 						}
 
 						for(cir = 0; cir < 8; cir++)
 						{
-							printf("nc_receive[%d] = %x\r\n", cir, nc_receive[cir]);
+							//printf("nc_receive[%d] = %x\r\n", cir, nc_receive[cir]);
 							nc_receive[cir] = 0x00;
 						}
 						
 						//ctrlParasPtr->start_origin_mode = 1;
 						WarningLedCtrlPtr->twinkleFlag = 1;
 						//BuzzerCtrlPtr->buzzerFlag = 1;
-						printf("req %04x\r\n", node);
+						//printf("req %04x\r\n", node);
 					}
+
+					#else
+
+					u8 index = 0;
+					
+					if(0 == searchZigbeeData(node, &index))
+					{
+						u8 data = 0;
+						
+						#if USE_CIRCLE_INFO_RECODER
+						//CircleInfoStrPtr->CircleRecoderCount++;
+						//CircleInfoStrPtr->Station = node;
+						//CircleInfoStrPtr->REQ_TIME = BackgroudRTC_Rec;
+						#endif
+						
+						zigbeeReqQueue(node);
+						//zigbeeAck[2] = Id_Arr[node].zigbee_ID1;
+						//zigbeeAck[3] = Id_Arr[node].zigbee_ID2;
+						Id_Arr[node].zigbee_ID1 = nc_receive[2];
+						Id_Arr[node].zigbee_ID2 = nc_receive[3];
+						zigbeeAck[2] = nc_receive[2];
+						zigbeeAck[3] = nc_receive[3];
+						Send_Zigbee_ACK();
+						data = (nc_receive[7] & 0x0f);
+						printf("******* data = %02x ********\r\n", data);
+						if(0x01 == data)
+						{
+							CMD_Flag_Ptr->cmdFlag = GoodReq;
+							CMD_Flag_Ptr->Req_Flag = GoodReq;
+							printf("GoodReq recv = %d\r\n", node);
+						}
+						else if(0x03 == data)
+						{
+							CMD_Flag_Ptr->cmdFlag = AutoReq;
+							CMD_Flag_Ptr->Req_Flag = AutoReq;
+							printf("AutoReq recv = %d\r\n", node);
+						}
+
+						for(cir = 0; cir < 8; cir++)
+						{
+							//printf("nc_receive[%d] = %x\r\n", cir, nc_receive[cir]);
+							nc_receive[cir] = 0x00;
+						}
+						
+						//ctrlParasPtr->start_origin_mode = 1;
+						WarningLedCtrlPtr->twinkleFlag = 1;
+						//BuzzerCtrlPtr->buzzerFlag = 1;
+						//printf("req %04x\r\n", node);
+					}
+
+					#endif
 				}
 				
 			}
-			else if(0x02 == (nc_receive[7] & 0x0f))		// 请求取消取物
+			else if((0x02 == (nc_receive[7] & 0x0f)) || (0x04 == (nc_receive[7] & 0x0f)))		// 请求取消取物
 			{
 				u8 index = 0;
-
+					
 				if(1 == searchZigbeeData(node, &index))
 				{
+					printf("1 Total = %d\r\n", zigbeeQueueCtrl.Total);
+					CHANGE_TO_STOP_MODE();
 					zigbeeDeleteQueue(index);
+					printf("2 Total = %d\r\n", zigbeeQueueCtrl.Total);
+					printf("node = %d, index = %d\r\n", node, index);
+					
+					ctrlParasPtr->walkingstep = step_origin;
+					printf("GoodReqCancel step_origin\r\n");
+					
 					Send_Zigbee_ACK();
-					CMD_Flag_Ptr->cmdFlag = GoodReqCancel;
+					CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
+					
 					BuzzerCtrlPtr->buzzerFlag = 1;
-					printf("cancel %04x\r\n", node);
+					printf("@!@!@!@!@! cancel %04x\r\n", node);
 				}
 				
 			}
-			
 			
 		}
 		else if(nc_receive[6] == 0x8f)
@@ -826,6 +889,7 @@ void Zigbee_Init(void)
 
 	CMD_Flag_Ptr->cmdFlag = NcNone;
 	CMD_Flag_Ptr->Req_Flag = NcNone;
+	CMD_Flag_Ptr->Cancel_Flag = NcNone;
 	
 	#if 0
 	
@@ -871,8 +935,8 @@ void Zigbee_Init(void)
 	Id_Arr[0].zigbee_ID1 = 0x00;
 	Id_Arr[0].zigbee_ID2 = 0x00;
 	
-	Id_Arr[1].zigbee_ID1 = 0x44;
-	Id_Arr[1].zigbee_ID2 = 0x9C;
+	Id_Arr[1].zigbee_ID1 = 0xA5;
+	Id_Arr[1].zigbee_ID2 = 0x9D;
 	
 	Id_Arr[2].zigbee_ID1 = 0xEA;
 	Id_Arr[2].zigbee_ID2 = 0x02;

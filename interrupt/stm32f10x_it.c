@@ -292,7 +292,7 @@ void EXTI4_IRQHandler(void)
 		if(1 == ECV1_HALL_FLAG)
 		{
 			ECV1_HALL++;
-			//printf("FECV_HALL = %d\r\n", ECV1_HALL);
+			printf("FECV_HALL = %d\r\n", ECV1_HALL);
 		}
 		else
 		{

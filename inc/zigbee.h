@@ -48,6 +48,7 @@ typedef struct
 {
 	NC_Flag cmdFlag;
 	NC_Flag Req_Flag;
+	NC_Flag Cancel_Flag;
 }RecvCmdFlag, *RecvCmdFlag_P;
 
 typedef struct

@@ -88,11 +88,12 @@ int main(void)
 	
 	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
-	BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+	//BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
-	M_A_Init2();
+	//M_A_Init2();
+	Machine_Arm_Init3();
 	
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
@@ -123,16 +124,15 @@ int main(void)
 		}
 		#endif
 		
-		//ProtectFunc();
+		ProtectFunc();
 		Read_RTC_Data();						// 年月日
 		Lcd_Handle();							// 小屏幕操作函数
 		SIMU_PWM_BreathBoardLED_Ctrl();			// 模拟PWM控制主控板LED呼吸灯
 		Scan_Weight_Func();						// 扫描称重模块数据
 		WarningLedCtrlPtr->twinkleCtrlFunc();	// 警告灯闪烁控制
 		ECV_Ctrl_Func(FECV_Str_Ptr);			// 前电缸控制
-		ECV_Ctrl_Func(BECV_Str_Ptr);			// 后电缸控制
+		ECV_Ctrl_Func_SW(BECV_Str_Ptr);			// 后电缸控制
 		ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
-		
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
@@ -175,114 +175,92 @@ int main(void)
 		else if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 		{
 			Magn_Sensor_Scan();		// 磁传感器数据处理
-			Receive_handle2();		// ZigBee数据接收处理函数
-			
+
 			ZigbeeRecv_Simu();
 			
+			Receive_handle2();		// ZigBee数据接收处理函数
+						
+			CrossRoad_Count();				// 磁条十字交叉路口的计算
 			
-			if(0 == ctrlParasPtr->start_origin_mode)
-			//if(0)
+			Get_Zigbee_Info_From_Buf();		// 从队列当中取出接收到的ZigBee信息
+			
+			RFID_Goal_Node_Analy();			// 分析哪个RFID点转
+			
+			Walking_Step_Controler();		// 整个大逻辑的控制
+			
+			/************小车驱动轮控制************/
+			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
 				
-				if(gSslow == ctrlParasPtr->agvStatus)
-				{
-					gS_slow2(5);
-				}
-				else if(bSslow == ctrlParasPtr->agvStatus)
-				{
-					back_slow2(5);
-				}
+			#if 0
+				AGV_Walking();
+			#else
 				
-				startup_origin_Func();
-				
-			}
-			else
-			{
-				//originP();
-				
-				CrossRoad_Count2();				// 磁条十字交叉路口的计算
-				
-				Get_Zigbee_Info_From_Buf();		// 从队列当中取出接收到的ZigBee信息
-				
-				RFID_Goal_Node_Analy();			// 分析哪个RFID点转
-				
-				Walking_Step_Controler();		// 整个大逻辑的控制
-				
-				
-				/************小车驱动轮控制************/
-				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
+				if(goStraightStatus == ctrlParasPtr->agvStatus)		// 高速直行状态
 				{
 					
-				#if 0
-					AGV_Walking();
-				#else
-					
-					if(goStraightStatus == ctrlParasPtr->agvStatus)		// 高速直行状态
-					{
-						
-						AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-					}
-					else if(backStatus == ctrlParasPtr->agvStatus)		// 高速后退状态
-					{
-						
-						AGV_Correct_back_ug(ctrlParasPtr->gear);
-					}
-					else if(cirLeft == ctrlParasPtr->agvStatus)			// 左转状态
-					{
-						#if USE_HALL_CTRL
-						walking_cir_hall(ctrlParasPtr->cirDuty);
-						#else
-						walking_cir(ctrlParasPtr->cirDuty);
-						#endif
-						
-					}
-					else if(cirRight == ctrlParasPtr->agvStatus)		// 右转状态
-					{
-						#if USE_HALL_CTRL
-						walking_cir_hall(ctrlParasPtr->cirDuty);
-						#else
-						walking_cir(ctrlParasPtr->cirDuty);
-						#endif
-						
-					}
-					else if(gSslow == ctrlParasPtr->agvStatus)			// 低速直行
-					{
-						gS_slow2(ctrlParasPtr->gear);
-					}
-					else if(bSslow == ctrlParasPtr->agvStatus)			// 低速后退
-					{
-						back_slow2(ctrlParasPtr->gear);
-					}
-											
-				#endif
-					
+					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
 				}
-				
-				//AGV_Change_Mode();
-				
-				//AGV_Proc();
-				// 在原点待机时自动回正
-				if(ControlCenter == ctrlParasPtr->goalStation)
+				else if(backStatus == ctrlParasPtr->agvStatus)		// 高速后退状态
 				{
-					SIMU_PWM_BreathWarningLED_Ctrl();
 					
-					ctrlParasPtr->cirDuty = 8;
-					Origin_PatCtrl(ctrlParasPtr->cirDuty);
-					//AutoRunningFunc();
+					AGV_Correct_back_ug(ctrlParasPtr->gear);
 				}
-				else
+				else if(cirLeft == ctrlParasPtr->agvStatus)			// 左转状态
 				{
-					SIMU_PWM_BreathWarningLED_Ctrl();
+					#if USE_HALL_CTRL
+					walking_cir_hall(ctrlParasPtr->cirDuty);
+					#else
+					walking_cir(ctrlParasPtr->cirDuty);
+					#endif
+					
 				}
-				
-				//LeftOrRight_Counter();
+				else if(cirRight == ctrlParasPtr->agvStatus)		// 右转状态
+				{
+					#if USE_HALL_CTRL
+					walking_cir_hall(ctrlParasPtr->cirDuty);
+					#else
+					walking_cir(ctrlParasPtr->cirDuty);
+					#endif
+					
+				}
+				else if(gSslow == ctrlParasPtr->agvStatus)			// 低速直行
+				{
+					gS_slow2(ctrlParasPtr->gear);
+				}
+				else if(bSslow == ctrlParasPtr->agvStatus)			// 低速后退
+				{
+					back_slow2(ctrlParasPtr->gear);
+				}
+									
+			#endif
 				
 			}
 			
+			//AGV_Change_Mode();
 			
+			//AGV_Proc();
+			
+			#if 0
+			// 在原点待机时自动回正
+			//if(ControlCenter == ctrlParasPtr->goalStation)
+			if((1 == ctrlParasPtr->originFlag) && (ORIGIN_STATION_NODE != STATION_LM))
+			{
+				//SIMU_PWM_BreathWarningLED_Ctrl();
+				
+				ctrlParasPtr->cirDuty = 8;
+				Origin_PatCtrl(ctrlParasPtr->cirDuty);
+				//AutoRunningFunc();
+			}
+			#endif
+			
+			SIMU_PWM_BreathWarningLED_Ctrl();
+			//LeftOrRight_Counter();
+			//printf("1agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
+			//printf("1walkingstep = %d, agvStatus = %d\r\n", ctrlParasPtr->walkingstep, ctrlParasPtr->agvStatus);
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
-
+			
 			// 小车调试信息的打印
 			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
 			{
@@ -293,7 +271,7 @@ int main(void)
 				
 				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				{
-					//Show_Infomation();
+					Show_Infomation();
 					//show_Excel_Analysis_Info();
 				}
 				//else if((0 != ctrlParasPtr->BSflag) && (backStatus == ctrlParasPtr->agvStatus))
@@ -313,43 +291,6 @@ int main(void)
 		}
 
 		#else
-
-		/*
-		Receive_handle();
-
-		Get_Zigbee_Info_From_Buf();
-
-		if(1 == Zigbee_Ptr->recvValidDataFlag)
-		{
-			 Zigbee_Ptr->recvValidDataFlag = 0;
-			 
-			if(0x0001 == Zigbee_Ptr->recvId)
-			{
-				Delay_ns(3);
-				Send_GettedGoods(1);
-				Delay_ns(3);
-				Send_WaitForGoods();
-				Delay_ns(10);
-				Send_Arrive();
-			}
-			else if(0x0000 == Zigbee_Ptr->recvId)
-			{
-				
-			}
-			
-		}
-		*/
-		//BUZZER_1 = 1;
-		//BUZZER_2 = 1;
-
-		//Delay_ns(1);
-
-		//BUZZER_1 = 0;
-		//BUZZER_2 = 0;
-
-		//Delay_ns(1);
-
-		//Read_RTC_Data();
 		
 		/*
 		u8 data1[9] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
@@ -538,7 +479,13 @@ int main(void)
 		}
 		*/
 
-		ManualModeEcvCtrlFunc();
+		//ManualModeEcvCtrlFunc();
+
+		if(RLMT_SW_UNRESPOND)
+		{
+			printf("RLMT_SW_UNRESPOND\r\n");
+		}
+		
 		
 		#endif
 		

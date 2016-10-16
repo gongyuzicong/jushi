@@ -67,6 +67,7 @@ void zigbeeReqQueue(u16);
 void zigbeeDeleteQueue(u8);
 void zigbeeCancelQueue(u16);
 u8 searchZigbeeData(u16, u8 *);
+u8 get_ZigbeeQueue_HeadVernier(void);
 
 
 

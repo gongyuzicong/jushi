@@ -105,6 +105,7 @@ void FECV_PowerOnOffFunc(ECV_PowerOnOff PowerOnOff)
 
 void FECV_SetSpeedFunc(u8 speed)
 {
+	#if 0
 	static u8 EcvSpeedRec = 0;
 	
 	if(EcvSpeedRec != speed)
@@ -117,6 +118,14 @@ void FECV_SetSpeedFunc(u8 speed)
 		}
 		
 	}
+	#else
+
+	if(speed <= 100)
+	{		
+		FECV_SPEED_SET(speed);
+	}
+	
+	#endif
 }
 
 void FECV_SetPara(Ecv_Para_P ptr)
@@ -167,6 +176,7 @@ void BECV_PowerOnOffFunc(ECV_PowerOnOff PowerOnOff)
 		else if(ECV_POWER_OFF == PowerOnOff)
 		{
 			BECV_POWER_OFF();
+			printf("BECV_POWER_OFF!\r\n");
 		}
 		
 	}
@@ -176,8 +186,9 @@ void BECV_PowerOnOffFunc(ECV_PowerOnOff PowerOnOff)
 void BECV_SetSpeedFunc(u8 speed)
 {
 
-	static u8 EcvSpeedRec = 0;
+	#if 0
 	
+	static u8 EcvSpeedRec = 0;
 	if(EcvSpeedRec != speed)
 	{
 		if(speed <= 100)
@@ -188,6 +199,16 @@ void BECV_SetSpeedFunc(u8 speed)
 		}
 		
 	}
+	
+	#else
+	
+	if(speed <= 100)
+	{
+		
+		BECV_SPEED_SET(speed);
+		//printf("BECV_SPEED_SET = %d\r\n", speed);
+	}
+	#endif
 }
 
 void BECV_SetPara(Ecv_Para_P ptr)
@@ -212,6 +233,18 @@ void BECV_SetPara(Ecv_Para_P ptr)
 void BECV_Clean_Use_Status(void)
 {
 	BECV_Str_Ptr->UseStatus = ECV_UNUSED;
+}
+
+u8 BECV_Check_SW_Status(void)
+{
+	u8 flag = 0;
+
+	if(BECV_SW_RESPOND)
+	{
+		flag = 1;
+	}
+	
+	return flag;
 }
 
 void WECV_UpDownFunc(EcvDir ecvDir)
@@ -347,6 +380,79 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 	}
 }
 
+
+void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
+{
+	u8 speed = 0;
+	
+	if(ECV_STOP == ptr->Dir)
+	{
+		ptr->ECV_SetSpeedFunc(0);
+		ptr->EcvEnableHallFlag 		= 0;
+		ptr->EcvHallCountRec 		= 0;
+		ptr->EcvHallCount			= 0;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+	}
+	else
+	{
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+		
+		ptr->EcvEnableHallFlag = 1;
+
+		ptr->ECV_UpDownFunc(ptr->Dir);
+
+		speed = ptr->EcvSpeed;
+		
+		if(ECV_USE_HALL_COUNT_MODE_ENABLE == ptr->HallCountMode)
+		{
+			if(CheckFECV_Limt(ptr) || (ptr->EcvHallCount >= ptr->EcvHallCountCmp))
+			{
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+				printf("BECV_STOP!\r\n");
+			}
+			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
+		}
+		else if(ECV_USE_HALL_COUNT_MODE_DISABLE == ptr->HallCountMode)
+		{
+			if(CheckFECV_Limt(ptr))
+			{
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+				printf("BECV_STOP!\r\n");
+			}
+			
+		}
+
+		if((ptr->Check_ECV_SW_Status()) && (ECV_DOWN == ptr->Dir))
+		{
+			ptr->Dir = ECV_STOP;
+			ptr->EcvHallCount = 0;
+			ptr->EcvHallCountRec = 0;
+			ptr->UseStatus = ECV_COMPLETE;
+			speed = 0;
+			ptr->ECV_SetSpeedFunc(0);
+			ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+			printf("BECV_SW_STOP!\r\n");
+		}
+		
+		ptr->ECV_SetSpeedFunc(speed);
+	}
+}
+
+
+
 void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P ptr)
 {
 	
@@ -480,6 +586,54 @@ void M_A_Init2(void)
 	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
 	{
 		ECV_Ctrl_Func(BECV_Str_Ptr);
+	}
+
+	BECV_Str_Ptr->ECV_Clean_Use_Status();
+
+	if(!WECV_UP_LIMT_SW_RESP)
+	{
+		WECV_Str_Ptr->Dir = ECV_DOWN;
+	}
+	
+}
+
+void Machine_Arm_Init3(void)
+{
+	Ecv_Para temp;	
+
+	temp.Dir			= ECV_DOWN;
+	temp.EcvSpeed		= 100;
+	temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+	FECV_Str_Ptr->ECV_SetPara(&temp);
+	//FECV_Str_Ptr->ECV_Clean_Use_Status();
+	FECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+	
+	temp.Dir			= ECV_DOWN;
+	temp.EcvSpeed		= 60;
+	temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+	BECV_Str_Ptr->ECV_SetPara(&temp);
+	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+	
+	while((ECV_USEING == BECV_Str_Ptr->UseStatus) || (ECV_USEING == FECV_Str_Ptr->UseStatus))
+	{
+		ECV_Ctrl_Func(FECV_Str_Ptr);
+		ECV_Ctrl_Func_SW(BECV_Str_Ptr);
+	}
+	
+	BECV_Str_Ptr->ECV_SetSpeedFunc(0);
+	BECV_Str_Ptr->ECV_Clean_Use_Status();
+	FECV_Str_Ptr->ECV_Clean_Use_Status();
+
+	
+	temp.Dir			 = ECV_UP;
+	temp.HallCountMode	 = ECV_USE_HALL_COUNT_MODE_ENABLE;
+	temp.EcvHallCountCmp = HallCountCmpManager_Str_Ptr->BecvInit;
+	BECV_Str_Ptr->ECV_SetPara(&temp);
+	BECV_Str_Ptr->EcvHallCountTimeRec = SystemRunningTime;
+
+	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
+	{
+		ECV_Ctrl_Func_SW(BECV_Str_Ptr);
 	}
 
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
@@ -638,11 +792,12 @@ void ECV_SW_Init(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure; 
 	
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1 | GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1 | GPIO_Pin_3 | GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);	/*打开APB2总线上的GPIOE时钟*/
+
 }
 
 u8 ECV_Pwm_Init(void)
@@ -707,6 +862,7 @@ void ECV_Struct_Init(void)
 	BECV_Str_Ptr->ECV_SetSpeedFunc 		= BECV_SetSpeedFunc;
 	BECV_Str_Ptr->ECV_SetPara			= BECV_SetPara;
 	BECV_Str_Ptr->ECV_Clean_Use_Status 	= BECV_Clean_Use_Status;
+	BECV_Str_Ptr->Check_ECV_SW_Status	= BECV_Check_SW_Status;
 
 	WECV_Str_Ptr->ECV_PowerOnOffFunc 	= WECV_PowerOnOffFunc;
 	WECV_Str_Ptr->ECV_UpDownFunc 		= WECV_UpDownFunc;

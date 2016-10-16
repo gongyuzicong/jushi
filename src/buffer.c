@@ -381,6 +381,11 @@ void NrfRecvDataBuf_Delete(void)
 	
 //}
 
+u8 get_ZigbeeQueue_HeadVernier(void)
+{
+	return (zigbeeQueueCtrl.HeadVernier);
+}
+
 u8 searchZigbeeData(u16 data, u8 *index)
 {
 	u8 cir = 0, flag = 0, searchIndex = 0;

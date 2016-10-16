@@ -60,6 +60,10 @@
 #define FLMT_SW_UNRESPOND		(1 == FLMT_SW)
 #define RLMT_SW_UNRESPOND		(1 == RLMT_SW)
 
+#define BECV_SW					PEin(5)
+#define BECV_SW_RESPOND			(0 == BECV_SW)
+#define BECV_SW_UNRESPOND		(1 == BECV_SW)
+
 
 #define BUZZER_1				PEout(9)
 #define BUZZER_2				PEout(10)
@@ -205,6 +209,7 @@ typedef struct
 	void (*ECV_SetSpeedFunc)(u8);					// 电缸速度设置函数
 	void (*ECV_SetPara)(Ecv_Para_P);				// 设置电缸控制参数
 	void (*ECV_Clean_Use_Status)(void);				// 清除电缸使用状态
+	u8   (*Check_ECV_SW_Status)(void);				// 检查电缸极限开关状态 1: 为到达极限位置
 }Ecv_Ctrl_Struct, *Ecv_Ctrl_Struct_P;
 
 
@@ -216,6 +221,9 @@ void M_A_Init(void);
 void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P);
 void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P);
 void M_A_Init2(void);
+void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P);
+void Machine_Arm_Init3(void);
+
 
 
 extern PwmParaStruct_P 		timer4PwmParaPtr;

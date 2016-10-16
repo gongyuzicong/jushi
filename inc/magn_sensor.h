@@ -15,7 +15,9 @@
 #define STATION_5AND6_RFID		0x0003
 #define STATION_7AND8_RFID		0x0004
 #define STATION_9AND10_RFID		0x0005
+#define STATION_LM				0x0000
 
+#define ORIGIN_STATION_NODE		STATION_1AND2_RFID				// 这是原点位置
 
 typedef enum
 {

@@ -361,20 +361,15 @@ void Send_Info_To_Contorler(void)
 		
 		tx_buf[3] = ctrlParasPtr->agvStatus;				// AGV STATUS
 		//printf("agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
-		//tx_buf[4] = ctrlParasPtr->speedModeValue_Left;		// LeftMotorSpeed
 		tempValue = (MOTOR_LEFT_X3_In << 2) + (MOTOR_LEFT_X2_In << 1) + MOTOR_LEFT_X1_In;
 		printf("%x, %x, %x, tempValue = %x\r\n", MOTOR_LEFT_X3_In, MOTOR_LEFT_X2_In, MOTOR_LEFT_X1_In, tempValue);
 		tx_buf[4] = tempValue;
-		//printf("leftMotorSettedSpeed = %d\r\n", ctrlParasPtr->speedModeValue_Left);
 		//tx_buf[4] = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0);		// LeftMotorEN
 		tx_buf[5] = MOTOR_LEFT_EN_IN;		// LeftMotorEN
 		//printf("MOTOR_LEFT_EN_IN = %d\r\n", MOTOR_LEFT_EN_IN);
 		tx_buf[6] = MOTOR_LEFT_FR_IN;		// LeftMotorFR
 		//printf("MOTOR_LEFT_FR_IN = %d\r\n", MOTOR_LEFT_FR_IN);
 		
-		//tx_buf[7] = ctrlParasPtr->speedModeValue_Right;		// RightMotorSpeed
-		//printf("rightMotorSettedSpeed = %d\r\n", ctrlParasPtr->speedModeValue_Right);
-
 		tempValue = (MOTOR_RIGHT_X3_In << 2) + (MOTOR_RIGHT_X2_In << 1 ) + MOTOR_RIGHT_X1_In;
 		printf("%x, %x, %x, tempValue = %x\r\n", MOTOR_RIGHT_X3_In, MOTOR_RIGHT_X2_In, MOTOR_RIGHT_X1_In, tempValue);
 		tx_buf[7] = tempValue;

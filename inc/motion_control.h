@@ -18,7 +18,11 @@
 #define Warning_LED_ORANGE		PCout(7)
 #define Warning_LED_IN			PDin(3)
 #define ProtectSW_F				PDin(5)
+#define ProtectSW_F_RESPOND		(0 == ProtectSW_F)
+#define ProtectSW_F_UNRESPOND	(1 == ProtectSW_F)
 #define ProtectSW_R				PEin(4)
+#define ProtectSW_R_RESPOND		(0 == ProtectSW_R)
+#define ProtectSW_R_UNRESPOND	(1 == ProtectSW_R)
 
 //#define MOTOR1_HALL_COUNT_FLAG	ctrlParasPtr->rightHallCounterFlag
 //#define MOTOR2_HALL_COUNT_FLAG	ctrlParasPtr->leftHallCounterFlag
@@ -216,21 +220,12 @@ typedef struct
 	u8 	leftMotorSettedSpeed;	
 	u8 	rightMotorRealSpeed;	// 电机实际速度
 	u8 	leftMotorRealSpeed;		// 电机实际速度
-	u8 	rightInc;
-	u8 	leftInc;
 	AgvStatus agvStatus;
 	AgvSpeedMode speedMode;
 	AgvWalkMode agvWalkingMode;
 	ManualMode_Ctrl manualCtrl;
-	u8 	speedModeValue_Right;
-	u8 	speedModeValue_Left;
 	s8 	rightMotorSpeedOffset;
 	s8 	leftMotorSpeedOffset;
-
-	u8* rightMotorSettedSpeed_p;
-	u8* leftMotorSettedSpeed_p;
-	s8* rightMotorSpeedOffset_p;
-	s8* leftMotorSpeedOffset_p;
 	
 	u32 rightHallIntervalTime;
 	u32 leftHallIntervalTime;
@@ -254,9 +249,6 @@ typedef struct
 	u8 	BSflag;
 	u8 	fgvflag;
 
-	Damper dampingFlag;
-	u32 dampingTimeRec;
-
 	u32 goalRFIDnode;
 	
 	SpinStation goalStation;
@@ -269,10 +261,6 @@ typedef struct
 	u8 	crossRoadCountR;
 	u8 	crossRoadUpdateR;
 
-	u8 	T1DF;
-
-	u8 	T1dutyRec;
-
 	u8 	LP_duty;
 	u8 	RP_duty;
 	u8 	LD_duty;
@@ -280,7 +268,6 @@ typedef struct
 
 	u8 	start_origin_mode;
 	u8 	originFlag;
-	u8 	armResetFlag;
 
 	u8 	cirDuty;
 	u8 	rifdAdaptFlag;
@@ -292,6 +279,8 @@ typedef struct
 	u8 	HallCounterFlag;
 
 	u8 	Use_WECV;
+
+	u8 	StartupFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -444,14 +433,12 @@ void gS_slow2(u8);
 void back_slow2(u8);
 void step_origin_Func(void);
 void startup_origin_Func(void);
-void originP(void);
 void SIMU_PWM_BreathWarningLED_Ctrl(void);
 void SIMU_PWM_BreathBoardLED_Ctrl(void);
 void ProtectSW_GPIO_Config(void);
 void walking_cir(u8);
 u8 Origin_PatCtrl(u8);
 void AutoRunningFunc(void);
-void CrossRoad_Count2(void);
 void ManualModeFunc(ManualMode_Ctrl);
 void AGV_Correct_2(void);
 void Recv_RFID_CrossRoad(u8);
