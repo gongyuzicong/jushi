@@ -161,6 +161,18 @@ void BECV_UpDownFunc(EcvDir ecvDir)
 	
 }
 
+void BECV_Brk_Func(ECV_BRK brk)
+{
+	if(ECV_BRK_ENABLE == brk)
+	{
+		BECV_BRK_ENABLE();
+	}
+	else if(ECV_BRK_DISABLE == brk)
+	{
+		BECV_BRK_DISABLE();
+	}
+}
+
 void BECV_PowerOnOffFunc(ECV_PowerOnOff PowerOnOff)
 {
 	static ECV_PowerOnOff temp = ECV_POWER_OFF;
@@ -338,10 +350,11 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 		ptr->EcvHallCountRec 		= 0;
 		ptr->EcvHallCount			= 0;
 		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
 	}
 	else
 	{
-		
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 		ptr->EcvEnableHallFlag = 1;
 
 		ptr->ECV_UpDownFunc(ptr->Dir);
@@ -387,15 +400,19 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 	
 	if(ECV_STOP == ptr->Dir)
 	{
+		ptr->ECV_BRK(ECV_BRK_ENABLE);
 		ptr->ECV_SetSpeedFunc(0);
 		ptr->EcvEnableHallFlag 		= 0;
 		ptr->EcvHallCountRec 		= 0;
 		ptr->EcvHallCount			= 0;
 		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
 		ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+		
 	}
 	else
 	{
+		ptr->ECV_BRK(ECV_BRK_DISABLE);
+		
 		ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 		
 		ptr->EcvEnableHallFlag = 1;
@@ -438,6 +455,7 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 		if((ptr->Check_ECV_SW_Status()) && (ECV_DOWN == ptr->Dir))
 		{
 			ptr->Dir = ECV_STOP;
+			ptr->ECV_BRK(ECV_BRK_ENABLE);
 			ptr->EcvHallCount = 0;
 			ptr->EcvHallCountRec = 0;
 			ptr->UseStatus = ECV_COMPLETE;
@@ -863,6 +881,7 @@ void ECV_Struct_Init(void)
 	BECV_Str_Ptr->ECV_SetPara			= BECV_SetPara;
 	BECV_Str_Ptr->ECV_Clean_Use_Status 	= BECV_Clean_Use_Status;
 	BECV_Str_Ptr->Check_ECV_SW_Status	= BECV_Check_SW_Status;
+	BECV_Str_Ptr->ECV_BRK				= BECV_Brk_Func;
 
 	WECV_Str_Ptr->ECV_PowerOnOffFunc 	= WECV_PowerOnOffFunc;
 	WECV_Str_Ptr->ECV_UpDownFunc 		= WECV_UpDownFunc;

@@ -102,6 +102,8 @@
 #define BECV_UP()				{ECV2_DIR = 0;  }
 #define BECV_DOWN()				{ECV2_DIR = 1;  }
 #define BECV_STOP()				{ECV1_PWM = 0;	}
+#define BECV_BRK_ENABLE()		{ECV3_DIR = 1;	}
+#define BECV_BRK_DISABLE()		{ECV3_DIR = 0;	}
 #define BECV_POWER_ON()			{ECV2_POWER = 0;}
 #define BECV_POWER_OFF()		{ECV2_POWER = 1;}
 
@@ -151,6 +153,12 @@ typedef enum
 	ECV_POWER_OFF = 0,
 	ECV_POWER_ON,
 }ECV_PowerOnOff;
+
+typedef enum
+{
+	ECV_BRK_ENABLE,
+	ECV_BRK_DISABLE,
+}ECV_BRK, *ECV_BRK_P;
 
 typedef enum
 {
@@ -210,6 +218,7 @@ typedef struct
 	void (*ECV_SetPara)(Ecv_Para_P);				// 设置电缸控制参数
 	void (*ECV_Clean_Use_Status)(void);				// 清除电缸使用状态
 	u8   (*Check_ECV_SW_Status)(void);				// 检查电缸极限开关状态 1: 为到达极限位置
+	void (*ECV_BRK)(ECV_BRK);							// 
 }Ecv_Ctrl_Struct, *Ecv_Ctrl_Struct_P;
 
 

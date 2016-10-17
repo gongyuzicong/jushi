@@ -132,7 +132,7 @@ int main(void)
 		WarningLedCtrlPtr->twinkleCtrlFunc();	// 警告灯闪烁控制
 		ECV_Ctrl_Func(FECV_Str_Ptr);			// 前电缸控制
 		ECV_Ctrl_Func_SW(BECV_Str_Ptr);			// 后电缸控制
-		ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
+		//ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
@@ -174,11 +174,11 @@ int main(void)
 		}
 		else if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 		{
-			Magn_Sensor_Scan();		// 磁传感器数据处理
+			Magn_Sensor_Scan();				// 磁传感器数据处理
 
 			ZigbeeRecv_Simu();
 			
-			Receive_handle2();		// ZigBee数据接收处理函数
+			Receive_handle2();				// ZigBee数据接收处理函数
 						
 			CrossRoad_Count();				// 磁条十字交叉路口的计算
 			
@@ -236,6 +236,15 @@ int main(void)
 			#endif
 				
 			}
+
+			if(step_stop == ctrlParasPtr->walkingstep)
+			{
+				
+			}
+			else
+			{
+
+			}
 			
 			//AGV_Change_Mode();
 			
@@ -267,7 +276,7 @@ int main(void)
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
 				
-			#if 1
+			#if 0
 				
 				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				{

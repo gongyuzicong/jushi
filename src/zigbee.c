@@ -4,6 +4,7 @@
 #include "timer_opts.h"
 #include "motion_control.h"
 #include "circle_recoder.h"
+#include "magn_sensor.h"
 
 #define USART2_TC					((USART2->SR >> 6) & 0x0001)
 
@@ -476,7 +477,7 @@ void Receive_handle2(void)
 
 			node = (nc_receive[7] >> 4) + 1;
 			
-			printf("&&&&&& Receive_handle2 nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", nc_receive[6], nc_receive[7]);
+			printf("Receive_handle2 nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", nc_receive[6], nc_receive[7]);
 			if((0x01 == (nc_receive[7] & 0x0f)) || (0x03 == (nc_receive[7] & 0x0f)))	// 请求取物/自动呼叫
 			{
 				if(0xC1 == nc_receive[7])
@@ -558,11 +559,13 @@ void Receive_handle2(void)
 						zigbeeAck[3] = nc_receive[3];
 						Send_Zigbee_ACK();
 						data = (nc_receive[7] & 0x0f);
-						printf("******* data = %02x ********\r\n", data);
+						//printf("******* data = %02x ********\r\n", data);
 						if(0x01 == data)
 						{
-							CMD_Flag_Ptr->cmdFlag = GoodReq;
-							CMD_Flag_Ptr->Req_Flag = GoodReq;
+							//CMD_Flag_Ptr->cmdFlag = GoodReq;
+							//CMD_Flag_Ptr->Req_Flag = GoodReq;
+							CMD_Flag_Ptr->cmdFlag = AutoReq;
+							CMD_Flag_Ptr->Req_Flag = AutoReq;
 							printf("GoodReq recv = %d\r\n", node);
 						}
 						else if(0x03 == data)
@@ -601,7 +604,8 @@ void Receive_handle2(void)
 					printf("node = %d, index = %d\r\n", node, index);
 					
 					ctrlParasPtr->walkingstep = step_origin;
-					printf("GoodReqCancel step_origin\r\n");
+					ctrlParasPtr->rifdAdaptFlag = 0;
+					printf("GoodReqCancel step_origin = %d\r\n", ctrlParasPtr->walkingstep);
 					
 					Send_Zigbee_ACK();
 					CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
