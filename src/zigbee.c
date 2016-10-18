@@ -562,10 +562,10 @@ void Receive_handle2(void)
 						//printf("******* data = %02x ********\r\n", data);
 						if(0x01 == data)
 						{
-							//CMD_Flag_Ptr->cmdFlag = GoodReq;
-							//CMD_Flag_Ptr->Req_Flag = GoodReq;
-							CMD_Flag_Ptr->cmdFlag = AutoReq;
-							CMD_Flag_Ptr->Req_Flag = AutoReq;
+							CMD_Flag_Ptr->cmdFlag = GoodReq;
+							CMD_Flag_Ptr->Req_Flag = GoodReq;
+							//CMD_Flag_Ptr->cmdFlag = AutoReq;
+							//CMD_Flag_Ptr->Req_Flag = AutoReq;
 							printf("GoodReq recv = %d\r\n", node);
 						}
 						else if(0x03 == data)

@@ -237,14 +237,6 @@ int main(void)
 				
 			}
 
-			if(step_stop == ctrlParasPtr->walkingstep)
-			{
-				
-			}
-			else
-			{
-
-			}
 			
 			//AGV_Change_Mode();
 			
@@ -330,7 +322,7 @@ int main(void)
 		Delay_ns(1);
 		*/
 		//Lcd_Handle();
-		//Get_Weight_Data();
+		Get_Weight_Data();
 				
 		//Lcd_Handle();
 
@@ -353,148 +345,9 @@ int main(void)
 			}
 			
 		}
-		*/
-
-		
-	#if 1
-		/*
-		static s8 flag = 0;
-		
-		ECV_Ctrl_Func_W(WECV_Str_Ptr);
-		WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
-
-		if(0 == Return_SW_RF)
-		{
-			Delay_ms(20);
-			
-			if(0 == Return_SW_RF)
-			{
-				while(0 == Return_SW_RF);
-
-				if(0 == flag)
-				{
-					WECV_Str_Ptr->Dir = ECV_DOWN;
-					printf("ECV_DOWN\r\n");
-					flag = 1;
-				}
-				else if(1 == flag)
-				{
-					WECV_Str_Ptr->Dir = ECV_UP;
-					printf("ECV_UP\r\n");
-					flag = 0;
-				}
-			}
-			
-		}
-
-		
-		*/
-	#else
-		
-		static s8 	flag 	= 0;
-		static u32 	timRec 	= 0;
-		
-		ECV_Ctrl_Func_F(FECV_Str_Ptr);
-		FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
-		
-		if(0 == Return_SW_RF)
-		{
-			Delay_ms(20);
-			
-			if(0 == Return_SW_RF)
-			{
-				while(0 == Return_SW_RF);
-
-				if(0 == flag)
-				{
-					FECV_Str_Ptr->Dir = ECV_UP;
-					
-					flag = 1;
-				}
-				else if(1 == flag)
-				{
-					FECV_Str_Ptr->Dir = ECV_DOWN;
-					
-					flag = 0;
-				}
-			}
-			
-		}
-
-		if(ECV_STOP != FECV_Str_Ptr->Dir)
-		{
-			if(0 == timRec)
-			{
-				timRec = SystemRunningTime;
-			}
-			else
-			{
-				if(SystemRunningTime - timRec >= 30000)
-				{
-					FECV_Str_Ptr->Dir = ECV_STOP;
-					timRec = 0;
-				}
-			}
-		}
-		
-	#endif
-		/*
-		static u8 flag = 0;
-		Ecv_Para temp;
-
-		ECV_Ctrl_Func(BECV_Str_Ptr);
-		
-		BECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
-		
-		if(0 == Return_SW_RF)
-		{
-			Delay_ms(20);
-			
-			if(0 == Return_SW_RF)
-			{
-				while(0 == Return_SW_RF);
-				
-				if(0 == flag)
-				{
-					temp.Dir 				= ECV_DOWN;
-					temp.EcvHallCountCmp 	= 100;
-					temp.EcvSpeed			= 100;
-					temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
-
-					BECV_Str_Ptr->ECV_SetPara(&temp);
-					
-					flag = 1;
-				}
-				else if(1 == flag)
-				{
-					temp.Dir 				= ECV_UP;
-					temp.EcvHallCountCmp 	= 100;
-					temp.EcvSpeed			= 100;
-					temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
-					
-					BECV_Str_Ptr->ECV_SetPara(&temp);
-					
-					flag = 0;
-				}
-			}
-		}
-		
-		//BECV_Str_Ptr->ECV_UpDownFunc(ECV_DOWN);
-		//BECV_Str_Ptr->ECV_SetSpeedFunc(100);
-
-		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
-		{
-			BECV_Str_Ptr->UseStatus = ECV_UNUSED;
-		}
-		*/
+		*/		
 
 		//ManualModeEcvCtrlFunc();
-
-		if(RLMT_SW_UNRESPOND)
-		{
-			printf("RLMT_SW_UNRESPOND\r\n");
-		}
-		
 		
 		#endif
 		

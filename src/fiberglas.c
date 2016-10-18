@@ -125,7 +125,7 @@ void Get_Weight_Data(void)
 	float weight_g;
 	//float weight_Kg;
 	float offset = 0;
-	
+	double volte_re = 0;
 	#if 0
 	
 	for(cir = 0; cir < 8; cir++)
@@ -146,10 +146,12 @@ void Get_Weight_Data(void)
 	#else
 	
 	Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// Ïàµ±ÓÚ ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-	Volts = (Adc * 0.000000598) - VoltsOffset;
+	volte_re = (Adc * 0.000000598);
+	Volts = volte_re - VoltsOffset;
 	//Volts = (Adc * 0.000000598);
 	weight_g = (Volts / 0.000025);
 	offset = (((u32)weight_g / 1000) * 12);
+	//offset = (((u32)weight_g / 1000) * 12);
 	//weight_g += offset;
 	//weight_Kg = weight_g / 1000.0;
 	//weight = (Volts / 0.000025);
@@ -157,8 +159,8 @@ void Get_Weight_Data(void)
 	
 	if(weight_g > 0)
 	{
-		FiberglasInfo_Ptr->weight_H = (u32)(weight_g + offset)/ 1000;
-		FiberglasInfo_Ptr->weight_L = ((u32)(weight_g + offset) % 1000) / 10;
+		FiberglasInfo_Ptr->weight_H = (u32)(weight_g - offset * 2) / 1000;
+		FiberglasInfo_Ptr->weight_L = ((u32)(weight_g - offset * 2) % 1000) / 10;
 	}
 	else
 	{
@@ -166,8 +168,8 @@ void Get_Weight_Data(void)
 		FiberglasInfo_Ptr->weight_L = 0x00;
 	}
 	
-	//printf("Volts = %.3lfV, VoltsOffset = %.3lfV, weight_Kg = %.3fkg, offset = %.4f\r\n", Volts, VoltsOffset, weight_Kg, offset);
-	//printf("weight_H = %d, weight_L = %d\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
+	//printf("volte_re = %.3lfV, Volts = %.3lfV, VoltsOffset = %.3lfV, offset = %.4f\r\n", volte_re, Volts, VoltsOffset, offset);
+	//printf("weight_H = %d, weight_L = %d\r\n\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
 	
 	#endif
 }
