@@ -629,6 +629,7 @@ void circle_recoder_init(void)
 	
 	CircleInfoStrPtr->CircleRecoderCount = 0;
 	CircleInfoStrPtr->TimeTempRec = 0;
+	CircleInfoStrPtr->lock = 0;
 	
 	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
 	//printf("CircleRecoderCount = %d\r\n", CircleInfoStrPtr->CircleRecoderCount);

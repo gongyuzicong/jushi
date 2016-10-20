@@ -33,11 +33,9 @@ typedef struct
 }FiberglasInfoStr, *FiberglasInfoStr_P;
 
 typedef struct
-{
-	u8 getWeightFlag;
-	float tempWeight;
-	u8 tempWeightUpdate;
-	u8 weightReportFlag;
+{	
+	u8 weightScanEnable;
+	u8 weightUpdate;
 }GetWeight_Ctrl, *GetWeight_Ctrl_P;
 
 typedef struct
@@ -52,6 +50,8 @@ void Read_RTC_Data(void);
 void Get_Weight_Offset_Data(void);
 void Get_Weight_Offset_Data_One(void);
 void Scan_Weight_Func(void);
+void Clean_Weight_Func(void);
+void Report_Weight_Data(void);
 
 
 extern FiberglasInfoStr_P FiberglasInfo_Ptr;

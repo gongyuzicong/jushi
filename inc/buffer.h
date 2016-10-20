@@ -3,6 +3,7 @@
 
 #include "common_include.h"
 #include "data_type.h"
+#include "motion_control.h"
 
 #define MAX_FYT_CMD_BUF_NUM 	2			// 从FYT接收数据帧缓存区大小: n帧
 #define MAX_CAN_DATA_BUF_NUM	2			// 从CAN接收数据帧缓存区大小: n帧
@@ -27,10 +28,6 @@ typedef struct
 }RqcpCtrlStruct;
 
 
-typedef struct
-{
-	u8 a;
-}BufOperaterSturct, *BufOperaterStruct_P;
 
 extern BufferControl fytCmdBufCtrl;
 extern BufferControl canBufCtrl;
@@ -60,13 +57,13 @@ CanTxMsg* get_sendToCan_Data(void);
 void DHT11DataBuf_Append(Dht11_DataInfoStruct node);
 void DHT11DataBuf_Delete(void);
 Dht11_DataInfoStruct_P Get_DHT11_Data(void);
-void zigbeeRecvDataBuf_Append(u16);
+void zigbeeRecvDataBuf_Append(ReqQueueStr);
 void zigbeeRecvDataBuf_Delete(void);
-void get_zigbeeData(u16 *);
-void zigbeeReqQueue(u16);
+void get_zigbeeData(ReqQueueStr_P);
+void zigbeeReqQueue(ReqQueueStr);
 void zigbeeDeleteQueue(u8);
-void zigbeeCancelQueue(u16);
-u8 searchZigbeeData(u16, u8 *);
+void zigbeeCancelQueue(u8);
+u8 searchZigbeeData(u8, u8 *);
 u8 get_ZigbeeQueue_HeadVernier(void);
 
 

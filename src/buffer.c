@@ -20,7 +20,7 @@ CanTxMsg sendToCanBuf[MAX_CAN_SEND_BUF_NUM];
 u8 nrfRecvBuf[MAX_NRF_RECV_BUF_NUM][32];
 u8 nrfSendBuf[MAX_NRF_SEND_BUF_NUM][32];
 
-u16 zigbeeInfoQueueBuf[MAX_ZIGBEE_QUEUE_NUM];
+ReqQueueStr zigbeeInfoQueueBuf[MAX_ZIGBEE_QUEUE_NUM];
 
 Dht11_DataInfoStruct dht11DataBuf[MAX_DHT11_DATA_BUF_NUM];
 RqcpCtrlStruct rqcpCtrl;
@@ -386,7 +386,7 @@ u8 get_ZigbeeQueue_HeadVernier(void)
 	return (zigbeeQueueCtrl.HeadVernier);
 }
 
-u8 searchZigbeeData(u16 data, u8 *index)
+u8 searchZigbeeData(u8 data, u8 *index)
 {
 	u8 cir = 0, flag = 0, searchIndex = 0;
 
@@ -402,7 +402,7 @@ u8 searchZigbeeData(u16 data, u8 *index)
 			searchIndex = zigbeeQueueCtrl.HeadVernier + cir - MAX_ZIGBEE_QUEUE_NUM;
 		}
 
-		if(data == zigbeeInfoQueueBuf[searchIndex])
+		if(data == zigbeeInfoQueueBuf[searchIndex].Req_Station)
 		{
 			flag = 1;
 			break;
@@ -415,7 +415,7 @@ u8 searchZigbeeData(u16 data, u8 *index)
 }
 
 
-void zigbeeRecvDataBuf_Append(u16 data)
+void zigbeeRecvDataBuf_Append(ReqQueueStr data)
 {
 	if(zigbeeQueueCtrl.Total < MAX_ZIGBEE_QUEUE_NUM)
 	{
@@ -443,11 +443,11 @@ void zigbeeRecvDataBuf_Append(u16 data)
 
 }
 
-void zigbeeReqQueue(u16 data)
+void zigbeeReqQueue(ReqQueueStr data)
 {
 	u8 index = 0;
 
-	if(0 == searchZigbeeData(data, &index))		// 还无数据存在
+	if(0 == searchZigbeeData(data.Req_Station, &index))		// 还无数据存在
 	{
 		zigbeeRecvDataBuf_Append(data);
 		BuzzerCtrlPtr->buzzerFlag = 1;
@@ -510,7 +510,7 @@ void zigbeeDeleteQueue(u8 index)
 }
 
 
-void zigbeeCancelQueue(u16 data)
+void zigbeeCancelQueue(u8 data)
 {
 	u8 index = 0;
 
@@ -539,9 +539,10 @@ void zigbeeRecvDataBuf_Delete(void)
 	}
 }
 
-void get_zigbeeData(u16 *data)
+void get_zigbeeData(ReqQueueStr_P data)
 {
-	*data = zigbeeInfoQueueBuf[zigbeeQueueCtrl.HeadVernier];
+	data->Req_Station = zigbeeInfoQueueBuf[zigbeeQueueCtrl.HeadVernier].Req_Station;
+	data->Req_Type = zigbeeInfoQueueBuf[zigbeeQueueCtrl.HeadVernier].Req_Type;
 }
 
 

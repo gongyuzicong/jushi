@@ -5,6 +5,7 @@
 #include "cfg_gpio.h"
 #include "fiberglas.h"
 #include "ecv_control.h"
+#include "fiberglas.h"
 
 //添加到全局变量//
 u8 receive_buf[150];
@@ -12,6 +13,11 @@ u8 lcd_receive_count=0;
 u8 flag_recok=0;
 
 u16 main_state[10]={11,22,33,44,55,66,77,88,99,100};
+
+LCD_Info_Str LCD_Info;
+LCD_Info_Str_P LCD_Info_Ptr = &LCD_Info;
+
+
 /*
 mian_state里的十个数据分别为
 应完成，总个数，合格，超重，超轻
@@ -229,18 +235,20 @@ void Lcd_Handle(void)
 				{
 					Set_batter(98);
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+					LCD_Info_Ptr->ViewPage = LCD_MainPage;
 					Set_main_state(main_state);
-					getWeightCtrl_Ptr->weightReportFlag = 0;
 					WarningLedCtrlPtr->twinkleNum = 2;
 				}
+				
 				if(receive_buf[1]==0x42)//称重页面
 				{
 					Set_batter(98);
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
-					getWeightCtrl_Ptr->weightReportFlag = 1;
+					LCD_Info_Ptr->ViewPage = LCD_WeightPage;
 					//Set_scale_weight(00, 00);
 					WarningLedCtrlPtr->twinkleNum = 2;
 				}
+				
 				if(receive_buf[1]==0x44)//手动控制页面
 				{
 					Set_batter(98);
@@ -252,9 +260,9 @@ void Lcd_Handle(void)
 					#else
 					MOTOR_POWER_ON();
 					#endif
-					getWeightCtrl_Ptr->weightReportFlag = 0;
 					printf("ManualMode\r\n");
 				}
+				
 			}
 		//////删除数据///////
 			if(receive_buf[0]==0x44)
@@ -340,6 +348,23 @@ void Lcd_Handle(void)
 //////清除flag，接收计数//////
 		flag_recok=0;
 		lcd_receive_count=0;
+	}
+}
+
+void LCD_Page_Report(void)
+{
+	if(LCD_MainPage == LCD_Info_Ptr->ViewPage)
+	{
+		
+	}
+	else if(LCD_WeightPage == LCD_Info_Ptr->ViewPage)
+	{
+		if(1 == getWeightCtrl_Ptr->weightUpdate)
+		{
+			getWeightCtrl_Ptr->weightUpdate = 0;
+			Report_Weight_Data();
+		}
+		
 	}
 }
 
@@ -499,13 +524,17 @@ void LCD_UART_INIT(void)
 	USART_ClearFlag(USART1, USART_FLAG_TC);
 }
 
+void LCD_Struct_Init(void)
+{
+	LCD_Info_Ptr->ViewPage = LCD_MainPage;
+}
 
 
 void LCD_INIT(void)
 {
 	LCD_UART_INIT();
 
-	
+	LCD_Struct_Init();
 }
 
 

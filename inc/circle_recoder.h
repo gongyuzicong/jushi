@@ -71,6 +71,7 @@ typedef struct
 	u16 CircleRecoderCount;				// 记录的数据数量
 	
 	u32 TimeTempRec;					// 记录的临时时间变量
+	u8 lock;
 }CIRCLE_INFO_STRUCT, *CIRCLE_INFO_STRUCT_P;
 
 

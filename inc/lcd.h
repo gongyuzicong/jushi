@@ -3,6 +3,17 @@
 
 #include "common_include.h"
 
+typedef enum
+{
+	LCD_MainPage,
+	LCD_WeightPage,
+}LCD_View_Page;
+
+typedef struct LCD_Info_Struct
+{
+	LCD_View_Page ViewPage;
+}LCD_Info_Str, *LCD_Info_Str_P;
+
 
 void Uart_Send_Char(u8 data);
 void Uart_Send_Str(u8* str);
@@ -26,6 +37,10 @@ void LCD_INIT(void);
 void Weight_Screen_Show(void);
 void Screen_Save_Power_Mode(void);
 void Light_Up_Screen(void);
+void LCD_Page_Report(void);
+
+
+extern LCD_Info_Str_P LCD_Info_Ptr;
 
 
 #endif

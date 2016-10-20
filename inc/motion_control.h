@@ -14,8 +14,17 @@
 #define USE_HALL_CTRL		0
 
 #define Warning_LED_RED			PDout(3)
+#define Warning_LED_RED_ON()	{Warning_LED_RED = 0;}
+#define Warning_LED_RED_OFF()	{Warning_LED_RED = 1;}
+
 #define Warning_LED_GREEN		PCout(6)
+#define Warning_LED_GREEN_ON()	{Warning_LED_GREEN = 0;}
+#define Warning_LED_GREEN_OFF()	{Warning_LED_GREEN = 1;}
+
 #define Warning_LED_ORANGE		PCout(7)
+#define Warning_LED_ORANGE_ON()	{Warning_LED_ORANGE = 0;}
+#define Warning_LED_ORANGE_OFF(){Warning_LED_ORANGE = 1;}
+
 #define Warning_LED_IN			PDin(3)
 #define ProtectSW_F				PDin(5)
 #define ProtectSW_F_RESPOND		(0 == ProtectSW_F)
@@ -387,6 +396,20 @@ typedef struct
 	u8 	buzzerNum;
 	void (*buzzerCtrlFunc)(void);
 }Buzzer_Ctrl, *Buzzer_Ctrl_P;
+
+typedef enum
+{
+	TypeUnknow,
+	TypeManuReq,
+	TypeAutoReq,
+}ReqType;
+
+typedef struct ReqQueueStruct
+{
+	u8 Req_Station;
+	ReqType Req_Type;
+}ReqQueueStr, *ReqQueueStr_P;
+
 
 typedef struct
 {

@@ -162,8 +162,8 @@ typedef enum
 
 typedef enum
 {
-	ECV_UNUSED = 0,		// 电缸正在使用
-	ECV_USEING,			// 电缸未使用
+	ECV_UNUSED = 0,		// 电缸未使用
+	ECV_USEING,			// 电缸正在使用
 	ECV_COMPLETE,
 }EcvUseStatus;
 
@@ -226,10 +226,8 @@ typedef struct
 
 void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P);
 void ECV_Init(void);
-void M_A_Init(void);
 void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P);
 void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P);
-void M_A_Init2(void);
 void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P);
 void Machine_Arm_Init3(void);
 

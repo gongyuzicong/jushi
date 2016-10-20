@@ -81,9 +81,9 @@ int main(void)
 	
 	//mslRecF = FMSDS_Ptr->AgvMSLocation;
 	//mslRecR = FMSDS_Ptr->AgvMSLocation;
-	Warning_LED_RED 	= 1;
-	Warning_LED_GREEN 	= 0;
-	Warning_LED_ORANGE 	= 0;
+	Warning_LED_RED_OFF();
+	Warning_LED_GREEN_ON();
+	Warning_LED_ORANGE_OFF();
 	//MPU6050_Data_init3();
 	
 	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
@@ -92,7 +92,6 @@ int main(void)
 	
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
-	//M_A_Init2();
 	Machine_Arm_Init3();
 	
 	MOTOR_POWER_ON();
@@ -126,9 +125,10 @@ int main(void)
 		
 		ProtectFunc();
 		Read_RTC_Data();						// 年月日
-		Lcd_Handle();							// 小屏幕操作函数
+		Lcd_Handle();							// 小屏幕接收操作函数
 		SIMU_PWM_BreathBoardLED_Ctrl();			// 模拟PWM控制主控板LED呼吸灯
 		Scan_Weight_Func();						// 扫描称重模块数据
+		LCD_Page_Report();						// 小屏幕各个页面数据显示控制
 		WarningLedCtrlPtr->twinkleCtrlFunc();	// 警告灯闪烁控制
 		ECV_Ctrl_Func(FECV_Str_Ptr);			// 前电缸控制
 		ECV_Ctrl_Func_SW(BECV_Str_Ptr);			// 后电缸控制
@@ -179,7 +179,7 @@ int main(void)
 			ZigbeeRecv_Simu();
 			
 			Receive_handle2();				// ZigBee数据接收处理函数
-						
+			
 			CrossRoad_Count();				// 磁条十字交叉路口的计算
 			
 			Get_Zigbee_Info_From_Buf();		// 从队列当中取出接收到的ZigBee信息
@@ -255,7 +255,7 @@ int main(void)
 			}
 			#endif
 			
-			SIMU_PWM_BreathWarningLED_Ctrl();
+			//SIMU_PWM_BreathWarningLED_Ctrl();
 			//LeftOrRight_Counter();
 			//printf("1agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
 			//printf("1walkingstep = %d, agvStatus = %d\r\n", ctrlParasPtr->walkingstep, ctrlParasPtr->agvStatus);
@@ -322,7 +322,7 @@ int main(void)
 		Delay_ns(1);
 		*/
 		//Lcd_Handle();
-		Get_Weight_Data();
+		//Get_Weight_Data();
 				
 		//Lcd_Handle();
 

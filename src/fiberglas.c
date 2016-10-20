@@ -179,15 +179,21 @@ void Report_Weight_Data(void)
 	Set_scale_weight(FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
 }
 
+void Clean_Weight_Func(void)
+{
+	FiberglasInfo_Ptr->weight_H = 0x00;
+	FiberglasInfo_Ptr->weight_L = 0x00;
+	
+	Report_Weight_Data();
+}
 
 void Scan_Weight_Func(void)
 {
 	static u32 timRec = 0;
 	int Adc;
 	double Volts;
-	static u8 flag = 0x00;
 
-	if(1 == getWeightCtrl_Ptr->weightReportFlag)
+	if(1 == getWeightCtrl_Ptr->weightScanEnable)
 	{
 		if(Delay_Func(&timRec, 500))
 		{
@@ -196,122 +202,23 @@ void Scan_Weight_Func(void)
 			
 			if(Volts - VoltsOffset > 0.005)
 			{
-				flag = 0x01;
+				Get_Weight_Data();
 			}
 			else
 			{
-				flag = 0x00;
+				FiberglasInfo_Ptr->weight_H = 0x00;
+				FiberglasInfo_Ptr->weight_L = 0x00;
 			}
+
+			getWeightCtrl_Ptr->weightUpdate = 1;
+
+			timRec = 0;
 		}
 		
-		if(0x01 == flag)
-		{
-			getWeightCtrl_Ptr->getWeightFlag = 1;
-					
-		}
-		else
-		{
-			getWeightCtrl_Ptr->getWeightFlag = 0;
-		}
-
-		if(1 == getWeightCtrl_Ptr->getWeightFlag)
-		{
-			Get_Weight_Data();
-			Report_Weight_Data();
-		}
 	}	
 	
 }
 
-
-void Get_Weight_Func(void)
-{
-	static u32 timRec = 0;
-	static u8 step = 0;
-	int Adc;
-	double Volts;
-	float weight;
-
-	if(1 == getWeightCtrl_Ptr->getWeightFlag)
-	{
-		if(0 == step)
-		{
-			Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-			VoltsOffset = (Adc * 0.000000598);
-		}		
-		else if(1 == step)
-		{
-			Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-			Volts = (Adc * 0.000000598);
-			if(Volts - VoltsOffset > 0.01)
-			{
-				step = 2;
-			}
-		}
-		else if(2 == step)
-		{
-			if(Delay_Func(&timRec, 3000))
-			{
-				Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-				Volts = (Adc * 0.000000598) - VoltsOffset;
-				weight = (Volts / 0.000025) / 1000.0;
-				FiberglasInfo_Ptr->weight_H = (u32)(Volts / 0.000025) / 1000;
-				FiberglasInfo_Ptr->weight_L = ((u32)(Volts / 0.000025) % 1000) / 10;
-				step = 3;
-				printf("weight_H = %d, weight_L = %d\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
-				printf(" %.3lfV, %.3fkg\r\n", Volts, weight);
-			}
-			
-		}
-		else if(3 == step)
-		{
-			Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-			Volts = (Adc * 0.000000598);
-			if(Volts - VoltsOffset < 0.1)
-			{
-				printf("release\r\n");
-				timRec = 0;
-				step = 0;
-				getWeightCtrl_Ptr->getWeightFlag = 0;
-			}
-		}
-		
-	}
-	
-	
-}
-
-void Update_Offset_Func_Ctrl(void)
-{
-	static u32 timRec = 0;
-	int Adc;
-	
-	if(0 == getWeightCtrl_Ptr->getWeightFlag)
-	{
-		if(Delay_Func(&timRec, 1000))
-		{
-			Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-			VoltsOffset = (Adc * 0.000000598);
-		}
-	}
-	else
-	{
-		timRec = 0;
-	}
-}
-
-void Update_Offset_Func_Auto(void)
-{
-	static u32 timRec = 0;
-	//int Adc;
-
-	if(Delay_Func(&timRec, 1000))
-	{
-		//Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// 相当于 ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
-		
-		
-	}
-}
 
 /********************** USE ADS1256 END ***************************************/
 
@@ -612,9 +519,8 @@ void Fiberglas_Init(void)
 	FiberglasInfo_Ptr->agvID = ReadAgvID();
 	FiberglasInfo_Ptr->fiberglasCount = ReadFiberglasCount();
 	
-	getWeightCtrl_Ptr->getWeightFlag = 0;
-	getWeightCtrl_Ptr->tempWeight = 0.0;
-	getWeightCtrl_Ptr->tempWeightUpdate = 0;
+	getWeightCtrl_Ptr->weightScanEnable = 0;
+	getWeightCtrl_Ptr->weightUpdate = 0;
 }
 
 /********************** USE EEPROM END ***************************************/

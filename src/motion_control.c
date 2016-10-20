@@ -5190,23 +5190,26 @@ void Get_Zigbee_Info_From_Buf(void)
 	//if((step_stop == ctrlParasPtr->walkingstep) && (zigbeeQueueCtrl.Total > 0) && (ctrlParasPtr->crossRoadCountF >= 3))
 	if((ctrlParasPtr->walkingstep >= step_origin) && (zigbeeQueueCtrl.Total > 0))
 	{
-		u16 data = 0;
+		ReqQueueStr info;
+		info.Req_Station = 0;
 		
-		get_zigbeeData(&data);
+		get_zigbeeData(&info);
 
-		printf("get_data = %d\r\n", data);
+		printf("get_station = %d\r\n", info.Req_Station);
 
-		if(0 == data)
+		if(0 == info.Req_Station)
 		{
-			printf("recvId error!\r\n");
+			printf("Req_Station error!\r\n");
 		}
 		else
 		{
 			Zigbee_Ptr->recvValidDataFlag = 1;
-			Zigbee_Ptr->recvId = data;
+			//Zigbee_Ptr->recvId = data;
+			Zigbee_Ptr->runningInfo = info;
 			
 			#if USE_CIRCLE_INFO_RECODER
-			CircleInfoStrPtr->Station = data;
+			CircleInfoStrPtr->lock = 1;
+			CircleInfoStrPtr->Station = info.Req_Station;
 			CircleInfoStrPtr->RESPOND_TIME = BackgroudRTC_Rec;
 			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 			#endif
@@ -5222,12 +5225,11 @@ void RFID_Goal_Node_Analy(void)
 	{
 		Zigbee_Ptr->recvValidDataFlag = 0;
 		ctrlParasPtr->rifdAdaptFlag = 0;
-		Warning_LED_RED = 0;
-		if((ZBandRFIDmapping[SpinStation_1] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_2] == Zigbee_Ptr->recvId))
+		if((ZBandRFIDmapping[SpinStation_1] == Zigbee_Ptr->runningInfo.Req_Station) || (ZBandRFIDmapping[SpinStation_2] == Zigbee_Ptr->runningInfo.Req_Station))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_1AND2_RFID;
-			//printf("%04x, %04x\r\n", ZBandRFIDmapping[SpinStation_1], Zigbee_Ptr->recvId);
-			if(ZBandRFIDmapping[SpinStation_1] == Zigbee_Ptr->recvId)
+			//printf("%04x, %04x\r\n", ZBandRFIDmapping[SpinStation_1], Zigbee_Ptr->runningInfo.Req_Station);
+			if(ZBandRFIDmapping[SpinStation_1] == Zigbee_Ptr->runningInfo.Req_Station)
 			{
 				ctrlParasPtr->goalStation = SpinStation_1;
 			}
@@ -5238,10 +5240,10 @@ void RFID_Goal_Node_Analy(void)
 			
 			ctrlParasPtr->walkingstep = step_gS;
 		}
-		else if((ZBandRFIDmapping[SpinStation_3] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_4] == Zigbee_Ptr->recvId))
+		else if((ZBandRFIDmapping[SpinStation_3] == Zigbee_Ptr->runningInfo.Req_Station) || (ZBandRFIDmapping[SpinStation_4] == Zigbee_Ptr->runningInfo.Req_Station))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_3AND4_RFID;
-			if(ZBandRFIDmapping[SpinStation_3] == Zigbee_Ptr->recvId)
+			if(ZBandRFIDmapping[SpinStation_3] == Zigbee_Ptr->runningInfo.Req_Station)
 			{
 				ctrlParasPtr->goalStation = SpinStation_3;
 			}
@@ -5251,10 +5253,10 @@ void RFID_Goal_Node_Analy(void)
 			}
 			ctrlParasPtr->walkingstep = step_gS;
 		}
-		else if((ZBandRFIDmapping[SpinStation_5] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_6] == Zigbee_Ptr->recvId))
+		else if((ZBandRFIDmapping[SpinStation_5] == Zigbee_Ptr->runningInfo.Req_Station) || (ZBandRFIDmapping[SpinStation_6] == Zigbee_Ptr->runningInfo.Req_Station))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_5AND6_RFID;
-			if(ZBandRFIDmapping[SpinStation_5] == Zigbee_Ptr->recvId)
+			if(ZBandRFIDmapping[SpinStation_5] == Zigbee_Ptr->runningInfo.Req_Station)
 			{
 				ctrlParasPtr->goalStation = SpinStation_5;
 			}
@@ -5264,10 +5266,10 @@ void RFID_Goal_Node_Analy(void)
 			}
 			ctrlParasPtr->walkingstep = step_gS;
 		}
-		else if((ZBandRFIDmapping[SpinStation_7] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_8] == Zigbee_Ptr->recvId))
+		else if((ZBandRFIDmapping[SpinStation_7] == Zigbee_Ptr->runningInfo.Req_Station) || (ZBandRFIDmapping[SpinStation_8] == Zigbee_Ptr->runningInfo.Req_Station))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_7AND8_RFID;
-			if(ZBandRFIDmapping[SpinStation_7] == Zigbee_Ptr->recvId)
+			if(ZBandRFIDmapping[SpinStation_7] == Zigbee_Ptr->runningInfo.Req_Station)
 			{
 				ctrlParasPtr->goalStation = SpinStation_7;
 			}
@@ -5277,10 +5279,10 @@ void RFID_Goal_Node_Analy(void)
 			}
 			ctrlParasPtr->walkingstep = step_gS;
 		}
-		else if((ZBandRFIDmapping[SpinStation_9] == Zigbee_Ptr->recvId) || (ZBandRFIDmapping[SpinStation_10] == Zigbee_Ptr->recvId))
+		else if((ZBandRFIDmapping[SpinStation_9] == Zigbee_Ptr->runningInfo.Req_Station) || (ZBandRFIDmapping[SpinStation_10] == Zigbee_Ptr->runningInfo.Req_Station))
 		{
 			ctrlParasPtr->goalRFIDnode = STATION_9AND10_RFID;
-			if(ZBandRFIDmapping[SpinStation_9] == Zigbee_Ptr->recvId)
+			if(ZBandRFIDmapping[SpinStation_9] == Zigbee_Ptr->runningInfo.Req_Station)
 			{
 				ctrlParasPtr->goalStation = SpinStation_9;
 			}
@@ -6286,20 +6288,34 @@ void step_gS_Func(void)
 	//printf("rfidData = %02x, goalRFIDnode = %d\r\n", RFID_Info_Ptr->rfidData, ctrlParasPtr->goalRFIDnode);
 	if((1 == ctrlParasPtr->originFlag) && (ORIGIN_STATION_NODE == ctrlParasPtr->goalRFIDnode))
 	{
-		if(GoodReq == CMD_Flag_Ptr->Req_Flag)
+		if(TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type)
 		{
 			ctrlParasPtr->originFlag = 0;
 			ctrlParasPtr->walkingstep = step_gVeer;
+
+			#if USE_CIRCLE_INFO_RECODER
+			CircleInfoStrPtr->CircleTime.Go2RFIDTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+			#endif
 			
 		}
-		else
+		else if(TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type)
 		{
 			
 			if(Return_SW_Respond)
 			{
 				ctrlParasPtr->originFlag = 0;
 				ctrlParasPtr->walkingstep = step_gVeer;
+
+				#if USE_CIRCLE_INFO_RECODER
+				CircleInfoStrPtr->CircleTime.Go2RFIDTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+				#endif
 			}
+		}
+		else
+		{
+			printf("req type error!\r\n");
 		}
 		
 	}
@@ -6449,35 +6465,44 @@ void step_gS_Func(void)
 
 				#if USE_CIRCLE_INFO_RECODER
 				CircleInfoStrPtr->CircleTime.Go2RFIDTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 				#endif
 			}
 		}
 
 		if(1 == flag)
 		{
-			if(GoodReq == CMD_Flag_Ptr->Req_Flag)
+			if(TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type)
 			{
 				flag = 0;
-								
-				CMD_Flag_Ptr->Req_Flag = NcNone;
+				
+				Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 				CMD_Flag_Ptr->Cancel_Flag = NcNone;
 				ctrlParasPtr->rifdAdaptFlag = 0;
+				ctrlParasPtr->originFlag = 0;
 				ctrlParasPtr->walkingstep	= step_gVeer;
+
+				#if USE_CIRCLE_INFO_RECODER
+				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;	
+				#endif
+				
 			}
-			else
+			else if(TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type)
 			{
 				
 				if(Return_SW_Respond)
 				//if(Return_SW_LF_Respond)
 				{
 					flag = 0;
-					CircleInfoStrPtr->TimeTempRec 			= SystemRunningTime;
-					CMD_Flag_Ptr->Req_Flag = NcNone;
+					Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 					CMD_Flag_Ptr->Cancel_Flag = NcNone;
 					ctrlParasPtr->rifdAdaptFlag = 0;
+					ctrlParasPtr->originFlag = 0;
 					printf("AutoReq step_gVeer\r\n");
 					ctrlParasPtr->walkingstep = step_gVeer;
+
+					#if USE_CIRCLE_INFO_RECODER
+					CircleInfoStrPtr->TimeTempRec = SystemRunningTime;	
+					#endif
 					
 				}
 				/*
@@ -6702,86 +6727,8 @@ void step_gS_Func2(void)
 
 }
 
+
 void step_gVeer_Func(void)
-{
-	static u8 stepFlag = 0;
-	
-	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
-		(SpinStation_3 == ctrlParasPtr->goalStation) || \
-		(SpinStation_5 == ctrlParasPtr->goalStation) || \
-		(SpinStation_7 == ctrlParasPtr->goalStation) || \
-		(SpinStation_9 == ctrlParasPtr->goalStation))
-	{
-		CHANGE_TO_CIR_LEFT_MODE();
-		//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
-	}
-	else if((SpinStation_2 == ctrlParasPtr->goalStation) || \
-			(SpinStation_4 == ctrlParasPtr->goalStation) || \
-			(SpinStation_6 == ctrlParasPtr->goalStation) || \
-			(SpinStation_8 == ctrlParasPtr->goalStation) || \
-			(SpinStation_10 == ctrlParasPtr->goalStation))
-	{
-		CHANGE_TO_CIR_RIGHT_MODE();
-		//printf("goalStation = %d\r\n", ctrlParasPtr->goalStation);
-	}
-
-	if(0 == stepFlag)
-	{
-		ctrlParasPtr->gear = 3;
-		stepFlag = 1;
-	}
-	else if(1 == stepFlag)
-	{
-		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-		{
-			ctrlParasPtr->gear = 2;
-			stepFlag = 2;
-		}
-	}
-	else if(2 == stepFlag)
-	{	
-		if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
-		{
-			if(cirLeft == ctrlParasPtr->agvStatus)
-			{
-				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
-				{
-					CHANGE_TO_CIR_RIGHT_MODE();
-					
-					Delay_ms(100);
-					CleanAllSpeed();
-					
-					CHANGE_TO_STOP_MODE();
-					Delay_ns(1);
-					stepFlag = 0;
-					ctrlParasPtr->walkingstep = step_entry;
-				}
-				
-			}
-			else if(cirRight == ctrlParasPtr->agvStatus)
-			{
-				if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
-				{
-					CHANGE_TO_CIR_LEFT_MODE();
-					
-					Delay_ms(100);
-					CleanAllSpeed();
-					
-					CHANGE_TO_STOP_MODE();
-					Delay_ns(1);
-					stepFlag = 0;
-					ctrlParasPtr->walkingstep = step_entry;
-				}
-				
-			}
-		
-			
-		}
-	}
-	
-}
-
-void step_gVeer_Func2(void)
 {
 	static u8 stepFlag = 0;
 
@@ -6832,7 +6779,7 @@ void step_gVeer_Func2(void)
 				CHANGE_TO_STOP_MODE();
 				
 				
-				//if(AutoReq == CMD_Flag_Ptr->Req_Flag)
+				//if(TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type)
 				if(0)
 				{
 					
@@ -6840,17 +6787,17 @@ void step_gVeer_Func2(void)
 					{
 						stepFlag = 0;
 						CircleInfoStrPtr->TimeTempRec 			= SystemRunningTime;
-						CMD_Flag_Ptr->Req_Flag = NcNone;
+						Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 						printf("AutoReq step_entry\r\n");
 						ctrlParasPtr->walkingstep = step_entry;
 					}
 					
 				}
-				//else if(GoodReq == CMD_Flag_Ptr->Req_Flag)
+				//else if(TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type)
 				else
 				{
 					stepFlag = 0;
-					CMD_Flag_Ptr->Req_Flag = NcNone;
+					Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 					ctrlParasPtr->walkingstep = step_entry;
 					
 					#if USE_CIRCLE_INFO_RECODER
@@ -7263,9 +7210,12 @@ void step_weigh_Func(void)
 	#endif
 
 #else
-
+	
+	
 	if(0 == step)
 	{
+		getWeightCtrl_Ptr->weightScanEnable = 1;
+		
 		temp.Dir 			= ECV_UP;
 		temp.EcvSpeed 		= 100;
 		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
@@ -7290,12 +7240,28 @@ void step_weigh_Func(void)
 			{
 				BECV_Str_Ptr->Dir = ECV_STOP;
 			}
-			
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
 			step = 1;
 		}
 		
 	}
 	else if(1 == step)
+	{
+		temp.Dir 			= ECV_UP;
+		temp.EcvSpeed 		= 100;
+		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 200;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if(ECV_COMPLETE == FECV_Str_Ptr->UseStatus)
+		{
+			step = 2;
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+		}
+		
+	}
+	else if(2 == step)
 	{
 		if(0 == timRec)
 		{
@@ -7306,7 +7272,7 @@ void step_weigh_Func(void)
 		else
 		{
 			
-			if(RLMT_SW_RESPOND || (SystemRunningTime - timRec >= 20000))
+			if(RLMT_SW_RESPOND || (SystemRunningTime - timRec >= 10000))
 			{
 				temp.Dir 			= ECV_UP;
 				temp.EcvSpeed 		= 100;
@@ -7359,8 +7325,10 @@ void step_weigh_Func(void)
 		step = 0;
 		timRec = 0;
 		MOTOR1_HALL_COUNT_FLAG = 1;
+		getWeightCtrl_Ptr->weightScanEnable = 0;
+		
 		ctrlParasPtr->walkingstep = step_bVeer;
-
+		
 		#else
 		
 		#ifdef USE_SEND_ZIGBEE		
@@ -7387,6 +7355,7 @@ void step_weigh_Func(void)
 	#endif
 }
 
+
 void step_bVeer_Func(void)
 {
 	static u8 stepFlag = 0;
@@ -7410,93 +7379,15 @@ void step_bVeer_Func(void)
 
 	if(0 == stepFlag)
 	{
-		ctrlParasPtr->gear = 4;
-		stepFlag = 1;
-	}
-	else if(1 == stepFlag)
-	{
-		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+		if((SpinStation_9 == ctrlParasPtr->goalStation) || (SpinStation_10 == ctrlParasPtr->goalStation))
 		{
-			ctrlParasPtr->gear = 2;
-			stepFlag = 2;
+			ctrlParasPtr->cirDuty = 18;
 		}
-	}
-	else if(2 == stepFlag)
-	{	
-		if((0xFFFF != FMSDS_Ptr->MSD_Hex) || (0xFFFF != RMSDS_Ptr->MSD_Hex))
+		else
 		{
-			
-			if(cirLeft == ctrlParasPtr->agvStatus)
-			{
-				if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Center) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_1))
-				{
-					CHANGE_TO_CIR_RIGHT_MODE();
-					
-					Delay_ms(100);
-					CleanAllSpeed();
-					
-					CHANGE_TO_STOP_MODE();
-					//Delay_ms(500);
-				#ifdef USE_SEND_ZIGBEE
-					Send_WaitForGoods();
-				#endif
-					stepFlag = 0;
-					
-					ctrlParasPtr->BSflag = 0;
-					ctrlParasPtr->walkingstep = step_gB;
-				}
-			}
-			else if(cirRight == ctrlParasPtr->agvStatus)
-			{
-				if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_1) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))
-				{
-					
-					CHANGE_TO_CIR_LEFT_MODE();
-					
-					Delay_ms(100);
-					CleanAllSpeed();
-					
-					CHANGE_TO_STOP_MODE();
-					//Delay_ms(500);
-					Send_WaitForGoods();
-					stepFlag = 0;
-					
-					ctrlParasPtr->BSflag = 0;
-					ctrlParasPtr->walkingstep = step_gB;
-				}
-			}
-			
-			
+			ctrlParasPtr->cirDuty = 13;
 		}
-	}
-	
-}
-
-
-void step_bVeer_Func2(void)
-{
-	static u8 stepFlag = 0;
-	
-	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_3 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_5 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_7 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_9 == ctrlParasPtr->goalStation))
-	{
-		CHANGE_TO_CIR_RIGHT_MODE();
-	}
-	else if((SpinStation_2 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_4 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_6 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_8 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_10 == ctrlParasPtr->goalStation))
-	{
-		CHANGE_TO_CIR_LEFT_MODE();
-	}
-
-	if(0 == stepFlag)
-	{
-		ctrlParasPtr->cirDuty = 13;
+		
 		stepFlag = 1;
 	}
 	else if(1 == stepFlag)
@@ -7575,7 +7466,7 @@ void step_gB_Func(void)
 	temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 	FECV_Str_Ptr->ECV_SetPara(&temp);
 
-	temp.EcvSpeed 		= 80;
+	temp.EcvSpeed 		= 100;
 	BECV_Str_Ptr->ECV_SetPara(&temp);
 	
 	
@@ -7606,6 +7497,9 @@ void step_gB_Func(void)
 		FECV_Str_Ptr->ECV_Clean_Use_Status();
 		BECV_Str_Ptr->ECV_Clean_Use_Status();
 		WECV_Str_Ptr->ECV_Clean_Use_Status();
+		ctrlParasPtr->originFlag = 0;
+
+		//Clean_Weight_Func();
 		ctrlParasPtr->walkingstep = step_wFTans;
 		
 	}
@@ -7613,66 +7507,113 @@ void step_gB_Func(void)
 
 void step_wFTans_Func(void)
 {
-	static u32 timRec = 0;
 	Ecv_Para temp;
-	
-	if(0 == timRec)
+	static u8 step = 0;	
+	static u32 timRec = 0;
+
+	if(0 == step)
 	{
-	#ifdef USE_SEND_ZIGBEE
+		#ifdef USE_SEND_ZIGBEE
 		Send_Arrive();
-	#endif
+		#endif
+		
 		ctrlParasPtr->crossRoadCountF = ORIGIN_STATION_NODE + EXTRA_CROSS_ROAD_R;
 		ctrlParasPtr->crossRoadCountR = ORIGIN_STATION_NODE + EXTRA_CROSS_ROAD_R - 1;
 		
-		timRec = SystemRunningTime;
 		temp.Dir 				= ECV_UP;
-		temp.EcvHallCountCmp 	= HallCountCmpManager_Str_Ptr->BecvInit;
+		temp.EcvHallCountCmp 	= HallCountCmpManager_Str_Ptr->BecvInit + 100;
 		temp.EcvSpeed			= 100;
 		temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
 		BECV_Str_Ptr->ECV_SetPara(&temp);
-		//printf("timRec = %d\r\n", timRec);
+
+		step = 1;
+
+		
 	}
-	else
+	else if(1 == step)
+	{
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			
+			temp.Dir 				= ECV_DOWN;
+			temp.EcvHallCountCmp 	= HallCountCmpManager_Str_Ptr->BecvInit;
+			temp.EcvSpeed			= 100;
+			temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
+			BECV_Str_Ptr->ECV_SetPara(&temp);
+			
+			step = 2;
+		}
+		
+	}
+	else if(2 == step)
+	{
+		getWeightCtrl_Ptr->weightScanEnable = 1;
+
+		if(0 == timRec)
+		{
+			timRec = SystemRunningTime;
+		}
+		else
+		{
+			if(SystemRunningTime - timRec >= 50000)
+			{
+				step = 3;
+			}
+		}	
+	}
+	else if(3 == step)
 	{
 		
-		if(Return_SW_Respond)
+		if(FiberglasInfo_Ptr->weight_H <= 5)
 		{
 			CMD_Flag_Ptr->cmdFlag = GoodLeav;
 		}
+	}
+	
+	if(Return_SW_Respond)
+	{
+		CMD_Flag_Ptr->cmdFlag = GoodLeav;
+	}
+	
+	if(GoodLeav == CMD_Flag_Ptr->cmdFlag)
+	{
+		step = 0;
+		timRec = 0;
+
+		getWeightCtrl_Ptr->weightScanEnable = 0;
+		CMD_Flag_Ptr->cmdFlag = NcNone;
+		RFID_Info_Ptr->rfidData = 0x00;
+		Zigbee_Ptr->runningInfo.Req_Station = 0x00;
+		Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
+		CHANGE_TO_GO_STRAIGHT_MODE();
+		ctrlParasPtr->crossRoadCountF = EXTRA_CROSS_ROAD_R - 1;
+		ctrlParasPtr->crossRoadCountR = EXTRA_CROSS_ROAD_R - 2;
+
+		#if USE_CIRCLE_INFO_RECODER
+		CircleInfoStrPtr->TakeAwayTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+		CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+		#endif
 		
-		if(GoodLeav == CMD_Flag_Ptr->cmdFlag)
+		BECV_Str_Ptr->ECV_Clean_Use_Status();
+		
+		zigbeeRecvDataBuf_Delete();
+
+		if(zigbeeQueueCtrl.Total > 0)
 		{
-			CMD_Flag_Ptr->cmdFlag = NcNone;
-			timRec = 0;
-			RFID_Info_Ptr->rfidData = 0x00;
-			Zigbee_Ptr->recvId = 0x00;
-			CHANGE_TO_GO_STRAIGHT_MODE();
-			ctrlParasPtr->crossRoadCountF = EXTRA_CROSS_ROAD_R - 1;
-			ctrlParasPtr->crossRoadCountR = EXTRA_CROSS_ROAD_R - 2;
-
 			#if USE_CIRCLE_INFO_RECODER
-			CircleInfoStrPtr->TakeAwayTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+			CircleInfoStrPtr->CircleTime.BackToOriginTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+			Save_OneCircleInfo(CircleInfoStrPtr);
+			Clean_CircleInfoStr(CircleInfoStrPtr);
 			#endif
-			
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-			
-			zigbeeRecvDataBuf_Delete();
-
-			if(zigbeeQueueCtrl.Total > 0)
-			{
-				#if USE_CIRCLE_INFO_RECODER
-				CircleInfoStrPtr->CircleTime.BackToOriginTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
-				Save_OneCircleInfo(CircleInfoStrPtr);
-				Clean_CircleInfoStr(CircleInfoStrPtr);
-				#endif
-			}
-			
-			RFID_Info_Ptr->rfidData = STATION_LM;
-			ctrlParasPtr->StartupFlag = 0;
-			ctrlParasPtr->walkingstep = step_origin;
 		}
+		
+		RFID_Info_Ptr->rfidData = STATION_LM;
+		ctrlParasPtr->originFlag = 0;
+		ctrlParasPtr->StartupFlag = 0;
+		RFID_Info_Ptr->updateFlag = 0;
+		ctrlParasPtr->walkingstep = step_origin;
 	}
 	
 	
@@ -7836,12 +7777,15 @@ void step_origin_Func2(void)
 			CleanAllSpeed();
 			CHANGE_TO_STOP_MODE();
 			ctrlParasPtr->rifdAdaptFlag = 0;
-
+			
 			#if USE_CIRCLE_INFO_RECODER
-			CircleInfoStrPtr->CircleTime.BackToOriginTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
-			Save_OneCircleInfo(CircleInfoStrPtr);
-			Clean_CircleInfoStr(CircleInfoStrPtr);
+			if(1 == CircleInfoStrPtr->lock)
+			{
+				CircleInfoStrPtr->CircleTime.BackToOriginTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+				Save_OneCircleInfo(CircleInfoStrPtr);
+				Clean_CircleInfoStr(CircleInfoStrPtr);
+			}
 			#endif
 			
 			//printf("***************************!\r\n");
@@ -7864,7 +7808,8 @@ void step_stop_Func(void)
 	ctrlParasPtr->walkingstep = step_stop;
 	//ctrlParasPtr->crossRoadCountF = EXTRA_CROSS_ROAD_R + 1;
 	//ctrlParasPtr->crossRoadCountR = EXTRA_CROSS_ROAD_R;
-	//Zigbee_Ptr->recvId = 0x00;
+	//Zigbee_Ptr->runningInfo.Req_Station = 0x00;
+	//Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 }
 
 
@@ -7932,7 +7877,6 @@ void AutoRunningFunc(void)
 
 void Walking_Step_Controler(void)
 {
-	static WalkStep stepRec = step_stop;
 	
 	if(step_gS == ctrlParasPtr->walkingstep)
 	{
@@ -7944,7 +7888,7 @@ void Walking_Step_Controler(void)
 	}
 	else if(step_gVeer == ctrlParasPtr->walkingstep)
 	{
-		step_gVeer_Func2();
+		step_gVeer_Func();
 	}
 	else if(step_entry == ctrlParasPtr->walkingstep)
 	{
@@ -7964,7 +7908,7 @@ void Walking_Step_Controler(void)
 	}
 	else if(step_bVeer == ctrlParasPtr->walkingstep)
 	{
-		step_bVeer_Func2();
+		step_bVeer_Func();
 	}
 	else if(step_gB == ctrlParasPtr->walkingstep)
 	{
@@ -8035,7 +7979,7 @@ void WarningLedTwinkleCtrl(void)
 		if(0 == timRec)
 		{
 			timRec = SystemRunningTime;
-			Warning_LED_RED = 1;
+			Warning_LED_GREEN_OFF();
 			step = 0;
 		}
 		else
@@ -8045,7 +7989,7 @@ void WarningLedTwinkleCtrl(void)
 			{
 				if(SystemRunningTime - timRec >= WarningLedCtrlPtr->intervalTime_ms * 10)
 				{
-					Warning_LED_RED = 0;
+					Warning_LED_GREEN_ON();
 					step = 1;
 					timRec = SystemRunningTime;
 				}
@@ -8209,26 +8153,7 @@ void ZigbeeRecv_Simu2(u8 *flag)
 
 void ZigbeeRecv_Simu(void)
 {
-	#if 0
-	
-	if(step_stop == ctrlParasPtr->walkingstep)
-	{
-		Zigbee_Ptr->recvValidDataFlag = 1;
-		
-		if(Zigbee_Ptr->recvId < 10)
-		{
-			Zigbee_Ptr->recvId++;
-		}
-		else
-		{
-			Zigbee_Ptr->recvId = 1;
-		}
-		
-	}
-	
-	#else
-	
-	#if 1
+#if 1
 
 	//static u8 flag = 0;
 	
@@ -8252,7 +8177,7 @@ void ZigbeeRecv_Simu(void)
 			{
 				while(Return_SW_RR_Respond);
 				//flag = 1;
-				Zigbee_Ptr->recvId = 0x000a;
+				Zigbee_Ptr->runningInfo.Req_Station = 0x000a;
 				Zigbee_Ptr->recvValidDataFlag = 1;
 			}
 		}
@@ -8263,17 +8188,14 @@ void ZigbeeRecv_Simu(void)
 	//ZigbeeRecv_Simu2(&flag);
 	
 	
-	#else
+#else
 	
 	if(step_stop == ctrlParasPtr->walkingstep)
 	{
 		ManualModeEcvCtrlFunc();
 	}
 	
-	#endif
-	
-	
-	#endif
+#endif
 	
 }
 
@@ -8766,7 +8688,7 @@ void Motion_Ctrl_Init(void)
 		mpu6050DS_ptr->ayAverageUpdate = 0;
 
 		WarningLedCtrlPtr->twinkleFlag = 0;
-		WarningLedCtrlPtr->intervalTime_ms = 500;
+		WarningLedCtrlPtr->intervalTime_ms = 100;
 		WarningLedCtrlPtr->twinkleNum = 2;
 		WarningLedCtrlPtr->twinkleCtrlFunc = WarningLedTwinkleCtrl;
 

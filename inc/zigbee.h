@@ -4,6 +4,7 @@
 
 #include "common_include.h"
 #include "data_type.h"
+#include "motion_control.h"
 
 #define NC_MODE 0x00
 #define ZD_MODE 0x01
@@ -29,7 +30,7 @@ typedef struct
 	frmFmt frm_1;
 	u8 receive_end;
 	u8 recvValidDataFlag;
-	u16 recvId;
+	ReqQueueStr runningInfo;
 }Zigbee_Info, *Zigbee_Info_P;
 
 typedef enum
@@ -47,7 +48,6 @@ typedef enum
 typedef struct
 {
 	NC_Flag cmdFlag;
-	NC_Flag Req_Flag;
 	NC_Flag Cancel_Flag;
 }RecvCmdFlag, *RecvCmdFlag_P;
 
@@ -80,7 +80,6 @@ u8 SendChar_Zigbee(u8);
 void Zigbee_Data_Scan(void);
 void send_N_char(u8 *, u8);
 void UART2_REC_IRQ(u8);
-void Receive_handle(void);
 void Send_Arrive(void);
 void Send_WaitForGoods(void);
 void Receive_handle2(void);
