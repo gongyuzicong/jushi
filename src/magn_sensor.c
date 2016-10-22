@@ -721,7 +721,7 @@ void Magn_VelocityXt_Clau(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct
 
 void Show_Magn_VelocityXt_Clau(Magn_Sensor_Data_Sturct_P now)
 {
-	printf("VXt = %d, AXt = %d, ay = %d\t", now->VelocityXt, now->AcceleratedXt, mpu6050DS_ptr->ay);
+	printf("VXt = %d, AXt = %d\t", now->VelocityXt, now->AcceleratedXt);
 }
 
 void Magn_AcceleratedXt_Clau(Magn_Sensor_Data_Sturct_P now, Magn_Sensor_Data_Sturct_P pre)

@@ -30,6 +30,8 @@
 #define LMT_INL					PCin(4)			// 响应为 0
 
 #define LMT_SW					PEin(0)			// 响应为 0
+#define LMT_SW_Respond			(0 == LMT_SW)
+#define LMT_SW_UnRespond		(1 == LMT_SW)
 
 #define Return_SW_LF				PCin(1)		// 响应为 0
 #define Return_SW_LF_Respond		(0 == Return_SW_LF)
@@ -196,7 +198,7 @@ typedef enum
 	ECV_DOWN_LIMT,
 }EcvLocation, *EcvLocation_P;
 
-typedef struct
+typedef struct EcvCtrlStruct
 {
 	u8 	EcvSpeed;									// 电缸速度, 范围 0 ~ 100
 	u8 	EcvSpeedRec;								// 记录电缸速度的临时变量
@@ -206,6 +208,8 @@ typedef struct
 	u32 EcvHallCountTimeRec;						// 电缸霍尔信号计数间隔时间
 	u32 EcvHallCountTimeOut_ms;						// 电缸霍尔信号计数超时时间, 一般不要更改
 	u16 EcvHallCountCmp;							// 设置用来比较的霍尔计数
+	u16 EcvHallCountTimeout;						// 超时的时候的霍尔计数值(此值由外部清零)
+	u16 EcvHallCountTimeoutUpdate;					// 超时霍尔计数值更新标志位(此值由外部清零)
 	EcvDir				Dir;						// 控制电缸方向
 	ECV_PowerOnOff 		Power;						// 控制电缸电源
 	EcvHallCountMode 	HallCountMode;				// 霍尔计数对比模式
@@ -218,17 +222,15 @@ typedef struct
 	void (*ECV_SetPara)(Ecv_Para_P);				// 设置电缸控制参数
 	void (*ECV_Clean_Use_Status)(void);				// 清除电缸使用状态
 	u8   (*Check_ECV_SW_Status)(void);				// 检查电缸极限开关状态 1: 为到达极限位置
-	void (*ECV_BRK)(ECV_BRK);							// 
+	void (*ECV_BRK)(ECV_BRK);						//
+	void (*ECV_Ctrl_Function)(struct EcvCtrlStruct *);
 }Ecv_Ctrl_Struct, *Ecv_Ctrl_Struct_P;
 
 
 
 
-void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P);
 void ECV_Init(void);
 void ECV_Ctrl_Func_F(Ecv_Ctrl_Struct_P);
-void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P);
-void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P);
 void Machine_Arm_Init3(void);
 
 

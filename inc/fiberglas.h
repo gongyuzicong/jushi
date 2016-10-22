@@ -3,17 +3,10 @@
 
 #include "common_include.h"
 
+#include "rtc.h" 
 
 
-typedef struct
-{
-	u8 year;
-	u8 month;
-	u8 day;
-	u8 hour;
-	u8 minute;
-	u8 second;
-}DateInfo, *DateInfo_P;
+
 
 typedef struct
 {

@@ -24,6 +24,7 @@
 #include "watch_dog.h"
 #include "circle_recoder.h"
 #include "ecv_control.h"
+#include "battery.h"
 
 void SystemInit(void)
 {	
@@ -50,10 +51,19 @@ void SystemInit(void)
 	ECV_Init();
 	
 	ADS1256_Init();
+	
+	Battery_Init();
+
 	LCD_INIT();
+	
+	LED_Init();
 	
 	#if USE_CIRCLE_INFO_RECODER
 	circle_recoder_init();
+	#endif
+
+	#if USE_NEW_RTC
+	RTC_PCF8563_Init();
 	#endif
 	
 	Get_Weight_Offset_Data();
@@ -81,9 +91,7 @@ int main(void)
 	
 	//mslRecF = FMSDS_Ptr->AgvMSLocation;
 	//mslRecR = FMSDS_Ptr->AgvMSLocation;
-	Warning_LED_RED_OFF();
-	Warning_LED_GREEN_ON();
-	Warning_LED_ORANGE_OFF();
+	
 	//MPU6050_Data_init3();
 	
 	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
@@ -94,8 +102,8 @@ int main(void)
 	
 	Machine_Arm_Init3();
 	
-	MOTOR_POWER_ON();
-	//MOTOR_POWER_OFF();
+	//MOTOR_POWER_ON();
+	MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
 	
@@ -123,16 +131,26 @@ int main(void)
 		}
 		#endif
 		
-		ProtectFunc();
+		ProtectFunc();							// 行人保护
+		
 		Read_RTC_Data();						// 年月日
+		
 		Lcd_Handle();							// 小屏幕接收操作函数
+		
 		SIMU_PWM_BreathBoardLED_Ctrl();			// 模拟PWM控制主控板LED呼吸灯
+		
 		Scan_Weight_Func();						// 扫描称重模块数据
+		
 		LCD_Page_Report();						// 小屏幕各个页面数据显示控制
-		WarningLedCtrlPtr->twinkleCtrlFunc();	// 警告灯闪烁控制
-		ECV_Ctrl_Func(FECV_Str_Ptr);			// 前电缸控制
-		ECV_Ctrl_Func_SW(BECV_Str_Ptr);			// 后电缸控制
-		//ECV_Ctrl_Func_W(WECV_Str_Ptr);			// 直行辅助轮电缸控制
+		
+		Machinearm_Control_Handle();			// 取纱臂动作控制函数
+
+		LED_Status_Handle();
+		
+		WarningLedCtrlPtr->twinkleCtrlFunc(WarningLedCtrlPtr);	// 警告灯闪烁控制
+		FECV_Str_Ptr->ECV_Ctrl_Function(FECV_Str_Ptr);// 前电缸控制
+		BECV_Str_Ptr->ECV_Ctrl_Function(BECV_Str_Ptr);// 后电缸控制
+		//WECV_Str_Ptr->ECV_Ctrl_Function(WECV_Str_Ptr);// 直行辅助轮电缸控制
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
@@ -348,6 +366,7 @@ int main(void)
 		*/		
 
 		//ManualModeEcvCtrlFunc();
+		Get_Voltage();
 		
 		#endif
 		

@@ -49,9 +49,10 @@ u8 	AgvGear7CDLF[MAX_GEAR_OFFSET] = {0, 2, 7, 8, 10, 12, 14, 16, 18, 20, 20};
 GearShiftCtrl 		gearCtrl;
 GearShiftCtrl_P 	gearCtrlPtr = &gearCtrl;
 
+#if USE_MPU6050
 MPU6050_Para 		mpu6050DS;
 MPU6050_Para_P 		mpu6050DS_ptr = &mpu6050DS;
-
+#endif
 
 u8 LTM[9] = {181, 104, 73, 55, 45, 37, 32, 29, 26};
 u8 RTM[9] = {132, 86, 63, 49, 41, 34, 30, 27, 24};
@@ -63,8 +64,6 @@ u8 DutyTable[10] = {2, 8, 15, 20, 20, 20, 20, 20, 20, 20};
 
 u8 DutyTable_Duty10[10] = {0, 0, 2, 3, 4, 5, 6, 7, 8, 9};
 
-LED_Twinkle 	WarningLedCtrl;
-LED_Twinkle_P 	WarningLedCtrlPtr = &WarningLedCtrl;
 
 Buzzer_Ctrl 	BuzzerCtrl;
 Buzzer_Ctrl_P 	BuzzerCtrlPtr = &BuzzerCtrl;
@@ -4704,9 +4703,8 @@ void ManualModeEcvCtrlFunc(void)
 		printf("BECV_HALL = %d\r\n", BECV_Str_Ptr->EcvHallCount);
 	}
 	
-
-	ECV_Ctrl_Func(FECV_Str_Ptr);
-	ECV_Ctrl_Func_SW(BECV_Str_Ptr);
+	FECV_Str_Ptr->ECV_Ctrl_Function(FECV_Str_Ptr);
+	BECV_Str_Ptr->ECV_Ctrl_Function(BECV_Str_Ptr);
 	
 }
 
@@ -5706,6 +5704,7 @@ void PUSH_INTO_ARR(s16 *arr, int head, s16 data)
 	
 }
 
+#if USE_MPU6050
 void MPU6050_Data_init(void)
 {
 	int cir = 0;
@@ -5762,6 +5761,7 @@ void MPU6050_Data_init(void)
 
 	printf("ayMax = %d, ayAverage = %d, ayMin = %d\r\n", mpu6050DS_ptr->ayMax, mpu6050DS_ptr->ayAverage, mpu6050DS_ptr->ayMin);
 }
+
 
 void MPU6050_Data_init2(void)
 {
@@ -5985,44 +5985,6 @@ void MPU6050_Get_Average_50(void)
 }
 
 
-void MS_Location_Translate(void)
-{
-	float locationNum = 0;
-	
-	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
-	{
-		if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
-		{
-			locationNum = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center) / 2.0;
-		}
-		else
-		{
-			locationNum = FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_2_5;
-		}
-		
-		printf("%.1f, ", locationNum);
-	}
-	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
-	{
-		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_5))
-		{
-			locationNum = (float)(FMSDS_Ptr->AgvMSLocation - Agv_MS_Center) / 2.0;
-		}
-		else
-		{
-			locationNum = FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_2_5;
-		}
-		
-		printf("%.1f, ", locationNum);
-	}
-	else if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
-	{
-		locationNum = 0;
-		
-		printf("%.1f, ", locationNum);
-	}
-}
-
 void MPU6050_Data(void)
 {
 	MPU6050_Get_Average_50();
@@ -6094,6 +6056,50 @@ void MPU6050_Data1(void)
 	}
 	
 }
+
+
+
+#endif
+
+
+void MS_Location_Translate(void)
+{
+	float locationNum = 0;
+	
+	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+	{
+		if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
+		{
+			locationNum = (FMSDS_Ptr->AgvMSLocation - Agv_MS_Center) / 2.0;
+		}
+		else
+		{
+			locationNum = FMSDS_Ptr->AgvMSLocation - Agv_MS_Left_2_5;
+		}
+		
+		printf("%.1f, ", locationNum);
+	}
+	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
+	{
+		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_5))
+		{
+			locationNum = (float)(FMSDS_Ptr->AgvMSLocation - Agv_MS_Center) / 2.0;
+		}
+		else
+		{
+			locationNum = FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_2_5;
+		}
+		
+		printf("%.1f, ", locationNum);
+	}
+	else if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
+	{
+		locationNum = 0;
+		
+		printf("%.1f, ", locationNum);
+	}
+}
+
 
 u8 Origin_PatCtrl(u8 duty)
 {
@@ -6279,7 +6285,7 @@ void CrossRoad_Count(void)
 
 void step_gS_Func(void)
 {
-	static u8 flag = 0;
+	static u8 flag = 0, step = 0;
 	
 	#if USE_R_DEC_SPEED
 	static u32 timRec = 0;
@@ -6288,35 +6294,59 @@ void step_gS_Func(void)
 	//printf("rfidData = %02x, goalRFIDnode = %d\r\n", RFID_Info_Ptr->rfidData, ctrlParasPtr->goalRFIDnode);
 	if((1 == ctrlParasPtr->originFlag) && (ORIGIN_STATION_NODE == ctrlParasPtr->goalRFIDnode))
 	{
-		if(TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type)
+		if(0 == step)
 		{
-			ctrlParasPtr->originFlag = 0;
-			ctrlParasPtr->walkingstep = step_gVeer;
-
-			#if USE_CIRCLE_INFO_RECODER
 			CircleInfoStrPtr->CircleTime.Go2RFIDTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
-			#endif
-			
+			step = 1;
 		}
-		else if(TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type)
+		else if(1 == step)
 		{
+			#if 0
 			
-			if(Return_SW_Respond)
+			if(TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type)
 			{
 				ctrlParasPtr->originFlag = 0;
 				ctrlParasPtr->walkingstep = step_gVeer;
-
+				step = 0;
 				#if USE_CIRCLE_INFO_RECODER
-				CircleInfoStrPtr->CircleTime.Go2RFIDTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 				#endif
+				
 			}
-		}
-		else
-		{
-			printf("req type error!\r\n");
-		}
+			else if(TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type)
+			{
+				
+				if(Return_SW_Respond)
+				{
+					ctrlParasPtr->originFlag = 0;
+					ctrlParasPtr->walkingstep = step_gVeer;
+					step = 0;
+					#if USE_CIRCLE_INFO_RECODER
+					CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+					#endif
+				}
+			}
+			else
+			{
+				printf("req type error!\r\n");
+			}
+			
+			#else
+
+			if((TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type) ||\
+			   ((TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type) && (Return_SW_Respond)))
+			{
+				ctrlParasPtr->originFlag = 0;
+				ctrlParasPtr->walkingstep = step_gVeer;
+				step = 0;
+				#if USE_CIRCLE_INFO_RECODER
+				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+				#endif
+				
+			}
+			
+			#endif
+		}		
 		
 	}
 	else
@@ -6471,10 +6501,48 @@ void step_gS_Func(void)
 
 		if(1 == flag)
 		{
+			if(FLMT_SW_UNRESPOND)		// 检测到托盘的极限开关没有响应
+			{
+				ctrlParasPtr->Machine_ARM_Toggle_Flag = 0;
+				MACHINE_ARM_TOGGLE_SET();
+				flag = 2;
+			}
+			else
+			{
+				flag = 3;
+			}
+			
+		}
+		else if(2 == flag)
+		{
+			if(1 == ctrlParasPtr->Machine_ARM_Toggle_Flag)
+			{
+				
+				if(FLMT_SW_UNRESPOND)
+				{
+					// 异常未解除, 报警
+					
+					WARNING_STATUS_FLMT_SW_ERR_SET();
+				}
+				else
+				{
+					// 异常排除, 解除异常
+					WARNING_STATUS_FLMT_SW_ERR_CLEAN();
+					
+					ctrlParasPtr->Machine_ARM_Toggle_Flag = 0;
+					flag = 3;
+				}
+
+				
+			}
+		}
+		else if(3 == flag)
+		{
+			#if 0
+			
 			if(TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type)
 			{
 				flag = 0;
-				
 				Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 				CMD_Flag_Ptr->Cancel_Flag = NcNone;
 				ctrlParasPtr->rifdAdaptFlag = 0;
@@ -6490,38 +6558,42 @@ void step_gS_Func(void)
 			{
 				
 				if(Return_SW_Respond)
-				//if(Return_SW_LF_Respond)
 				{
 					flag = 0;
 					Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
 					CMD_Flag_Ptr->Cancel_Flag = NcNone;
 					ctrlParasPtr->rifdAdaptFlag = 0;
 					ctrlParasPtr->originFlag = 0;
-					printf("AutoReq step_gVeer\r\n");
 					ctrlParasPtr->walkingstep = step_gVeer;
-
+					printf("AutoReq step_gVeer\r\n");
+					
 					#if USE_CIRCLE_INFO_RECODER
 					CircleInfoStrPtr->TimeTempRec = SystemRunningTime;	
 					#endif
 					
 				}
-				/*
-				else if(Return_SW_LR_Respond)
-				{
-					Delay_ms(20);
-					if(Return_SW_LR_Respond)
-					{
-						while(Return_SW_LR_Respond);
-
-						receive_state = 1;
-			
-						nc_receive[6] = 0x7f;
-						nc_receive[7] = ((7 - 1) << 4) | 0x04;
-						printf("########### nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", nc_receive[6], nc_receive[7]);
-					}
-				}
-				*/
 			}
+
+			#else
+
+			if((TypeManuReq == Zigbee_Ptr->runningInfo.Req_Type) ||\
+			  ((TypeAutoReq == Zigbee_Ptr->runningInfo.Req_Type) && (Return_SW_Respond)))
+			{
+				flag = 0;
+				Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
+				CMD_Flag_Ptr->Cancel_Flag = NcNone;
+				ctrlParasPtr->rifdAdaptFlag = 0;
+				ctrlParasPtr->originFlag = 0;
+				ctrlParasPtr->walkingstep = step_gVeer;
+				
+				#if USE_CIRCLE_INFO_RECODER
+				CircleInfoStrPtr->TimeTempRec = SystemRunningTime;	
+				#endif
+				
+			}
+			
+			#endif
+			
 		}
 		
 		#if USE_HALL_GVEER
@@ -7015,6 +7087,8 @@ void step_exit_Func(void)
 			
 			ctrlParasPtr->rifdAdaptFlag = 0;
 			flag = 0;
+			getWeightCtrl_Ptr->weightScanEnable = 1;
+			MACHINE_ARM_WEIGHT_FIBER_SET();
 			ctrlParasPtr->walkingstep = step_weigh;
 		}
 	}
@@ -7055,304 +7129,22 @@ void step_exit_Func(void)
 
 void step_weigh_Func(void)
 {
-	static u8 step = 0;
-	static u32 timRec = 0;
-	Ecv_Para temp;
-
-#if 0
-
-	#if 1
-	
-	if(0 == step)
-	{
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-		FECV_Str_Ptr->ECV_SetPara(&temp);
-
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 150;
-		BECV_Str_Ptr->ECV_SetPara(&temp);
-		
-		/*
-		if(FECV_Str_Ptr->EcvHallCount >= 250)
-		{
-			temp.Dir 			= ECV_UP;
-			temp.EcvSpeed 		= 100;
-			temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-			temp.EcvHallCountCmp= 150;
-			BECV_Str_Ptr->ECV_SetPara(&temp);
-		}
-		*/
-		
-		
-		if(FLMT_SW_UNRESPOND)
-		{
-			
-			FECV_Str_Ptr->Dir = ECV_STOP;
-			if(BECV_Str_Ptr->Dir != ECV_STOP)
-			{
-				BECV_Str_Ptr->Dir = ECV_STOP;
-			}
-			
-			step = 2;
-		}
-	}
-	else if(1 == step)
-	{
-
-		if(0 == timRec)
-		{
-			timRec = SystemRunningTime;
-			FECV_Str_Ptr->ECV_Clean_Use_Status();
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-		}
-		else
-		{
-			if((SystemRunningTime - timRec >= 10000) || RLMT_SW_RESPOND)
-			{
-				temp.Dir 			= ECV_UP;
-				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-				temp.EcvHallCountCmp= 800;
-				FECV_Str_Ptr->ECV_SetPara(&temp);
-				
-				temp.Dir 			= ECV_UP;
-				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-				temp.EcvHallCountCmp= 150;
-				BECV_Str_Ptr->ECV_SetPara(&temp);
-				
-				step = 2;
-			}
-		}
-		
-	}
-
-	#else
-
-	if(0 == step)
-	{
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-		FECV_Str_Ptr->ECV_SetPara(&temp);
-
-		/*
-		if(FECV_Str_Ptr->EcvHallCount >= 350)
-		{
-			temp.Dir 			= ECV_UP;
-			temp.EcvSpeed 		= 100;
-			temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-			temp.EcvHallCountCmp= 60;
-			BECV_Str_Ptr->ECV_SetPara(&temp);
-		}
-		*/
-		
-		if(FLMT_SW_UNRESPOND)
-		{
-			
-			FECV_Str_Ptr->Dir = ECV_STOP;
-			if(BECV_Str_Ptr->Dir != ECV_STOP)
-			{
-				BECV_Str_Ptr->Dir = ECV_STOP;
-			}
-			
-			step = 1;
-		}
-	}
-	else if(1 == step)
-	{
-
-		if(0 == timRec)
-		{
-			timRec = SystemRunningTime;
-			FECV_Str_Ptr->ECV_Clean_Use_Status();
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-		}
-		else
-		{
-			if((SystemRunningTime - timRec >= 10000) || RLMT_SW_RESPOND)
-			{
-				temp.Dir 			= ECV_UP;
-				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-				temp.EcvHallCountCmp= 800;
-				FECV_Str_Ptr->ECV_SetPara(&temp);
-				
-				temp.Dir 			= ECV_UP;
-				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-				temp.EcvHallCountCmp= 200;
-				BECV_Str_Ptr->ECV_SetPara(&temp);
-				
-				step = 2;
-			}
-		}
-		
-	}
-	else if(2 == step)
-	{
-		if(ECV_COMPLETE == FECV_Str_Ptr->UseStatus)
-		{
-			#if USE_CIRCLE_INFO_RECODER
-			CircleInfoStrPtr->CircleTime.WeightTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
-			#endif
-
-			step = 3;
-		}
-		
-	}
-
-	#endif
-
-#else
-	
-	
-	if(0 == step)
-	{
-		getWeightCtrl_Ptr->weightScanEnable = 1;
-		
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-		FECV_Str_Ptr->ECV_SetPara(&temp);
-
-		/*
-		if(FECV_Str_Ptr->EcvHallCount >= 350)
-		{
-			temp.Dir 			= ECV_UP;
-			temp.EcvSpeed 		= 100;
-			temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-			temp.EcvHallCountCmp= 60;
-			BECV_Str_Ptr->ECV_SetPara(&temp);
-		}
-		*/
-		
-		if(FLMT_SW_UNRESPOND)
-		{
-			
-			FECV_Str_Ptr->Dir = ECV_STOP;
-			if(BECV_Str_Ptr->Dir != ECV_STOP)
-			{
-				BECV_Str_Ptr->Dir = ECV_STOP;
-			}
-			FECV_Str_Ptr->ECV_Clean_Use_Status();
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-			step = 1;
-		}
-		
-	}
-	else if(1 == step)
-	{
-		temp.Dir 			= ECV_UP;
-		temp.EcvSpeed 		= 100;
-		temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 200;
-		FECV_Str_Ptr->ECV_SetPara(&temp);
-
-		if(ECV_COMPLETE == FECV_Str_Ptr->UseStatus)
-		{
-			step = 2;
-			FECV_Str_Ptr->ECV_Clean_Use_Status();
-		}
-		
-	}
-	else if(2 == step)
-	{
-		if(0 == timRec)
-		{
-			timRec = SystemRunningTime;
-			FECV_Str_Ptr->ECV_Clean_Use_Status();
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-		}
-		else
-		{
-			
-			if(RLMT_SW_RESPOND || (SystemRunningTime - timRec >= 10000))
-			{
-				temp.Dir 			= ECV_UP;
-				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-				temp.EcvHallCountCmp= 500;
-				FECV_Str_Ptr->ECV_SetPara(&temp);
-				
-				temp.Dir 			= ECV_UP;
-				temp.EcvSpeed 		= 100;
-				temp.HallCountMode 	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-				temp.EcvHallCountCmp= 420;
-				BECV_Str_Ptr->ECV_SetPara(&temp);
-				
-				step = 2;
-			}
-			
-		}
-		
-	}
-	else if(2 == step)
-	{
-		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
-		{
-			#if USE_CIRCLE_INFO_RECODER
-			CircleInfoStrPtr->CircleTime.WeightTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
-			#endif
-
-			step = 3;
-		}
-		
-	}
-	
-#endif
-	
 	
 	if(Return_SW_Respond)
-	//if(Return_SW_LR_Respond)
 	{
-		#if 1
-		
 		#if USE_CIRCLE_INFO_RECODER
 		CircleInfoStrPtr->ManualOptTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
-		CircleInfoStrPtr->TimeTempRec 	= SystemRunningTime;
+		CircleInfoStrPtr->TimeTempRec	= SystemRunningTime;
 		#endif
 		
 		FECV_Str_Ptr->ECV_Clean_Use_Status();
 		BECV_Str_Ptr->ECV_Clean_Use_Status();
-		//Get_Weight_Data();
-		step = 0;
-		timRec = 0;
+		
 		MOTOR1_HALL_COUNT_FLAG = 1;
 		getWeightCtrl_Ptr->weightScanEnable = 0;
 		
 		ctrlParasPtr->walkingstep = step_bVeer;
-		
-		#else
-		
-		#ifdef USE_SEND_ZIGBEE		
-		Send_FiberMachine();
-		#endif
-		
-		#endif
 	}
-	#if 0
-	else if(Return_SW_RR_Respond)
-	{
-		Delay_ms(20);
-		if(Return_SW_RR_Respond)
-		{
-			while(Return_SW_RR_Respond){}
-
-			#ifdef USE_SEND_ZIGBEE		
-			Send_FiberMachine();
-			#endif
-			
-		}
-			
-	}
-	#endif
 }
 
 
@@ -7406,14 +7198,13 @@ void step_bVeer_Func(void)
 			//ctrlParasPtr->agvStatus = backStatus;
 			if(1 == Origin_PatCtrl2(ctrlParasPtr->cirDuty))
 			{
-				Ecv_Para ctr;
 				CleanAllSpeed();
 				
 				CHANGE_TO_STOP_MODE();
-				//Delay_ns(1);
-			#ifdef USE_SEND_ZIGBEE
+
+				#ifdef USE_SEND_ZIGBEE
 				Send_WaitForGoods();
-			#endif
+				#endif
 				
 				stepFlag = 0;
 				ctrlParasPtr->BSflag = 0;
@@ -7429,15 +7220,6 @@ void step_bVeer_Func(void)
 				printf("rightHall = %d, leftHall = %d\r\n", ctrlParasPtr->rightHallCounter, ctrlParasPtr->leftHallCounter);
 				MOTOR1_HALL_COUNT_FLAG = 0;
 
-				ctr.Dir 			= ECV_DOWN;
-				ctr.EcvSpeed		= 100;
-				ctr.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-				FECV_Str_Ptr->ECV_SetPara(&ctr);
-				
-				ctr.Dir 			= ECV_DOWN;
-				ctr.EcvSpeed		= 80;
-				ctr.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-				BECV_Str_Ptr->ECV_SetPara(&ctr);
 				ctrlParasPtr->Use_WECV = 0;
 				ctrlParasPtr->walkingstep = step_gB;
 			}
@@ -7450,7 +7232,6 @@ void step_bVeer_Func(void)
 
 void step_gB_Func(void)
 {
-	Ecv_Para temp;
 
 	if(1 == RFID_Info_Ptr->updateFlag)
 	{
@@ -7460,19 +7241,12 @@ void step_gB_Func(void)
 	}
 	
 	CHANGE_TO_BACK_MODE();
-
-	temp.Dir 			= ECV_DOWN;
-	temp.EcvSpeed 		= 100;
-	temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
-	FECV_Str_Ptr->ECV_SetPara(&temp);
-
-	temp.EcvSpeed 		= 100;
-	BECV_Str_Ptr->ECV_SetPara(&temp);
 	
-	
-	//if((ctrlParasPtr->crossRoadCountR <= 1) && (ctrlParasPtr->crossRoadCountF <= 2))
+	#if 0
 	if(ctrlParasPtr->crossRoadCountR <= 1)
 	{
+		Ecv_Para temp;
+		
 		CHANGE_TO_BACK_SLOW_MODE();
 		ctrlParasPtr->gear = 4;
 		
@@ -7480,6 +7254,7 @@ void step_gB_Func(void)
 		WECV_Str_Ptr->ECV_SetPara(&temp);
 		
 	}
+	#endif
 	
 	if((0x0000 == FMSDS_Ptr->MSD_Hex) && (0x0000 == RMSDS_Ptr->MSD_Hex))
 	{
@@ -7493,13 +7268,11 @@ void step_gB_Func(void)
 		CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 		#endif
 		
-		FECV_Str_Ptr->Dir = ECV_STOP;
-		FECV_Str_Ptr->ECV_Clean_Use_Status();
-		BECV_Str_Ptr->ECV_Clean_Use_Status();
-		WECV_Str_Ptr->ECV_Clean_Use_Status();
+		//WECV_Str_Ptr->ECV_Clean_Use_Status();
 		ctrlParasPtr->originFlag = 0;
 
 		//Clean_Weight_Func();
+		getWeightCtrl_Ptr->weightScanEnable = 1;
 		ctrlParasPtr->walkingstep = step_wFTans;
 		
 	}
@@ -7507,7 +7280,6 @@ void step_gB_Func(void)
 
 void step_wFTans_Func(void)
 {
-	Ecv_Para temp;
 	static u8 step = 0;	
 	static u32 timRec = 0;
 
@@ -7520,35 +7292,12 @@ void step_wFTans_Func(void)
 		ctrlParasPtr->crossRoadCountF = ORIGIN_STATION_NODE + EXTRA_CROSS_ROAD_R;
 		ctrlParasPtr->crossRoadCountR = ORIGIN_STATION_NODE + EXTRA_CROSS_ROAD_R - 1;
 		
-		temp.Dir 				= ECV_UP;
-		temp.EcvHallCountCmp 	= HallCountCmpManager_Str_Ptr->BecvInit + 100;
-		temp.EcvSpeed			= 100;
-		temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		BECV_Str_Ptr->ECV_SetPara(&temp);
-
 		step = 1;
 
 		
 	}
 	else if(1 == step)
 	{
-		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
-		{
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
-			
-			temp.Dir 				= ECV_DOWN;
-			temp.EcvHallCountCmp 	= HallCountCmpManager_Str_Ptr->BecvInit;
-			temp.EcvSpeed			= 100;
-			temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_ENABLE;
-			BECV_Str_Ptr->ECV_SetPara(&temp);
-			
-			step = 2;
-		}
-		
-	}
-	else if(2 == step)
-	{
-		getWeightCtrl_Ptr->weightScanEnable = 1;
 
 		if(0 == timRec)
 		{
@@ -7558,11 +7307,12 @@ void step_wFTans_Func(void)
 		{
 			if(SystemRunningTime - timRec >= 50000)
 			{
-				step = 3;
+				timRec = 0;
+				step = 2;
 			}
 		}	
 	}
-	else if(3 == step)
+	else if(2 == step)
 	{
 		
 		if(FiberglasInfo_Ptr->weight_H <= 5)
@@ -7594,9 +7344,7 @@ void step_wFTans_Func(void)
 		CircleInfoStrPtr->TakeAwayTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 		CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 		#endif
-		
-		BECV_Str_Ptr->ECV_Clean_Use_Status();
-		
+				
 		zigbeeRecvDataBuf_Delete();
 
 		if(zigbeeQueueCtrl.Total > 0)
@@ -7931,6 +7679,286 @@ void Walking_Step_Controler(void)
 	
 }
 
+void ECV_Machine_ARM_Init_Func(u8 *step, u32 *timRec)
+{
+	Ecv_Para temp;
+	
+	if(0 == *step)
+	{
+		temp.Dir			= ECV_DOWN;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+
+		temp.Dir			= ECV_DOWN;
+		temp.EcvSpeed		= 60;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if((ECV_COMPLETE == BECV_Str_Ptr->UseStatus) && (ECV_COMPLETE == BECV_Str_Ptr->UseStatus))
+		{
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 1;
+		}
+		
+	}
+	else if(1 == *step)
+	{
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= HallCountCmpManager_Str_Ptr->BecvInit + 150;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 2;
+		}
+		
+	}
+	else if(2 == *step)
+	{
+		temp.Dir			= ECV_DOWN;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 150;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 0;
+			MACHINE_ARM_INIT_CLEAN();
+		}
+	}
+}
+
+
+void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
+{
+	Ecv_Para temp;
+	
+	if(0 == *step)
+	{			
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+		
+		if(FLMT_SW_UNRESPOND)
+		{
+			
+			FECV_Str_Ptr->Dir = ECV_STOP;
+			if(BECV_Str_Ptr->Dir != ECV_STOP)
+			{
+				BECV_Str_Ptr->Dir = ECV_STOP;
+			}
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 1;
+		}
+		
+	}
+	else if(1 == *step)
+	{
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 200;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if(ECV_COMPLETE == FECV_Str_Ptr->UseStatus)
+		{
+			*step = 2;
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+		}
+		
+	}
+	else if(2 == *step)
+	{
+		if(0 == *timRec)
+		{
+			*timRec = SystemRunningTime;
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+		}
+		else
+		{
+			
+			if(RLMT_SW_RESPOND || (SystemRunningTime - *timRec >= 10000))
+			{
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 500;
+				FECV_Str_Ptr->ECV_SetPara(&temp);
+				
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 420;
+				BECV_Str_Ptr->ECV_SetPara(&temp);
+				*timRec = 0;
+				*step = 3;
+			}
+			
+		}
+		
+	}
+	else if(3 == *step)
+	{
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+		#if USE_CIRCLE_INFO_RECODER
+			CircleInfoStrPtr->CircleTime.WeightTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+		#endif
+			*step = 4;
+		}			
+		
+	}
+	else if(4 == *step)
+	{
+		if((ECV_COMPLETE == FECV_Str_Ptr->UseStatus) && (ECV_COMPLETE == BECV_Str_Ptr->UseStatus))
+		{
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 0;
+			MACHINE_ARM_INIT_SET();
+			MACHINE_ARM_WEIGHT_FIBER_CLEAN();
+		}
+	}
+	
+	
+}
+
+void ECV_Machine_ARM_Catch_Func(u8 *step, u32 *timRec)
+{
+	static u8 flag = 0;
+	static u16 counter = 0;
+	
+	if(0 == *step)
+	{
+		
+		Ecv_Para temp;
+		temp.Dir				= ECV_UP;
+		temp.EcvSpeed			= 100;
+		temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_DISABLE;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+		FECV_Str_Ptr->EcvHallCountTimeoutUpdate = 0;
+		*step = 1;
+	}
+	else if(1 == *step)
+	{
+		if(0 == flag)
+		{
+			if(LMT_SW_Respond) 	// 已经抓到货物了
+			{
+				FECV_Str_Ptr->Dir = ECV_STOP;
+
+				FECV_Str_Ptr->ECV_Clean_Use_Status();
+
+				ctrlParasPtr->walkingstep = step_exit;
+				ctrlParasPtr->Catch_Goods_Flag = 1;
+
+				MACHINE_ARM_CATCH_CLEAN();
+
+				*step = 0;
+			}
+		}
+		else if(1 == flag)
+		{
+			if((LMT_SW_Respond) || (FECV_Str_Ptr->EcvHallCount >= counter)) 	// 已经抓到货物了
+			{
+				FECV_Str_Ptr->Dir = ECV_STOP;
+
+				FECV_Str_Ptr->ECV_Clean_Use_Status();
+
+				ctrlParasPtr->walkingstep = step_exit;
+				ctrlParasPtr->Catch_Goods_Flag = 1;
+
+				MACHINE_ARM_CATCH_CLEAN();
+
+				*step = 0;
+			}
+		}
+		
+		if(1 == FECV_Str_Ptr->EcvHallCountTimeoutUpdate)
+		{
+			FECV_Str_Ptr->EcvHallCountTimeoutUpdate = 0;
+			counter = FECV_Str_Ptr->EcvHallCountTimeout;
+			flag = 1;
+		}
+		
+		
+	}
+	
+}
+
+void ECV_Machine_ARM_Toggle_Func(u8 *step, u32 *timRec)
+{
+	Ecv_Para temp;
+	
+	if(0 == *step)
+	{
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 150;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 1;
+		}
+		
+	}
+	else if(1 == *step)
+	{
+		temp.Dir			= ECV_DOWN;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 150;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
+
+		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
+		{
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			ctrlParasPtr->Machine_ARM_Toggle_Flag = 1;
+			*step = 0;
+			MACHINE_ARM_TOGGLE_CLEAN();
+		}
+	}
+}
+
+void Machinearm_Control_Handle(void)
+{
+	static u8 step = 0;
+	static u32 timRec = 0;
+	
+	if(MACHINE_ARM_INIT_CHECK)
+	{
+		ECV_Machine_ARM_Init_Func(&step, &timRec);
+	}
+	else if(MACHINE_ARM_TOGGLE_CHECK)
+	{
+		ECV_Machine_ARM_Toggle_Func(&step, &timRec);
+	}
+	else if(MACHINE_ARM_CATCH_CHECK)
+	{
+		ECV_Machine_ARM_Catch_Func(&step, &timRec);
+	}
+	else if(MACHINE_ARM_WEIGHT_CHECK)
+	{
+		ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(&step, &timRec);
+	}
+	
+}
 
 void ProtectFunc(void)
 {
@@ -7968,53 +7996,6 @@ void ProtectFunc(void)
 	}
 	
 }
-
-void WarningLedTwinkleCtrl(void)
-{
-	static u32 timRec = 0;
-	static u8 twinkleCounter = 0, step = 0;
-	
-	if(1 == WarningLedCtrlPtr->twinkleFlag)
-	{
-		if(0 == timRec)
-		{
-			timRec = SystemRunningTime;
-			Warning_LED_GREEN_OFF();
-			step = 0;
-		}
-		else
-		{
-			
-			if(0 == step)
-			{
-				if(SystemRunningTime - timRec >= WarningLedCtrlPtr->intervalTime_ms * 10)
-				{
-					Warning_LED_GREEN_ON();
-					step = 1;
-					timRec = SystemRunningTime;
-				}
-			}
-			else if(1 == step)
-			{
-				if(SystemRunningTime - timRec >= WarningLedCtrlPtr->intervalTime_ms * 10)
-				{
-					timRec = 0;
-					twinkleCounter++;
-				}
-			}
-			
-		}
-
-		if(twinkleCounter >= WarningLedCtrlPtr->twinkleNum)
-		{
-			WarningLedCtrlPtr->twinkleFlag = 0;
-			twinkleCounter = 0;
-			step = 0;
-		}
-	}
-	
-}
-
 
 void BuzzerCtrlFunc(void)
 {
@@ -8266,73 +8247,6 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void)
 	}
 	
 }
-
-
-void SIMU_PWM_BreathBoardLED_Ctrl(void)
-{
-	static u32 timRec = 0;
-	static u8 step = 0, flag = 0, counter = 0;
-	static u16 dutyTime = 0;
-	
-	if(0 == timRec)
-	{
-		timRec = SystemRunningTime;
-		PCout(5) = 0;
-		step = 0;
-	}
-	else
-	{
-		
-		if(0 == step)
-		{
-			if(SystemRunningTime - timRec >= dutyTime)
-			{
-				PCout(5) = 1;
-				step = 1;
-				timRec = SystemRunningTime;
-			}
-		}
-		else if(1 == step)
-		{
-			if(SystemRunningTime - timRec >= (100 - dutyTime))
-			{
-				timRec = 0;
-				step = 0;
-
-				if(counter < 1)
-				{
-					counter++;
-				}
-				else
-				{
-					counter = 0;
-					if(0 == dutyTime)
-					{
-						flag = 0;
-					}
-					else if(dutyTime >= 100)
-					{
-						flag = 1;
-					}
-
-					if(0 == flag)
-					{
-						dutyTime++;
-					}
-					else if(1 == flag)
-					{
-						dutyTime--;
-					}
-				}
-				
-				
-			}
-		}
-		
-	}
-	
-}
-
 
 
 u8 BCD_Change2_Hex_u8(u8 u8_data)
@@ -8612,6 +8526,11 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->HallCounterFlag 			= 0;
 	ctrlParasPtr->rightHallCounterCMP		= CIR_HALL;
 	ctrlParasPtr->leftHallCounterCMP		= CIR_HALL;
+	ctrlParasPtr->LED_Warning				= 0x00;
+	ctrlParasPtr->Machine_ARM_Toggle_Flag	= 0x00;
+	ctrlParasPtr->Catch_Goods_Flag			= 0x00;
+	ctrlParasPtr->ECV_StepFlag				= 0x00;
+	
 	
 	agv_walking_func[StatusStart] 		= NullFunc;
 	agv_walking_func[stopStatus] 		= walking_stopStatus;
@@ -8667,6 +8586,7 @@ void Motion_Ctrl_Init(void)
 	
 	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
 	{
+		#if USE_MPU6050
 		mpu6050DS_ptr->ax = 0;
 		mpu6050DS_ptr->ay = 0;
 		mpu6050DS_ptr->ayAverage = 0;
@@ -8686,11 +8606,7 @@ void Motion_Ctrl_Init(void)
 		mpu6050DS_ptr->sumPlus = 0;
 		mpu6050DS_ptr->tempture = 0;
 		mpu6050DS_ptr->ayAverageUpdate = 0;
-
-		WarningLedCtrlPtr->twinkleFlag = 0;
-		WarningLedCtrlPtr->intervalTime_ms = 100;
-		WarningLedCtrlPtr->twinkleNum = 2;
-		WarningLedCtrlPtr->twinkleCtrlFunc = WarningLedTwinkleCtrl;
+		#endif
 
 		BuzzerCtrlPtr->buzzerFlag = 0;
 		BuzzerCtrlPtr->buzzerTime_ms = 150;

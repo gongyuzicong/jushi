@@ -6,6 +6,7 @@
 #include <string.h>
 #include "lcd.h"
 
+
 #define FIBERGLAS_COUNT_INFO_ADDR	0x0000
 #define FACTORY_ID_ADDR				0x0004
 #define AREA_ID_ADDR				0x0005
@@ -35,36 +36,6 @@ DateInfo BackgroudRTC_Rec_Hex;
 
 /****************** USE RTC START *******************************/
 
-void Get_RTC_Data(DateInfo_P ptr)
-{
-	u8 date[3], time[3];
-	
-	READ_datetime(date, time);
-	
-	#if 1
-	
-	ptr->year = date[0] & 0x7F;
-	ptr->month = date[1] & 0x1F;
-	ptr->day = date[2] & 0x3F;
-	
-	ptr->hour = time[0] & 0x3F;
-	ptr->minute = time[1] & 0x7F;
-	ptr->second = time[2] & 0x7F;
-	
-	#else
-
-	ptr->year = BCD_CHANGE2HEX_U8(date[0] & 0x7F);
-	ptr->month = BCD_CHANGE2HEX_U8(date[1] & 0x1F);
-	ptr->day = BCD_CHANGE2HEX_U8(date[2] & 0x3F);
-	
-	ptr->hour = BCD_CHANGE2HEX_U8(time[0] & 0x3F);
-	ptr->minute = BCD_CHANGE2HEX_U8(time[1] & 0x7F);
-	ptr->second = BCD_CHANGE2HEX_U8(time[2] & 0x7F);
-
-	#endif
-	
-}
-
 void Read_RTC_Data(void)
 {
 	static u32 timRec = 0;
@@ -73,7 +44,7 @@ void Read_RTC_Data(void)
 	if(Delay_Func(&timRec, 1000))
 	{
 		timRec = 0;
-		Get_RTC_Data(&BackgroudRTC_Rec);
+		RTC_PCF8563_Ptr->Read_RTC(&BackgroudRTC_Rec);
 
 		BackgroudRTC_Rec_Hex.year = BCD_CHANGE2HEX_U8(BackgroudRTC_Rec.year);
 		BackgroudRTC_Rec_Hex.month = BCD_CHANGE2HEX_U8(BackgroudRTC_Rec.month);

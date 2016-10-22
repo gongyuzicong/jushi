@@ -5,6 +5,7 @@
 #include "motion_control.h"
 #include "circle_recoder.h"
 #include "magn_sensor.h"
+#include "led.h"
 
 #define USART2_TC					((USART2->SR >> 6) & 0x0001)
 
@@ -236,10 +237,12 @@ void send_N_char(u8 *cmd, u8 num)
 
 #endif
 
-void Send_Zigbee_ACK(void)
+void Send_Zigbee_ACK(u8 node)
 {
 	u8 cir = 8;
 	
+	zigbeeAck[2] = Id_Arr[node].zigbee_ID1;
+	zigbeeAck[3] = Id_Arr[node].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
@@ -364,10 +367,8 @@ void Receive_handle2(void)
 						
 						Id_Arr[node].zigbee_ID1 = nc_receive[2];
 						Id_Arr[node].zigbee_ID2 = nc_receive[3];
-						zigbeeAck[2] = nc_receive[2];
-						zigbeeAck[3] = nc_receive[3];
 						
-						Send_Zigbee_ACK();
+						Send_Zigbee_ACK(node);
 						
 						ReqInfo.Req_Station = node;
 						data = (nc_receive[7] & 0x0f);
@@ -418,7 +419,7 @@ void Receive_handle2(void)
 					ctrlParasPtr->rifdAdaptFlag = 0;
 					printf("GoodReqCancel step_origin = %d\r\n", ctrlParasPtr->walkingstep);
 					
-					Send_Zigbee_ACK();
+					Send_Zigbee_ACK(node);
 					CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
 					
 					BuzzerCtrlPtr->buzzerFlag = 1;

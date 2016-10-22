@@ -41,6 +41,30 @@ void Set_WEcvHallCountCmp(u16 set)
 
 
 
+u8 CheckFECV_Limt2(Ecv_Ctrl_Struct_P ptr)
+{
+	u8 flag = 0;
+	
+	if(ptr->EcvHallCountRec != ptr->EcvHallCount)
+	{
+		ptr->EcvHallCountRec 		= ptr->EcvHallCount;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+	}
+	else
+	{
+		if(SystemRunningTime - ptr->EcvHallCountTimeRec >= ptr->EcvHallCountTimeOut_ms * 10)
+		{
+			flag 					= 1;
+			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
+			ptr->EcvHallCountTimeoutUpdate = 1;
+			ptr->EcvHallCountRec 	= 0;
+			printf("time out\r\n");
+		}
+	}
+	
+	return flag;
+}
+
 u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 {
 	u8 flag = 0;
@@ -55,6 +79,8 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 		if(SystemRunningTime - ptr->EcvHallCountTimeRec >= ptr->EcvHallCountTimeOut_ms * 10)
 		{
 			flag 					= 1;
+			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
+			ptr->EcvHallCountTimeoutUpdate = 1;
 			ptr->EcvHallCountRec 	= 0;
 			printf("time out\r\n");
 		}
@@ -66,6 +92,7 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 
 	return flag;
 }
+
 
 
 void FECV_UpDownFunc(EcvDir ecvDir)
@@ -787,6 +814,7 @@ void ECV_Struct_Init(void)
 	FECV_Str_Ptr->ECV_SetSpeedFunc 		= FECV_SetSpeedFunc;
 	FECV_Str_Ptr->ECV_SetPara			= FECV_SetPara;
 	FECV_Str_Ptr->ECV_Clean_Use_Status 	= FECV_Clean_Use_Status;
+	FECV_Str_Ptr->ECV_Ctrl_Function		= ECV_Ctrl_Func;
 
 	BECV_Str_Ptr->ECV_PowerOnOffFunc 	= BECV_PowerOnOffFunc;
 	BECV_Str_Ptr->ECV_UpDownFunc 		= BECV_UpDownFunc;
@@ -795,12 +823,14 @@ void ECV_Struct_Init(void)
 	BECV_Str_Ptr->ECV_Clean_Use_Status 	= BECV_Clean_Use_Status;
 	BECV_Str_Ptr->Check_ECV_SW_Status	= BECV_Check_SW_Status;
 	BECV_Str_Ptr->ECV_BRK				= BECV_Brk_Func;
+	BECV_Str_Ptr->ECV_Ctrl_Function		= ECV_Ctrl_Func_SW;
 
 	WECV_Str_Ptr->ECV_PowerOnOffFunc 	= WECV_PowerOnOffFunc;
 	WECV_Str_Ptr->ECV_UpDownFunc 		= WECV_UpDownFunc;
 	WECV_Str_Ptr->ECV_SetSpeedFunc 		= WECV_SetSpeedFunc;
 	WECV_Str_Ptr->ECV_SetPara			= WECV_SetPara;
 	WECV_Str_Ptr->ECV_Clean_Use_Status 	= WECV_Clean_Use_Status;
+	WECV_Str_Ptr->ECV_Ctrl_Function		= ECV_Ctrl_Func_W;
 
 	HallCountCmpManager_Str_Ptr->FecvBigFiberHall 	= 0;
 	HallCountCmpManager_Str_Ptr->FecvSmallFiberHall = 0;

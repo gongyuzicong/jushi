@@ -4,6 +4,7 @@
 #include "data_type.h"
 #include "common_include.h"
 #include "magn_d_algo.h"
+#include "led.h"
 
 
 #define Max_Station_Num				11
@@ -13,19 +14,7 @@
 
 #define USE_HALL_CTRL		0
 
-#define Warning_LED_RED			PDout(3)
-#define Warning_LED_RED_ON()	{Warning_LED_RED = 0;}
-#define Warning_LED_RED_OFF()	{Warning_LED_RED = 1;}
 
-#define Warning_LED_GREEN		PCout(6)
-#define Warning_LED_GREEN_ON()	{Warning_LED_GREEN = 0;}
-#define Warning_LED_GREEN_OFF()	{Warning_LED_GREEN = 1;}
-
-#define Warning_LED_ORANGE		PCout(7)
-#define Warning_LED_ORANGE_ON()	{Warning_LED_ORANGE = 0;}
-#define Warning_LED_ORANGE_OFF(){Warning_LED_ORANGE = 1;}
-
-#define Warning_LED_IN			PDin(3)
 #define ProtectSW_F				PDin(5)
 #define ProtectSW_F_RESPOND		(0 == ProtectSW_F)
 #define ProtectSW_F_UNRESPOND	(1 == ProtectSW_F)
@@ -48,6 +37,8 @@
 
 #define EXTRA_CROSS_ROAD_R	2
 
+#define USE_MPU6050 0
+
 #define MAX_SPEED_LIMIT (100 - MAX_STEP_SPEED_INC)
 #define MAX_STEP_SPEED_INC	1
 
@@ -57,12 +48,12 @@
 #define MAX_GEAR_NUM		21
 #define MAX_GEAR_OFFSET		11
 
-#define MOTOR_RIGHT_CR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
-#define MOTOR_RIGHT_CCR_PIN_SET()		{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
-#define MOTOR_RIGHT_STOP_PIN_SET()		{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
-#define MOTOR_LEFT_CR_PIN_SET()			{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 0;  MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_CCR_PIN_SET()		{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_STOP_PIN_SET()		{MOTOR_LEFT_BK = 0;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 1;}
+#define MOTOR_RIGHT_CR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
+#define MOTOR_RIGHT_CCR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
+#define MOTOR_RIGHT_STOP_PIN_SET()			{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
+#define MOTOR_LEFT_CR_PIN_SET()				{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 0;  MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_CCR_PIN_SET()			{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 0;}
+#define MOTOR_LEFT_STOP_PIN_SET()			{MOTOR_LEFT_BK = 0;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 1;}
 
 #define CHANGE_TO_GO_STRAIGHT_MODE()		{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus;}
 #define CHANGE_TO_BACK_MODE()				{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus;}
@@ -134,7 +125,54 @@
 #define TRIGGER_PIN_O	PEout(11)
 #define TRIGGER_PIN_I	PEin(11)
 
-/**************ECV**************/
+/************** USE ECV Start **************/
+
+#define CREATE_BIT_FLAG(BIT)		(0x01 << BIT)
+
+#define SET_BIT_FLAG(DATA, FLAG)			{DATA |= FLAG;}
+#define CLEAN_BIT_FLAG(DATA, FLAG)			{DATA &= ~(FLAG);}
+#define CHECK_BIT_FLAG(DATA, FLAG)			(DATA & FLAG)
+#define CHECK_BIT_VALUE(DATA, FLAG)			(((DATA & FLAG) > 0) ? 1 : 0)
+#define CHECK_BIT_VALUE_TOGGLE(DATA, FLAG)	(((DATA & FLAG) > 0) ? 0 : 1)
+
+#define MACHINE_ARM_INIT_BIT_FLAG			(CREATE_BIT_FLAG(0))
+#define MACHINE_ARM_INIT_SET()				{SET_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_INIT_BIT_FLAG);}
+#define MACHINE_ARM_INIT_CLEAN()			{CLEAN_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_INIT_BIT_FLAG);}
+#define MACHINE_ARM_INIT_CHECK				(CHECK_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_INIT_BIT_FLAG))
+
+#define MACHINE_ARM_TOGGLE_BIT_FLAG			(CREATE_BIT_FLAG(1))
+#define MACHINE_ARM_TOGGLE_SET()			{SET_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_TOGGLE_BIT_FLAG);}
+#define MACHINE_ARM_TOGGLE_CLEAN()			{CLEAN_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_TOGGLE_BIT_FLAG);}
+#define MACHINE_ARM_TOGGLE_CHECK			(CHECK_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_TOGGLE_BIT_FLAG))
+
+#define MACHINE_ARM_CATCH_BIT_FLAG			(CREATE_BIT_FLAG(2))
+#define MACHINE_ARM_CATCH_SET()				{SET_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_CATCH_BIT_FLAG);}
+#define MACHINE_ARM_CATCH_CLEAN()			{CLEAN_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_CATCH_BIT_FLAG);}
+#define MACHINE_ARM_CATCH_CHECK				(CHECK_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_CATCH_BIT_FLAG))
+
+#define MACHINE_ARM_WEIGHT_FIBER_BIT_FLAG	(CREATE_BIT_FLAG(3))
+#define MACHINE_ARM_WEIGHT_FIBER_SET()		{SET_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_WEIGHT_FIBER_BIT_FLAG);}
+#define MACHINE_ARM_WEIGHT_FIBER_CLEAN()	{CLEAN_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_WEIGHT_FIBER_BIT_FLAG);}
+#define MACHINE_ARM_WEIGHT_CHECK			(CHECK_BIT_FLAG(ctrlParasPtr->ECV_StepFlag, MACHINE_ARM_WEIGHT_FIBER_BIT_FLAG))
+
+void Machinearm_Control_Handle(void);
+
+/************** USE ECV End **************/
+
+
+/****************** WARNING STATUS START ***********************/
+
+#define WARNING_STATUS_FLMT_SW_ERR_BIT_FLAG	(CREATE_BIT_FLAG(0))
+#define WARNING_STATUS_FLMT_SW_ERR_SET()	{SET_BIT_FLAG(ctrlParasPtr->LED_Warning, WARNING_STATUS_FLMT_SW_ERR_BIT_FLAG);}
+#define WARNING_STATUS_FLMT_SW_ERR_CLEAN()	{CLEAN_BIT_FLAG(ctrlParasPtr->LED_Warning, WARNING_STATUS_FLMT_SW_ERR_BIT_FLAG);}
+#define WARNING_STATUS_FLMT_SW_CHECK		(CHECK_BIT_FLAG(ctrlParasPtr->LED_Warning, WARNING_STATUS_FLMT_SW_ERR_BIT_FLAG))
+
+#define WARNING_STATUS_NORMAL_BIT_FLAG		(CREATE_BIT_FLAG(1))
+#define WARNING_STATUS_NORMAL_SET()			{SET_BIT_FLAG(ctrlParasPtr->LED_Warning, WARNING_STATUS_NORMAL_BIT_FLAG);}
+#define WARNING_STATUS_NORMAL_CLEAN()		{CLEAN_BIT_FLAG(ctrlParasPtr->LED_Warning, WARNING_STATUS_NORMAL_BIT_FLAG);}
+#define WARNING_STATUS_NORMAL_CHECK			(CHECK_BIT_FLAG(ctrlParasPtr->LED_Warning, WARNING_STATUS_NORMAL_BIT_FLAG))
+
+/******************** WARNING STATUS END *********************/
 
 
 typedef enum
@@ -291,6 +329,11 @@ typedef struct
 
 	u8 	StartupFlag;
 	u8  CancelFlag;
+
+	u16 ECV_StepFlag;
+	u8 Catch_Goods_Flag;
+	u8 Machine_ARM_Toggle_Flag;
+	u8 LED_Warning;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -380,15 +423,6 @@ typedef struct
 }MPU6050_Para, *MPU6050_Para_P;
 
 
-
-typedef struct
-{
-	u8 	twinkleFlag;
-	u16 intervalTime_ms;
-	u8 	twinkleNum;
-	void (*twinkleCtrlFunc)(void);
-}LED_Twinkle, *LED_Twinkle_P;
-
 typedef struct
 {
 	u8 	buzzerFlag;
@@ -458,7 +492,6 @@ void back_slow2(u8);
 void step_origin_Func(void);
 void startup_origin_Func(void);
 void SIMU_PWM_BreathWarningLED_Ctrl(void);
-void SIMU_PWM_BreathBoardLED_Ctrl(void);
 void ProtectSW_GPIO_Config(void);
 void walking_cir(u8);
 u8 Origin_PatCtrl(u8);
@@ -479,7 +512,6 @@ extern u8 FLeftCompDuty[101];
 extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;
-extern LED_Twinkle_P WarningLedCtrlPtr;
 extern Buzzer_Ctrl_P BuzzerCtrlPtr;
 extern GearShiftCtrl_P gearCtrlPtr;
 

@@ -621,6 +621,7 @@ void CircleInfo_CMD_Handle(u8 data)
 		CircleInfo_Test();
 		printf("Add!\r\n");
 	}
+	
 }
 
 void circle_recoder_init(void)
