@@ -140,7 +140,7 @@ void Get_Weight_Data(void)
 	}
 	
 	//printf("volte_re = %.3lfV, Volts = %.3lfV, VoltsOffset = %.3lfV, offset = %.4f\r\n", volte_re, Volts, VoltsOffset, offset);
-	//printf("weight_H = %d, weight_L = %d\r\n\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
+	printf("weight_H = %d, weight_L = %d\r\n\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
 	
 	#endif
 }
@@ -180,14 +180,27 @@ void Scan_Weight_Func(void)
 				FiberglasInfo_Ptr->weight_H = 0x00;
 				FiberglasInfo_Ptr->weight_L = 0x00;
 			}
-
+			
 			getWeightCtrl_Ptr->weightUpdate = 1;
-
+			
+			if(getWeightCtrl_Ptr->getWeightCount < 0xFF)
+			{
+				getWeightCtrl_Ptr->getWeightCount++;
+			}
+			else
+			{
+				getWeightCtrl_Ptr->getWeightCount = 0;
+			}
+			
 			timRec = 0;
 		}
 		
 	}	
-	
+	else
+	{
+		timRec = 0;
+		getWeightCtrl_Ptr->getWeightCount = 0;
+	}
 }
 
 

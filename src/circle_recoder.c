@@ -1,5 +1,5 @@
 #include "circle_recoder.h"
-
+#include "watch_dog.h"
 
 #if USE_CIRCLE_INFO_RECODER
 
@@ -573,6 +573,10 @@ void Print_CircleInfo(void)
 	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
 	for(cir = 0; cir < CircleInfoStrPtr->CircleRecoderCount; cir++)
 	{
+		#if USE_IWDG
+		IWDG_RELOAD();
+		#endif
+		
 		Read_OneCircleInfo(ReadCircleInfoStrPtr, (EEPROM_REC_CIRCLE_BASE_ADDR + cir * ONE_CIRCLE_INFO_SIZE_BYTE));
 		Show_CircleInfo(ReadCircleInfoStrPtr);
 	}

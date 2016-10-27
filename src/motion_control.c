@@ -29,13 +29,10 @@
 
 #define decTim 5000
 
-TimRec rec[30];
-u8 recH = 0;
-
-HallCount HallCountArr[6];
+/*
 HallCount CrossRoadHallCountArrGS[6];
 HallCount CrossRoadHallCountArrGB[6];
-
+*/
 
 u16 ZBandRFIDmapping[11];
 
@@ -44,20 +41,12 @@ u8 	AgvGearCompDutyLF[MAX_GEAR_NUM] = {0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 u8 	AgvGearCompDutyRF[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 u8 	AgvGearCompDutyLB[MAX_GEAR_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 u8 	AgvGearCompDutyRB[MAX_GEAR_NUM] = {0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
-u8 	AgvGearK[MAX_GEAR_NUM] = {1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 16, 17, 18, 19, 20, 21, 22};
-u8 	AgvGear7CDLF[MAX_GEAR_OFFSET] = {0, 2, 7, 8, 10, 12, 14, 16, 18, 20, 20};
-GearShiftCtrl 		gearCtrl;
-GearShiftCtrl_P 	gearCtrlPtr = &gearCtrl;
 
 #if USE_MPU6050
 MPU6050_Para 		mpu6050DS;
 MPU6050_Para_P 		mpu6050DS_ptr = &mpu6050DS;
 #endif
 
-u8 LTM[9] = {181, 104, 73, 55, 45, 37, 32, 29, 26};
-u8 RTM[9] = {132, 86, 63, 49, 41, 34, 30, 27, 24};
-
-u8 DutyTableLow[10] = {2, 4, 8, 10, 12, 16, 16, 16, 16, 16};
 u8 DutyTable[10] = {2, 8, 15, 20, 20, 20, 20, 20, 20, 20};
 
 //u8 DutyTable[10] = {2, 4, 6, 8, 8, 8, 8, 8, 8, 8};
@@ -481,160 +470,6 @@ void walking_goStraight(u8 gear)
 			
 			MOTOR_LEFT_DUTY_SET(lmSpeed);
 			MOTOR_RIGHT_DUTY_SET(rmSpeed);
-			
-		}
-	}
-	
-}
-
-
-void walking_backStatus(u8 gear)
-{
-	static u32 counter = 0;
-	static u8 lmSpeed = 0, rmSpeed = 0, gearRecod = 1;
-	u8 offset = 0;
-	
-	ctrlParasPtr->comflag = 6;
-	
-	if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
-	{
-		ctrlParasPtr->comflag = 21;
-		//printf("AgvMSLocation = %d\r\n", RMSDS_Ptr->AgvMSLocation);
-		//if(Agv_MS_Center == RMSDS_Ptr->AgvMSLocation)
-		if((RMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_2) && (RMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_2))
-		{
-			counter++;
-			//printf("counter = %d\r\n", counter);
-			if(counter >= 300)
-			{
-				counter = 0;
-				// 加速操作
-				if(gearRecod < 4)
-				{
-					ctrlParasPtr->comflag = 211;
-					gearRecod++;
-					
-					lmSpeed = AgvGear[4] + offset;
-					rmSpeed = AgvGear[4];
-					
-					ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
-					ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
-
-					MOTOR_LEFT_DUTY_SET(rmSpeed);
-					MOTOR_RIGHT_DUTY_SET(lmSpeed);
-				}
-			}
-		}
-		else
-		{
-			counter = 0;
-		}
-		
-	}
-	else
-	{
-		counter = 0;
-		
-		if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
-		{
-			ctrlParasPtr->comflag = 22;
-			
-			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_5))
-			{
-				ctrlParasPtr->comflag = 221;
-				if(gearRecod > 1)
-				{
-					gearRecod--;
-				}
-				
-				lmSpeed = AgvGear[gearRecod] + offset;
-				rmSpeed = AgvGear[gearRecod];
-			}
-			else
-			{
-				ctrlParasPtr->comflag = 222;
-				lmSpeed = AgvGear[gearRecod] + DutyTable[Agv_MS_Left_1 - FMSDS_Ptr->AgvMSLocation] + offset;
-				rmSpeed = AgvGear[gearRecod];
-			}
-			
-			ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
-
-			MOTOR_LEFT_DUTY_SET(rmSpeed);
-			MOTOR_RIGHT_DUTY_SET(lmSpeed);
-			
-		}
-		else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
-		{		
-			ctrlParasPtr->comflag = 23;
-
-			if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_5) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
-			{
-				ctrlParasPtr->comflag = 231;
-				if(gearRecod > 1)
-				{
-					gearRecod--;
-				}
-				
-				lmSpeed = AgvGear[gearRecod] + offset;
-				rmSpeed = AgvGear[gearRecod];
-			}
-			else
-			{
-				ctrlParasPtr->comflag = 232;
-				lmSpeed = AgvGear[gearRecod] + offset;
-				rmSpeed = AgvGear[gearRecod] + DutyTable[FMSDS_Ptr->AgvMSLocation - Agv_MS_Right_1];
-			}
-			
-
-			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
-			
-			MOTOR_LEFT_DUTY_SET(rmSpeed);
-			MOTOR_RIGHT_DUTY_SET(lmSpeed);
-			
-		}
-		else if(Agv_MS_Right_Outside == FMSDS_Ptr->AgvMSLocation)
-		{
-
-			ctrlParasPtr->comflag = 24;
-			
-			lmSpeed = 10 + offset;
-			rmSpeed = 10;
-
-			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
-			
-			MOTOR_LEFT_DUTY_SET(rmSpeed);
-			MOTOR_RIGHT_DUTY_SET(lmSpeed);
-
-		}
-		else if(Agv_MS_Left_Outside == FMSDS_Ptr->AgvMSLocation)
-		{	
-			ctrlParasPtr->comflag = 25;
-			
-			lmSpeed = 10 + offset;
-			rmSpeed = 10;
-
-			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
-			
-			MOTOR_LEFT_DUTY_SET(rmSpeed);
-			MOTOR_RIGHT_DUTY_SET(lmSpeed);
-			
-		}
-		else
-		{
-			ctrlParasPtr->comflag = 26;
-
-			lmSpeed = 10 + offset;
-			rmSpeed = 10;
-
-			ctrlParasPtr->leftMotorSettedSpeed = rmSpeed;
-			ctrlParasPtr->rightMotorSettedSpeed = lmSpeed;
-			
-			MOTOR_LEFT_DUTY_SET(rmSpeed);
-			MOTOR_RIGHT_DUTY_SET(lmSpeed);
 			
 		}
 	}
@@ -2190,35 +2025,6 @@ void back_slow2(u8 gear)
 	
 }
 
-
-
-void gS_urgency_mode(void)
-{
-	static u8 lmSpeed = 0, rmSpeed = 0;
-	// 紧急修正模式
-	
-	ctrlParasPtr->comflag = 65;
-	
-	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))
-	{
-		
-		lmSpeed = AgvGear[2] + AgvGearCompDutyLF[2] + AgvGear7CDLF[2];
-		rmSpeed = AgvGear[2] + AgvGearCompDutyRF[2];		
-	}
-	else if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Center) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End))
-	{
-		
-		lmSpeed = AgvGear[2] + AgvGearCompDutyLF[2];
-		rmSpeed = AgvGear[2] + AgvGearCompDutyRF[2] + AgvGear7CDLF[2];			
-	}
-	else if(Agv_MS_Center == FMSDS_Ptr->AgvMSLocation)
-	{
-		ctrlParasPtr->FSflag = 0;
-	}
-
-	set_duty(lmSpeed, rmSpeed);
-	
-}
 
 void Show_Analy(Magn_Sensor_Data_Sturct_P ptr)
 {
@@ -4731,12 +4537,6 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 			scale_1_mode20(gearRecod);
 			HighSpeed_Protect2();
 		}
-		else if(2 == ctrlParasPtr->FSflag)
-		{
-			// 紧急模式
-			gS_urgency_mode();
-			
-		}
 		
 	}
 	ctrlParasPtr->BSflag = 0;
@@ -4770,12 +4570,6 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 			scale_1_mode20_back(gearRecod);
 			HighSpeed_Protect2();
 		}
-		else if(2 == ctrlParasPtr->BSflag)
-		{
-			// 紧急模式
-			gS_urgency_mode();
-			
-		}
 		else if(3 == ctrlParasPtr->BSflag)
 		{
 			back_slow2(5);
@@ -4791,6 +4585,7 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 void gS_step_exit(u8 gearRecod)
 {
 	static u8 lmSpeed = 0, rmSpeed = 0;
+	u8 DutyTableLow[10] = {2, 4, 8, 10, 12, 16, 16, 16, 16, 16};
 	//u32 centCount = 0;
 	
 	if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation < Agv_MS_Center))			// 往外偏移,加速
@@ -6526,8 +6321,8 @@ void step_gS_Func(void)
 				}
 				else
 				{
-					// 异常排除, 解除异常
-					WARNING_STATUS_FLMT_SW_ERR_CLEAN();
+					// 异常排除, 解除异常, 恢复正常模式
+					WARNING_STATUS_NORMAL_SET();
 					
 					ctrlParasPtr->Machine_ARM_Toggle_Flag = 0;
 					flag = 3;
@@ -7242,7 +7037,7 @@ void step_gB_Func(void)
 	
 	CHANGE_TO_BACK_MODE();
 	
-	#if 0
+	
 	if(ctrlParasPtr->crossRoadCountR <= 1)
 	{
 		Ecv_Para temp;
@@ -7254,7 +7049,6 @@ void step_gB_Func(void)
 		WECV_Str_Ptr->ECV_SetPara(&temp);
 		
 	}
-	#endif
 	
 	if((0x0000 == FMSDS_Ptr->MSD_Hex) && (0x0000 == RMSDS_Ptr->MSD_Hex))
 	{
@@ -7272,7 +7066,7 @@ void step_gB_Func(void)
 		ctrlParasPtr->originFlag = 0;
 
 		//Clean_Weight_Func();
-		getWeightCtrl_Ptr->weightScanEnable = 1;
+		
 		ctrlParasPtr->walkingstep = step_wFTans;
 		
 	}
@@ -7282,6 +7076,7 @@ void step_wFTans_Func(void)
 {
 	static u8 step = 0;	
 	static u32 timRec = 0;
+	static u16 weight = 0;
 
 	if(0 == step)
 	{
@@ -7298,7 +7093,7 @@ void step_wFTans_Func(void)
 	}
 	else if(1 == step)
 	{
-
+		
 		if(0 == timRec)
 		{
 			timRec = SystemRunningTime;
@@ -7308,6 +7103,8 @@ void step_wFTans_Func(void)
 			if(SystemRunningTime - timRec >= 50000)
 			{
 				timRec = 0;
+				getWeightCtrl_Ptr->weightScanEnable = 1;
+				getWeightCtrl_Ptr->getWeightCount = 0;
 				step = 2;
 			}
 		}	
@@ -7315,9 +7112,20 @@ void step_wFTans_Func(void)
 	else if(2 == step)
 	{
 		
-		if(FiberglasInfo_Ptr->weight_H <= 5)
+		if(getWeightCtrl_Ptr->getWeightCount >= 10)
 		{
-			CMD_Flag_Ptr->cmdFlag = GoodLeav;
+			if((weight / 10) <= 3)
+			{
+				CMD_Flag_Ptr->cmdFlag = GoodLeav;
+				step = 3;
+			}
+			
+			getWeightCtrl_Ptr->getWeightCount = 0;
+			weight = 0;
+		}
+		else
+		{
+			weight += FiberglasInfo_Ptr->weight_H;
 		}
 	}
 	
@@ -7330,6 +7138,7 @@ void step_wFTans_Func(void)
 	{
 		step = 0;
 		timRec = 0;
+		weight = 0;
 
 		getWeightCtrl_Ptr->weightScanEnable = 0;
 		CMD_Flag_Ptr->cmdFlag = NcNone;
@@ -7742,25 +7551,52 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 	Ecv_Para temp;
 	
 	if(0 == *step)
-	{			
+	{	
+		#if 0
+		
 		temp.Dir			= ECV_UP;
 		temp.EcvSpeed		= 100;
 		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
 		FECV_Str_Ptr->ECV_SetPara(&temp);
+
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 100;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
 		
 		if(FLMT_SW_UNRESPOND)
 		{
 			
 			FECV_Str_Ptr->Dir = ECV_STOP;
-			if(BECV_Str_Ptr->Dir != ECV_STOP)
-			{
-				BECV_Str_Ptr->Dir = ECV_STOP;
-			}
+			
 			FECV_Str_Ptr->ECV_Clean_Use_Status();
-			BECV_Str_Ptr->ECV_Clean_Use_Status();
 			*step = 1;
 		}
 		
+		#else
+		
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 600;
+		FECV_Str_Ptr->ECV_SetPara(&temp);
+
+		temp.Dir			= ECV_UP;
+		temp.EcvSpeed		= 100;
+		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+		temp.EcvHallCountCmp= 100;
+		BECV_Str_Ptr->ECV_SetPara(&temp);
+		
+		if((ECV_COMPLETE == FECV_Str_Ptr->UseStatus) && (ECV_COMPLETE == BECV_Str_Ptr->UseStatus))
+		{
+						
+			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
+			*step = 2;
+		}
+		
+		#endif
 	}
 	else if(1 == *step)
 	{
@@ -7770,10 +7606,11 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 		temp.EcvHallCountCmp= 200;
 		FECV_Str_Ptr->ECV_SetPara(&temp);
 
-		if(ECV_COMPLETE == FECV_Str_Ptr->UseStatus)
+		if((ECV_COMPLETE == FECV_Str_Ptr->UseStatus) && (ECV_COMPLETE == BECV_Str_Ptr->UseStatus))
 		{
 			*step = 2;
 			FECV_Str_Ptr->ECV_Clean_Use_Status();
+			BECV_Str_Ptr->ECV_Clean_Use_Status();
 		}
 		
 	}
@@ -7788,18 +7625,18 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 		else
 		{
 			
-			if(RLMT_SW_RESPOND || (SystemRunningTime - *timRec >= 10000))
+			if(RLMT_SW_RESPOND || (SystemRunningTime - *timRec >= 20000))
 			{
 				temp.Dir			= ECV_UP;
 				temp.EcvSpeed		= 100;
 				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-				temp.EcvHallCountCmp= 500;
+				temp.EcvHallCountCmp= 200;
 				FECV_Str_Ptr->ECV_SetPara(&temp);
 				
 				temp.Dir			= ECV_UP;
 				temp.EcvSpeed		= 100;
 				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-				temp.EcvHallCountCmp= 420;
+				temp.EcvHallCountCmp= 320;
 				BECV_Str_Ptr->ECV_SetPara(&temp);
 				*timRec = 0;
 				*step = 3;
@@ -7907,7 +7744,7 @@ void ECV_Machine_ARM_Toggle_Func(u8 *step, u32 *timRec)
 		temp.Dir			= ECV_UP;
 		temp.EcvSpeed		= 100;
 		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 150;
+		temp.EcvHallCountCmp= 200;
 		BECV_Str_Ptr->ECV_SetPara(&temp);
 
 		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
@@ -7922,7 +7759,7 @@ void ECV_Machine_ARM_Toggle_Func(u8 *step, u32 *timRec)
 		temp.Dir			= ECV_DOWN;
 		temp.EcvSpeed		= 100;
 		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
-		temp.EcvHallCountCmp= 150;
+		temp.EcvHallCountCmp= 200;
 		BECV_Str_Ptr->ECV_SetPara(&temp);
 
 		if(ECV_COMPLETE == BECV_Str_Ptr->UseStatus)
@@ -8143,7 +7980,6 @@ void ZigbeeRecv_Simu(void)
 		
 		if(Return_SW_LF_Respond && Return_SW_LR_Respond && Return_SW_RF_UnRespond && Return_SW_RR_UnRespond)
 		{
-			printf("in2\r\n");
 			Delay_ms(20);
 			if(Return_SW_LF_Respond && Return_SW_LR_Respond && Return_SW_RF_UnRespond && Return_SW_RR_UnRespond)
 			{
@@ -8151,6 +7987,7 @@ void ZigbeeRecv_Simu(void)
 				ctrlParasPtr->agvWalkingMode = ManualMode;
 			}
 		}
+		/*
 		else if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_Respond)
 		{
 			Delay_ms(20);
@@ -8162,7 +7999,7 @@ void ZigbeeRecv_Simu(void)
 				Zigbee_Ptr->recvValidDataFlag = 1;
 			}
 		}
-		
+		*/
 	}
 
 
@@ -8474,7 +8311,7 @@ void Trigger_Gpio_Init(void)
 
 void Motion_Ctrl_Init(void)
 {
-	u8 cir = 0;
+	//u8 cir = 0;
 	
 	//Trigger_Gpio_Init();
 	//Delay_ns(1);
@@ -8554,6 +8391,7 @@ void Motion_Ctrl_Init(void)
 	ZBandRFIDmapping[SpinStation_9] 	= 0x0009;
 	ZBandRFIDmapping[SpinStation_10] 	= 0x000A;
 
+	/*
 	CrossRoadHallCountArrGS[0].HallCountLeft 	= 0;
 	CrossRoadHallCountArrGS[1].HallCountLeft 	= 29;
 	CrossRoadHallCountArrGS[2].HallCountLeft 	= 29;
@@ -8567,7 +8405,7 @@ void Motion_Ctrl_Init(void)
 	CrossRoadHallCountArrGS[3].HallCountRight 	= 97;
 	CrossRoadHallCountArrGS[4].HallCountRight 	= 120;
 	CrossRoadHallCountArrGS[5].HallCountRight 	= 120;
-
+	
 	CrossRoadHallCountArrGB[0].HallCountLeft 	= 0;
 	CrossRoadHallCountArrGB[1].HallCountLeft 	= 29;
 	CrossRoadHallCountArrGB[2].HallCountLeft 	= 29;
@@ -8581,12 +8419,11 @@ void Motion_Ctrl_Init(void)
 	CrossRoadHallCountArrGB[3].HallCountRight 	= 29;
 	CrossRoadHallCountArrGB[4].HallCountRight 	= 29;
 	CrossRoadHallCountArrGB[5].HallCountRight 	= 29;
-
-
+	*/
 	
+	#if USE_MPU6050
 	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
 	{
-		#if USE_MPU6050
 		mpu6050DS_ptr->ax = 0;
 		mpu6050DS_ptr->ay = 0;
 		mpu6050DS_ptr->ayAverage = 0;
@@ -8606,16 +8443,13 @@ void Motion_Ctrl_Init(void)
 		mpu6050DS_ptr->sumPlus = 0;
 		mpu6050DS_ptr->tempture = 0;
 		mpu6050DS_ptr->ayAverageUpdate = 0;
-		#endif
-
-		BuzzerCtrlPtr->buzzerFlag = 0;
-		BuzzerCtrlPtr->buzzerTime_ms = 150;
-		BuzzerCtrlPtr->buzzerNum = 2;
-		BuzzerCtrlPtr->buzzerCtrlFunc = BuzzerCtrlFunc;
-
-		
 	}
+	#endif
 	
+	BuzzerCtrlPtr->buzzerFlag = 0;
+	BuzzerCtrlPtr->buzzerTime_ms = 150;
+	BuzzerCtrlPtr->buzzerNum = 2;
+	BuzzerCtrlPtr->buzzerCtrlFunc = BuzzerCtrlFunc;
 }
 
 

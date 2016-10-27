@@ -456,13 +456,6 @@ typedef struct
 	void (*agv_walk_stop)(void);
 }MotionOperaterStruct, *MotionOperaterStruct_P;
 
-typedef struct
-{
-	u8 acceleraFlag;
-	u8 gearRecoder;
-	u8 init;
-}GearShiftCtrl, *GearShiftCtrl_P;
-
 
 void Motion_Ctrl_Init(void);
 void AGV_Walking(void);
@@ -513,7 +506,6 @@ extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;
 extern Buzzer_Ctrl_P BuzzerCtrlPtr;
-extern GearShiftCtrl_P gearCtrlPtr;
 
 
 #endif

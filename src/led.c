@@ -16,10 +16,12 @@ void LED_Status_Handle(void)
 		if(WARNING_STATUS_FLMT_SW_CHECK)
 		{
 			Warning_LED_FLMT_SW_ERR_STATUS();
+			WARNING_STATUS_FLMT_SW_ERR_CLEAN();
 		}
 		else if(WARNING_STATUS_NORMAL_CHECK)
 		{
 			Warning_LED_NORMAL_STATUS();
+			WARNING_STATUS_NORMAL_CLEAN();
 		}
 	}
 	

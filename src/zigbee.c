@@ -279,7 +279,7 @@ void Send_Zigbee_LM_ACK(void)
 	
 }
 
-
+#if 1
 void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
 {
 	nc_receive[receive_count] = UART2_DR;
@@ -323,7 +323,14 @@ void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
 		}
 	}
 }
+#else
 
+void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
+{
+	ZB_DATA_BUF_APPEND(UART2_DR);
+}
+
+#endif
 
 void Receive_handle2(void)
 {

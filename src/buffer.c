@@ -2,28 +2,18 @@
 #include "debug_opts.h"
 #include "motion_control.h"
 
-BufferControl fytCmdBufCtrl;
-BufferControl canBufCtrl;
-BufferControl usartBufCtrl;
-BufferControl sendCanBufCtrl;
 BufferControl dht11DataBufCtrl;
-BufferControl nrfRecvDataBufCtrl;
-BufferControl nrfSendDataBufCtrl;
+
+BufferControl zbDataRecvBufCtrl;
+BufferControl_P zbDataRecvBufCtrl_Ptr = &zbDataRecvBufCtrl;
 
 BufferControl zigbeeQueueCtrl;
-
-CmdRecvFromFYT fytCmdBuf[MAX_FYT_CMD_BUF_NUM];
-CanRxMsg canDataBuf[MAX_CAN_DATA_BUF_NUM];
-DataInfo sendUsartBuf[MAX_USART_SEND_BUF_NUM];
-CanTxMsg sendToCanBuf[MAX_CAN_SEND_BUF_NUM];
-
-u8 nrfRecvBuf[MAX_NRF_RECV_BUF_NUM][32];
-u8 nrfSendBuf[MAX_NRF_SEND_BUF_NUM][32];
 
 ReqQueueStr zigbeeInfoQueueBuf[MAX_ZIGBEE_QUEUE_NUM];
 
 Dht11_DataInfoStruct dht11DataBuf[MAX_DHT11_DATA_BUF_NUM];
-RqcpCtrlStruct rqcpCtrl;
+
+u8 zbRecvDataBuf[MAX_ZB_BUF_SIZE];
 
 void *tmpNode;
 
@@ -46,11 +36,10 @@ u8 Buf_Append_Common(BufferControl_P bufCtrl, void (*dataOptsFunc)(void))
 		
 		bufCtrl->Total++;
 		
-		//printf("sendCanBufCtrl.HeadVernier = %d, sendCanBufCtrl.TailVernier = %d, sendCanBufCtrl.Total = %d\r\n", sendCanBufCtrl.HeadVernier, sendCanBufCtrl.TailVernier, sendCanBufCtrl.Total);
 	}
 	else
 	{
-		errorInfo.errorType = recvFytCmdBufOverFlow;
+		//errorInfo.errorType = recvFytCmdBufOverFlow;
 		errorFunc();
 		//printf("fytCmdBuf_FULL\r\n");
 		return 1;
@@ -74,250 +63,12 @@ void Buf_Delete_Common(BufferControl_P bufCtrl)
 		
 		bufCtrl->Total--;
 		
-		//printf("fytCmdBufCtrl.HeadVernier = %d, fytCmdBufCtrl.TailVernier = %d, fytCmdBufCtrl.Total = %d\r\n", fytCmdBufCtrl.HeadVernier, fytCmdBufCtrl.TailVernier, fytCmdBufCtrl.Total);
 	}
 }
 
 
 /**************************************************************/
 
-
-CmdRecvFromFYT* get_fytCmd_data(void)
-{
-	CmdRecvFromFYT* fytCmdData;
-
-	fytCmdData = &fytCmdBuf[fytCmdBufCtrl.HeadVernier];
-
-	return fytCmdData;
-}
-
-CanRxMsg get_canData(void)
-{
-	CanRxMsg rxData;
-
-	rxData = canDataBuf[canBufCtrl.HeadVernier];
-
-	return rxData;
-}
-
-DataInfo* get_sendUsart_Data(void)
-{
-	DataInfo* sendUsartData;
-	
-	sendUsartData = &sendUsartBuf[usartBufCtrl.HeadVernier];
-
-	return sendUsartData;
-}
-
-CanTxMsg* get_sendToCan_Data(void)
-{
-	CanTxMsg* sendToCanData;
-
-	sendToCanData = &sendToCanBuf[sendCanBufCtrl.HeadVernier];
-
-	return sendToCanData;
-}
-
-/***************USART1接收buffer******************/
-void FytBuf_Append(CmdRecvFromFYT node)
-{
-	if(fytCmdBufCtrl.Total < MAX_FYT_CMD_BUF_NUM)
-	{
-		
-		fytCmdBuf[fytCmdBufCtrl.TailVernier] = node;
-		
-		if(fytCmdBufCtrl.TailVernier < MAX_FYT_CMD_BUF_NUM - 1)
-		{
-			fytCmdBufCtrl.TailVernier++;
-		}
-		else
-		{
-			fytCmdBufCtrl.TailVernier = 0;
-		}
-		
-		fytCmdBufCtrl.Total++;
-		
-		//printf("fytCmdBufCtrl.HeadVernier = %d, fytCmdBufCtrl.TailVernier = %d, fytCmdBufCtrl.Total = %d\r\n", fytCmdBufCtrl.HeadVernier, fytCmdBufCtrl.TailVernier, fytCmdBufCtrl.Total);
-	}
-	else
-	{
-		errorInfo.errorType = recvFytCmdBufOverFlow;
-		errorFunc();
-		//printf("fytCmdBuf_FULL\r\n");
-	}
-
-}
-
-void FytBuf_Delete(void)
-{
-	if(fytCmdBufCtrl.Total > 0)
-	{
-		if(fytCmdBufCtrl.HeadVernier < MAX_FYT_CMD_BUF_NUM - 1)
-		{
-			fytCmdBufCtrl.HeadVernier++;
-		}
-		else
-		{
-			fytCmdBufCtrl.HeadVernier = 0;
-		}
-		
-		fytCmdBufCtrl.Total--;
-		
-		//printf("fytCmdBufCtrl.HeadVernier = %d, fytCmdBufCtrl.TailVernier = %d, fytCmdBufCtrl.Total = %d\r\n", fytCmdBufCtrl.HeadVernier, fytCmdBufCtrl.TailVernier, fytCmdBufCtrl.Total);
-	}
-}
-
-
-/********************CAN接收buffer**************************/
-void CanBuf_Append(CanRxMsg node)
-{
-	//Buf_Append_Common();
-	
-}
-
-void CanBuf_Delete(void)
-{
-	if(canBufCtrl.Total > 0)
-	{
-		if(canBufCtrl.HeadVernier < MAX_CAN_DATA_BUF_NUM - 1)
-		{
-			canBufCtrl.HeadVernier++;
-		}
-		else
-		{
-			canBufCtrl.HeadVernier = 0;
-		}
-		
-		canBufCtrl.Total--;
-		//printf("CanBuf_Delete\r\n");
-	}
-}
-
-
-
-/*****************USART发送buffer***************************/
-void ShowUsartBuf(void)
-{
-	u8 cir = 0;
-
-	for(cir = 0; cir < usartBufCtrl.Total; cir++)
-	{
-		printf("dataType = %x, dataLength = %x\r\n", sendUsartBuf[usartBufCtrl.HeadVernier + cir].dataType, sendUsartBuf[usartBufCtrl.HeadVernier + cir].dataLength);
-	}
-}
-
-void UsartBuf_Append(DataInfo node)
-{
-	if(usartBufCtrl.Total < MAX_USART_SEND_BUF_NUM)
-	{
-	#if 0
-		u8 cir = 0;
-		sendUsartBuf[usartBufCtrl.TailVernier].headCode = node.headCode;
-		sendUsartBuf[usartBufCtrl.TailVernier].dataType = node.dataType;
-		sendUsartBuf[usartBufCtrl.TailVernier].dataLength = node.dataLength;
-
-		for(cir = 0; cir < node.dataLength; cir++)
-		{
-			sendUsartBuf[usartBufCtrl.TailVernier].data[cir] = node.data[cir];
-		}
-
-		sendUsartBuf[usartBufCtrl.TailVernier].checkSum = countCheckSum(node);
-	#else
-		//node.checkSum = countCheckSum(node);
-		sendUsartBuf[usartBufCtrl.TailVernier] = node;
-	#endif		
-		if(usartBufCtrl.TailVernier < MAX_USART_SEND_BUF_NUM - 1)
-		{
-			usartBufCtrl.TailVernier++;
-		}
-		else
-		{
-			usartBufCtrl.TailVernier = 0;
-		}
-		
-		usartBufCtrl.Total++;
-		
-		//printf("usartBufCtrl.HeadVernier = %d, usartBufCtrl.TailVernier = %d, usartBufCtrl.Total = %d\r\n", usartBufCtrl.HeadVernier, usartBufCtrl.TailVernier, usartBufCtrl.Total);
-		//ShowUsartBuf();
-	}
-	else
-	{
-		errorInfo.errorType = recvFytCmdBufOverFlow;
-		errorFunc();
-		printf("sendUsartBuf_Append_Full\r\n");
-	}
-}
-
-
-void UsartBuf_Delete(void)
-{
-	if(usartBufCtrl.Total > 0)
-	{
-		if(usartBufCtrl.HeadVernier < MAX_CAN_DATA_BUF_NUM - 1)
-		{
-			usartBufCtrl.HeadVernier++;
-		}
-		else
-		{
-			usartBufCtrl.HeadVernier = 0;
-		}
-		
-		usartBufCtrl.Total--;
-		//printf("UsartBuf_Delete\r\n");
-		//printf("usartBufCtrl.HeadVernier = %d, usartBufCtrl.TailVernier = %d, usartBufCtrl.Total = %d\r\n", usartBufCtrl.HeadVernier, usartBufCtrl.TailVernier, usartBufCtrl.Total);
-	}
-}
-
-
-/*******************CAN发送buffer************************/
-
-void SendCanBuf_Append(CanTxMsg node)
-{
-	if(sendCanBufCtrl.Total < MAX_CAN_SEND_BUF_NUM)
-	{
-		
-		sendToCanBuf[sendCanBufCtrl.TailVernier] = node;
-		
-		if(sendCanBufCtrl.TailVernier < MAX_FYT_CMD_BUF_NUM - 1)
-		{
-			sendCanBufCtrl.TailVernier++;
-		}
-		else
-		{
-			sendCanBufCtrl.TailVernier = 0;
-		}
-		
-		sendCanBufCtrl.Total++;
-		
-		//printf("sendCanBufCtrl.HeadVernier = %d, sendCanBufCtrl.TailVernier = %d, sendCanBufCtrl.Total = %d\r\n", sendCanBufCtrl.HeadVernier, sendCanBufCtrl.TailVernier, sendCanBufCtrl.Total);
-	}
-	else
-	{
-		errorInfo.errorType = recvFytCmdBufOverFlow;
-		errorFunc();
-		//printf("fytCmdBuf_FULL\r\n");
-	}
-
-}
-
-void SendCanBuf_Delete(void)
-{
-	if(sendCanBufCtrl.Total > 0)
-	{
-		if(sendCanBufCtrl.HeadVernier < MAX_CAN_SEND_BUF_NUM - 1)
-		{
-			sendCanBufCtrl.HeadVernier++;
-		}
-		else
-		{
-			sendCanBufCtrl.HeadVernier = 0;
-		}
-		
-		sendCanBufCtrl.Total--;
-		
-		//printf("fytCmdBufCtrl.HeadVernier = %d, fytCmdBufCtrl.TailVernier = %d, fytCmdBufCtrl.Total = %d\r\n", fytCmdBufCtrl.HeadVernier, fytCmdBufCtrl.TailVernier, fytCmdBufCtrl.Total);
-	}
-}
 
 
 /*******************DHT11数据buffer************************/
@@ -353,33 +104,6 @@ Dht11_DataInfoStruct_P Get_DHT11_Data(void)
 }
 
 /**************************************************************/
-
-
-/************************NRF24L01 buffer****************************/
-
-void NrfRecvDataOpts(void)
-{
-	//nrfRecvBuf[nrfRecvDataBufCtrl.TailVernier] = *((Dht11_DataInfoStruct_P)tmpNode);
-}
-
-void NrfRecvDataBuf_Append(Dht11_DataInfoStruct node)
-{
-	tmpNode = &node;
-	
-	Buf_Append_Common(&nrfRecvDataBufCtrl, NrfRecvDataOpts);
-	//printf("HeadVernier = %d\r\n", dht11DataBufCtrl.HeadVernier);
-}
-
-void NrfRecvDataBuf_Delete(void)
-{
-	Buf_Delete_Common(&nrfRecvDataBufCtrl);
-	//printf("TailVernier = %d\r\n", dht11DataBufCtrl.TailVernier);
-}
-
-//u8 *GetNrfEmpetyBuf(void)
-//{
-	
-//}
 
 u8 get_ZigbeeQueue_HeadVernier(void)
 {
@@ -436,7 +160,7 @@ void zigbeeRecvDataBuf_Append(ReqQueueStr data)
 	}
 	else
 	{
-		errorInfo.errorType = recvZigbeeBufOverFlow;
+		//errorInfo.errorType = recvZigbeeBufOverFlow;
 		errorFunc();
 		
 	}
@@ -546,34 +270,63 @@ void get_zigbeeData(ReqQueueStr_P data)
 }
 
 
+
 /********************************************************************/
 
-
-void CAN_Buf_Init(void)
+void ZB_DATA_BUF_APPEND(u8 data)
 {
-	fytCmdBufCtrl.HeadVernier = 0;
-	fytCmdBufCtrl.TailVernier = 0;
-	fytCmdBufCtrl.Total = 0;
-	fytCmdBufCtrl.MaxNum = MAX_FYT_CMD_BUF_NUM;
-
-	canBufCtrl.HeadVernier = 0;
-	canBufCtrl.TailVernier = 0;
-	canBufCtrl.Total = 0;
-	canBufCtrl.MaxNum = MAX_CAN_DATA_BUF_NUM;
-
-	usartBufCtrl.HeadVernier = 0;
-	usartBufCtrl.TailVernier = 0;
-	usartBufCtrl.Total = 0;
-	usartBufCtrl.MaxNum = MAX_USART_SEND_BUF_NUM;
-
-	sendCanBufCtrl.HeadVernier = 0;
-	sendCanBufCtrl.TailVernier = 0;
-	sendCanBufCtrl.Total = 0;
-	sendCanBufCtrl.MaxNum = MAX_CAN_SEND_BUF_NUM;
-
-	
+	if(zbDataRecvBufCtrl_Ptr->Total < zbDataRecvBufCtrl_Ptr->MaxNum)
+	{
+		zbRecvDataBuf[zbDataRecvBufCtrl_Ptr->TailVernier] = data;
+		
+		if(zbDataRecvBufCtrl_Ptr->TailVernier < zbDataRecvBufCtrl_Ptr->MaxNum - 1)
+		{
+			zbDataRecvBufCtrl_Ptr->TailVernier++;
+		}
+		else
+		{
+			zbDataRecvBufCtrl_Ptr->TailVernier = 0;
+		}
+		
+		zbDataRecvBufCtrl_Ptr->Total++;
+		
+	}
+	else
+	{
+		//errorInfo.errorType = Usart1RecvBufOverFlow;
+		//errorFunc();
+	}
 	
 }
+
+void ZB_DATA_BUF_DELETE(void)
+{
+	if(zbDataRecvBufCtrl_Ptr->Total > 0)
+	{
+		if(zbDataRecvBufCtrl_Ptr->HeadVernier < zbDataRecvBufCtrl_Ptr->MaxNum - 1)
+		{
+			zbDataRecvBufCtrl_Ptr->HeadVernier++;
+		}
+		else
+		{
+			zbDataRecvBufCtrl_Ptr->HeadVernier = 0;
+		}
+		
+		zbDataRecvBufCtrl_Ptr->Total--;
+		
+	}
+}
+
+u8 Get_ZB_DATA(void)
+{
+	
+	return (zbRecvDataBuf[zbDataRecvBufCtrl_Ptr->HeadVernier]);
+	
+}
+
+
+/********************************************************************/
+
 
 
 void DHT11_Buf_Init(void)
@@ -584,19 +337,6 @@ void DHT11_Buf_Init(void)
 	dht11DataBufCtrl.MaxNum = MAX_DHT11_DATA_BUF_NUM;
 }
 
-void NRF24L01_Buf_Init(void)
-{
-	nrfRecvDataBufCtrl.HeadVernier = 0;
-	nrfRecvDataBufCtrl.TailVernier = 0;
-	nrfRecvDataBufCtrl.Total = 0;
-	nrfRecvDataBufCtrl.MaxNum = MAX_NRF_RECV_BUF_NUM;
-
-	nrfSendDataBufCtrl.HeadVernier = 0;
-	nrfSendDataBufCtrl.TailVernier = 0;
-	nrfSendDataBufCtrl.Total = 0;
-	nrfSendDataBufCtrl.MaxNum = MAX_NRF_SEND_BUF_NUM;
-}
-
 void Zigbee_Buf_Init(void)
 {
 	zigbeeQueueCtrl.HeadVernier = 0;
@@ -605,20 +345,19 @@ void Zigbee_Buf_Init(void)
 	zigbeeQueueCtrl.MaxNum = MAX_ZIGBEE_QUEUE_NUM;
 }
 
-void BufferOpts_Init(void)
+void Zb_Recv_Data_Buf_Init(void)
 {
-	//CAN_Buf_Init();
-	//DHT11_Buf_Init();
-	//NRF24L01_Buf_Init();
-	Zigbee_Buf_Init();
-
-	/*
-	rqcpCtrl.RQCP0 = 1;
-	rqcpCtrl.RQCP1 = 1;
-	rqcpCtrl.RQCP2 = 1;
-	*/
+	zbDataRecvBufCtrl.HeadVernier = 0;
+	zbDataRecvBufCtrl.TailVernier = 0;
+	zbDataRecvBufCtrl.Total = 0;
+	zbDataRecvBufCtrl.MaxNum = MAX_ZB_BUF_SIZE;
 }
 
+void BufferOpts_Init(void)
+{
+	Zigbee_Buf_Init();
 
+	Zb_Recv_Data_Buf_Init();
+}
 
 

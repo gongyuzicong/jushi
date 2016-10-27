@@ -29,6 +29,7 @@ typedef struct
 {	
 	u8 weightScanEnable;
 	u8 weightUpdate;
+	u8 getWeightCount;
 }GetWeight_Ctrl, *GetWeight_Ctrl_P;
 
 typedef struct

@@ -102,8 +102,8 @@ int main(void)
 	
 	Machine_Arm_Init3();
 	
-	//MOTOR_POWER_ON();
-	MOTOR_POWER_OFF();
+	MOTOR_POWER_ON();
+	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
 	Get_Weight_Offset_Data_One();
 	
@@ -123,12 +123,7 @@ int main(void)
 		#if 1
 		
 		#if USE_IWDG
-		u32 timRec = 0;
-		if(Delay_Func(&timRec, 500))
-		{
-			IWDG_RELOAD();
-			timRec = 0;
-		}
+		IWDG_RELOAD();
 		#endif
 		
 		ProtectFunc();							// 行人保护
@@ -366,7 +361,35 @@ int main(void)
 		*/		
 
 		//ManualModeEcvCtrlFunc();
-		Get_Voltage();
+		/*
+		if(zbDataRecvBufCtrl_Ptr->Total > 0)
+		{
+			printf("%02x ", Get_ZB_DATA());
+			ZB_DATA_BUF_DELETE();
+		}
+		*/
+
+		static u32 count = 0;
+		
+		if(receive_state == 1)
+		{
+			receive_state = 0;
+			count++;
+			printf("count = %d\r\n", count);
+		}
+		else if(Return_SW_LR_Respond)
+		{
+			Delay_ms(10);
+			
+			if(Return_SW_LR_Respond)
+			{
+				while(Return_SW_LR_Respond);
+
+				count = 0;
+				printf("count clean!\r\n");
+			}
+		}
+		
 		
 		#endif
 		

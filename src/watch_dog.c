@@ -5,7 +5,7 @@
 void IWatch_Dog_Init(void)
 {
 	IWDG_KR_START();
-	IWDG_SetPrescaler(IWDG_Prescaler_32);
+	IWDG_SetPrescaler(IWDG_Prescaler_16);
 	IWDG_KR_START();
 	IWDG_SetReload(0xFFF);
 	Delay_ms(10);

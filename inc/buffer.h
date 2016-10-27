@@ -5,7 +5,6 @@
 #include "data_type.h"
 #include "motion_control.h"
 
-#define MAX_FYT_CMD_BUF_NUM 	2			// 从FYT接收数据帧缓存区大小: n帧
 #define MAX_CAN_DATA_BUF_NUM	2			// 从CAN接收数据帧缓存区大小: n帧
 #define MAX_USART_SEND_BUF_NUM	2			// 发送给FYT数据帧缓存区大小: n帧
 #define MAX_CAN_SEND_BUF_NUM	2			// 发送给CAN数据帧缓存区大小: n帧
@@ -20,39 +19,15 @@
 
 #define MAX_ZIGBEE_QUEUE_NUM	20
 
-typedef struct
-{
-	u8 RQCP0;
-	u8 RQCP1;
-	u8 RQCP2;
-}RqcpCtrlStruct;
+#define MAX_ZB_BUF_SIZE			8
 
-
-
-extern BufferControl fytCmdBufCtrl;
-extern BufferControl canBufCtrl;
 extern BufferControl usartBufCtrl;
-extern BufferControl sendCanBufCtrl;
 
 extern BufferControl zigbeeQueueCtrl;
-
-extern RqcpCtrlStruct rqcpCtrl;
+extern BufferControl zbDataRecvBufCtrl;
 
 void BufferOpts_Init(void);
-void FytBuf_Append(CmdRecvFromFYT node);
-void FytBuf_Delete(void);
-void CanBuf_Append(CanRxMsg node);
-void CanBufRecvFunc(void);
-void CanBuf_Delete(void);
-void UsartBuf_Append(DataInfo node);
-void UsartBuf_Delete(void);
-void CanBufRecvFunc(void);
-void SendCanBuf_Append(CanTxMsg node);
-void SendCanBuf_Delete(void);
 void Buf_Delete_Common(BufferControl *bufCtrl);
-CmdRecvFromFYT* get_fytCmd_data(void);
-CanRxMsg get_canData(void);
-DataInfo* get_sendUsart_Data(void);
 CanTxMsg* get_sendToCan_Data(void);
 void DHT11DataBuf_Append(Dht11_DataInfoStruct node);
 void DHT11DataBuf_Delete(void);
@@ -66,6 +41,10 @@ void zigbeeCancelQueue(u8);
 u8 searchZigbeeData(u8, u8 *);
 u8 get_ZigbeeQueue_HeadVernier(void);
 
+
+void ZB_DATA_BUF_APPEND(u8 data);
+void ZB_DATA_BUF_DELETE(void);
+u8 Get_ZB_DATA(void);
 
 
 #endif
