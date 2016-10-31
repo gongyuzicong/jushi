@@ -201,7 +201,6 @@ typedef enum
 	AutomaticMode = 0,
 	ManualMode,
 	TestMode,
-	RFID_Setting_Mode,
 }AgvWalkMode;
 
 typedef enum
@@ -334,15 +333,10 @@ typedef struct
 	u8 Catch_Goods_Flag;
 	u8 Machine_ARM_Toggle_Flag;
 	u8 LED_Warning;
+
+	u8 AutoCancel_Respond;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
-
-typedef struct
-{
-	u32 trec[3];
-	Agv_MS_Location amlrec[100];
-	u8 amlH;
-}TimRec, *TimRec_P;
 
 typedef struct
 {
@@ -468,7 +462,6 @@ void AGV_Correct_1(void);
 void RFID_Goal_Node_Analy(void);
 void Walking_Step_Controler(void);
 void AGV_Correct_gS_8ug(u8 gear);
-void gS_startup_mode(u8);
 void AGV_Correct_back_ug(u8);
 void CrossRoad_Hall_Count_Start(void);
 void CrossRoad_Hall_Count_Stop(void);

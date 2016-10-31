@@ -82,10 +82,11 @@ void send_N_char(u8 *, u8);
 void UART2_REC_IRQ(u8);
 void Send_Arrive(void);
 void Send_WaitForGoods(void);
-void Receive_handle2(void);
+void Receive_handle(void);
 void Send_GettedGoods3(void);
 void Send_Zigbee_LM_ACK(void);
 void Send_FiberMachine(void);
+void ZB_Data_Analysis(void);
 
 extern u8 receive_state;		//接收完成标志
 extern u8 receive_count;		//接收数据计数

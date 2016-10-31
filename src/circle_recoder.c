@@ -572,6 +572,7 @@ void Print_CircleInfo(void)
 	printf("工站,请求时间,从原点到达RFID,转向,靠近络纱机,抓取纱团,退回RFID,抬高机械手和称重,转向,返回到取物点,回到原点,人工操作,等待龙门抓取纱团\r\n");
 	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
 	for(cir = 0; cir < CircleInfoStrPtr->CircleRecoderCount; cir++)
+	//for(cir = 0; cir < 400; cir++)
 	{
 		#if USE_IWDG
 		IWDG_RELOAD();
@@ -637,7 +638,7 @@ void circle_recoder_init(void)
 	CircleInfoStrPtr->lock = 0;
 	
 	CircleInfoStrPtr->CircleRecoderCount = Get_CircleInfo_Count();
-	//printf("CircleRecoderCount = %d\r\n", CircleInfoStrPtr->CircleRecoderCount);
+	printf("CircleRecoderCount = %d\r\n", CircleInfoStrPtr->CircleRecoderCount);
 	
 }
 

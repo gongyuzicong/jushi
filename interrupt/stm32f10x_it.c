@@ -292,7 +292,7 @@ void EXTI4_IRQHandler(void)
 		if(1 == ECV1_HALL_FLAG)
 		{
 			ECV1_HALL++;
-			printf("FECV_HALL = %d\r\n", ECV1_HALL);
+			//printf("FECV_HALL = %d\r\n", ECV1_HALL);
 		}
 		else
 		{
@@ -487,7 +487,7 @@ void EXTI9_5_IRQHandler(void)
 		if(1 == ECV2_HALL_FLAG)
 		{
 			ECV2_HALL++;
-			printf("BECV_HALL = %d\r\n", ECV2_HALL);
+			//printf("BECV_HALL = %d\r\n", ECV2_HALL);
 		}
 		else
 		{
@@ -1113,9 +1113,13 @@ void UART5_IRQHandler(void)
 		//printf("U4D = %x\r\n", recvD);
 		
 		//UART1_REC(recvD);
+	#if USE_CIRCLE_INFO_RECODER
+		CircleInfo_CMD_Handle(recvD);
+	#endif
 	}
 	
 }
+
 
 
 /*******************************************************************************

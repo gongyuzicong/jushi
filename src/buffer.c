@@ -11,7 +11,6 @@ BufferControl zigbeeQueueCtrl;
 
 ReqQueueStr zigbeeInfoQueueBuf[MAX_ZIGBEE_QUEUE_NUM];
 
-Dht11_DataInfoStruct dht11DataBuf[MAX_DHT11_DATA_BUF_NUM];
 
 u8 zbRecvDataBuf[MAX_ZB_BUF_SIZE];
 
@@ -67,48 +66,157 @@ void Buf_Delete_Common(BufferControl_P bufCtrl)
 }
 
 
-/**************************************************************/
+/************************ 呼叫队列操作函数: start **************************************/
 
+#if USE_NEW_QUEUE
 
-
-/*******************DHT11数据buffer************************/
-
-void DHT11DataOpts(void)
+void Show_Queue_Data(void)
 {
-	dht11DataBuf[dht11DataBufCtrl.TailVernier] = *((Dht11_DataInfoStruct_P)tmpNode);
-}
+	u8 cir;
 
-void DHT11DataBuf_Append(Dht11_DataInfoStruct node)
-{
-	tmpNode = &node;
+	printf("\r\nQueue: ");
 	
-	Buf_Append_Common(&dht11DataBufCtrl, DHT11DataOpts);
-	//printf("HeadVernier = %d\r\n", dht11DataBufCtrl.HeadVernier);
+	for(cir = 0; cir < zigbeeQueueCtrl.Total; cir++)
+	{
+		printf("%d", zigbeeInfoQueueBuf[cir].Req_Station);
+		if(TypeManuReq == zigbeeInfoQueueBuf[cir].Req_Type)
+		{
+			printf("(ma)\t");
+		}
+		else if(TypeAutoReq == zigbeeInfoQueueBuf[cir].Req_Type)
+		{
+			printf("(au)\t");
+		}
+		else if(TypeUnknow == zigbeeInfoQueueBuf[cir].Req_Type)
+		{
+			printf("(un)\t");
+		}
+	}
+
+	printf("\r\n");
+	
 }
 
-void DHT11DataBuf_Delete(void)
+u8 searchZigbeeData(u8 data, u8 *index)
 {
-	Buf_Delete_Common(&dht11DataBufCtrl);
-	//printf("TailVernier = %d\r\n", dht11DataBufCtrl.TailVernier);
+	u8 cir = 0, flag = 0, searchIndex = 0;
+
+	for(cir = 0; cir < zigbeeQueueCtrl.Total; cir++)
+	{
+		if(data == zigbeeInfoQueueBuf[cir].Req_Station)
+		{
+			flag = 1;
+			break;
+		}
+	}
+
+	*index = searchIndex;
+	
+	return flag;
 }
 
-Dht11_DataInfoStruct_P Get_DHT11_Data(void)
+
+void zigbeeRecvDataBuf_Append(ReqQueueStr data)
 {
-	Dht11_DataInfoStruct_P getData = NULL;
+	if(zigbeeQueueCtrl.Total < MAX_ZIGBEE_QUEUE_NUM)
+	{
+		if(0 == zigbeeQueueCtrl.Total)
+		{
+			zigbeeQueueCtrl.TailVernier = 0;
+		}
+		else
+		{
+			zigbeeQueueCtrl.TailVernier++;
+			
+		}
+		
+		zigbeeInfoQueueBuf[zigbeeQueueCtrl.TailVernier] = data;
+		
+		zigbeeQueueCtrl.Total++;
+		
+	}
+	else
+	{
+		//errorInfo.errorType = recvZigbeeBufOverFlow;
+		errorFunc();
+		
+	}
 
-	getData = &dht11DataBuf[dht11DataBufCtrl.HeadVernier];
-
-	DHT11DataBuf_Delete();
-
-	return getData;
 }
 
-/**************************************************************/
-
-u8 get_ZigbeeQueue_HeadVernier(void)
+void zigbeeRecvDataBuf_Delete(void)
 {
-	return (zigbeeQueueCtrl.HeadVernier);
+	if(zigbeeQueueCtrl.Total > 0)
+	{
+		if(zigbeeQueueCtrl.Total > 1)
+		{
+			u8 cir;
+
+			for(cir = 0; cir < zigbeeQueueCtrl.TailVernier; cir++)
+			{
+				zigbeeInfoQueueBuf[cir].Req_Station = zigbeeInfoQueueBuf[cir + 1].Req_Station;
+				zigbeeInfoQueueBuf[cir].Req_Type = zigbeeInfoQueueBuf[cir + 1].Req_Type;
+			}
+			
+			zigbeeQueueCtrl.TailVernier--;
+		}
+		
+		zigbeeQueueCtrl.Total--;
+	}
+	
 }
+
+
+void zigbeeReqQueue(ReqQueueStr data)
+{
+	u8 index = 0;
+
+	if(0 == searchZigbeeData(data.Req_Station, &index))		// 还无数据存在
+	{
+		zigbeeRecvDataBuf_Append(data);
+		BuzzerCtrlPtr->buzzerFlag = 1;
+	}
+}
+
+
+
+void zigbeeDeleteQueue(u8 index)
+{
+	u8 cir;
+
+	for(cir = index; cir < zigbeeQueueCtrl.TailVernier; cir++)
+	{
+		zigbeeInfoQueueBuf[cir].Req_Station = zigbeeInfoQueueBuf[cir + 1].Req_Station;
+		zigbeeInfoQueueBuf[cir].Req_Type = zigbeeInfoQueueBuf[cir + 1].Req_Type;
+	}
+	
+	zigbeeQueueCtrl.TailVernier--;
+	zigbeeQueueCtrl.Total--;
+}
+
+
+void zigbeeCancelQueue(u8 data)
+{
+	u8 index = 0;
+
+	if(1 == searchZigbeeData(data, &index))
+	{
+		zigbeeDeleteQueue(index);
+		BuzzerCtrlPtr->buzzerFlag = 1;
+	}
+}
+
+
+
+void get_zigbeeData(ReqQueueStr_P data)
+{
+	data->Req_Station = zigbeeInfoQueueBuf[0].Req_Station;
+	data->Req_Type = zigbeeInfoQueueBuf[0].Req_Type;
+}
+
+
+#else
+
 
 u8 searchZigbeeData(u8 data, u8 *index)
 {
@@ -269,9 +377,10 @@ void get_zigbeeData(ReqQueueStr_P data)
 	data->Req_Type = zigbeeInfoQueueBuf[zigbeeQueueCtrl.HeadVernier].Req_Type;
 }
 
+#endif
 
+/************************ 呼叫队列操作函数: end **************************************/
 
-/********************************************************************/
 
 void ZB_DATA_BUF_APPEND(u8 data)
 {
@@ -324,6 +433,17 @@ u8 Get_ZB_DATA(void)
 	
 }
 
+u8 Get_ZB_DATA_DELETE(void)
+{
+	u8 data = 0;
+
+	data = zbRecvDataBuf[zbDataRecvBufCtrl_Ptr->HeadVernier];
+
+	ZB_DATA_BUF_DELETE();
+	
+	return data;
+}
+
 
 /********************************************************************/
 
@@ -347,17 +467,24 @@ void Zigbee_Buf_Init(void)
 
 void Zb_Recv_Data_Buf_Init(void)
 {
-	zbDataRecvBufCtrl.HeadVernier = 0;
-	zbDataRecvBufCtrl.TailVernier = 0;
-	zbDataRecvBufCtrl.Total = 0;
-	zbDataRecvBufCtrl.MaxNum = MAX_ZB_BUF_SIZE;
+	zbDataRecvBufCtrl_Ptr->HeadVernier = 0;
+	zbDataRecvBufCtrl_Ptr->TailVernier = 0;
+	zbDataRecvBufCtrl_Ptr->Total = 0;
+	zbDataRecvBufCtrl_Ptr->MaxNum = MAX_ZB_BUF_SIZE;
+
+	zbDataRecvBufCtrl_Ptr->Append = ZB_DATA_BUF_APPEND;
+	zbDataRecvBufCtrl_Ptr->Delete = ZB_DATA_BUF_DELETE;
+	zbDataRecvBufCtrl_Ptr->GetData = Get_ZB_DATA;
+	zbDataRecvBufCtrl_Ptr->GetDataDelete = Get_ZB_DATA_DELETE;
 }
 
 void BufferOpts_Init(void)
 {
 	Zigbee_Buf_Init();
-
+	
 	Zb_Recv_Data_Buf_Init();
+	
+	
 }
 
 

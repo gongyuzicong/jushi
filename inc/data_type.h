@@ -26,6 +26,12 @@ typedef struct
 	u8 TailVernier;
 	u8 Total;
 	u8 MaxNum;
+
+	void (*Append)(u8);
+	void (*Delete)(void);
+	u8 (*GetData)(void);
+	u8 (*GetDataDelete)(void);
+	
 }BufferControl, *BufferControl_P;
 
 

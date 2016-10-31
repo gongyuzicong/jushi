@@ -19,19 +19,23 @@
 
 #define MAX_ZIGBEE_QUEUE_NUM	20
 
-#define MAX_ZB_BUF_SIZE			8
+#define MAX_ZB_BUF_SIZE			16
+
+#define USE_NEW_QUEUE			1
 
 extern BufferControl usartBufCtrl;
 
 extern BufferControl zigbeeQueueCtrl;
-extern BufferControl zbDataRecvBufCtrl;
+extern BufferControl_P zbDataRecvBufCtrl_Ptr;
 
 void BufferOpts_Init(void);
 void Buf_Delete_Common(BufferControl *bufCtrl);
 CanTxMsg* get_sendToCan_Data(void);
+
 void DHT11DataBuf_Append(Dht11_DataInfoStruct node);
 void DHT11DataBuf_Delete(void);
 Dht11_DataInfoStruct_P Get_DHT11_Data(void);
+
 void zigbeeRecvDataBuf_Append(ReqQueueStr);
 void zigbeeRecvDataBuf_Delete(void);
 void get_zigbeeData(ReqQueueStr_P);
@@ -39,12 +43,11 @@ void zigbeeReqQueue(ReqQueueStr);
 void zigbeeDeleteQueue(u8);
 void zigbeeCancelQueue(u8);
 u8 searchZigbeeData(u8, u8 *);
-u8 get_ZigbeeQueue_HeadVernier(void);
-
 
 void ZB_DATA_BUF_APPEND(u8 data);
 void ZB_DATA_BUF_DELETE(void);
 u8 Get_ZB_DATA(void);
+void Show_Queue_Data(void);
 
 
 #endif

@@ -4,6 +4,7 @@
 #include "common_include.h"
 #include "data_type.h"
 
+
 typedef enum
 {
 	errorTypeBegin = 0x00,
@@ -24,11 +25,12 @@ typedef struct
 	u8 errorData;
 }ErrorInfo, *ErrorInfo_P;
 
+
 void errorFunc(void);
-void errorFunc2(CanRxMsg RxMessage);
-void errorFunc4(u8 recv);
+
 
 extern ErrorInfo errorInfo;
+
 
 
 #endif

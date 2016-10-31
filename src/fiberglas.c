@@ -140,7 +140,7 @@ void Get_Weight_Data(void)
 	}
 	
 	//printf("volte_re = %.3lfV, Volts = %.3lfV, VoltsOffset = %.3lfV, offset = %.4f\r\n", volte_re, Volts, VoltsOffset, offset);
-	printf("weight_H = %d, weight_L = %d\r\n\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
+	//printf("weight_H = %d, weight_L = %d\r\n\r\n", FiberglasInfo_Ptr->weight_H, FiberglasInfo_Ptr->weight_L);
 	
 	#endif
 }

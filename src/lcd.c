@@ -18,6 +18,14 @@ LCD_Info_Str LCD_Info;
 LCD_Info_Str_P LCD_Info_Ptr = &LCD_Info;
 
 
+char itoc(int in)
+{
+	char str[10]="0123456789";	
+	return str[in];	
+}
+
+
+
 /*
 mian_state里的十个数据分别为
 应完成，总个数，合格，超重，超轻
@@ -210,7 +218,7 @@ void Set_scale_weight(u8 z,u8 x)
 //处理从LCD接收的数据//
 void Lcd_Handle(void)
 {
-	if(flag_recok==1)
+	if(1 == flag_recok)
 	{
 /////////处理三个字节数据/////////
 		if(lcd_receive_count==2)
@@ -229,7 +237,7 @@ void Lcd_Handle(void)
 				}								
 			}
 ///////页面切换/////////
-			if(receive_buf[0]==0x50)
+			else if(receive_buf[0]==0x50)
 			{
 				if(receive_buf[1]==0x41)//任务状态页面
 				{
@@ -265,7 +273,7 @@ void Lcd_Handle(void)
 				
 			}
 		//////删除数据///////
-			if(receive_buf[0]==0x44)
+			else if(receive_buf[0]==0x44)
 			{
 				if(receive_buf[1]==0x44)
 				{
@@ -274,7 +282,7 @@ void Lcd_Handle(void)
 				}
 			}
 /////手动控制//////
-			if(receive_buf[0]==0x56)
+			else if(receive_buf[0]==0x56)
 			{
 				if(receive_buf[1]==0x46)
 				{
@@ -313,6 +321,15 @@ void Lcd_Handle(void)
 				}
 			}
 		}
+
+		if (('E' == receive_buf[0]) && ('+' == receive_buf[1]))
+		{
+			// 收到屏幕完全启动信号
+			
+			
+			
+		}
+		
 		if(lcd_receive_count==4)
 		{
 			if((receive_buf[1]==0x47)&&(receive_buf[3]==0x41))
@@ -323,7 +340,7 @@ void Lcd_Handle(void)
 		}
 /////////处理十八个字节数据/////////
 
-		if(lcd_receive_count>10)
+		if(lcd_receive_count > 10)
 		{
 			/*
 			Set_date(16,8,7);
@@ -346,8 +363,8 @@ void Lcd_Handle(void)
 			Light_Up_Screen();
 		}
 //////清除flag，接收计数//////
-		flag_recok=0;
-		lcd_receive_count=0;
+		flag_recok = 0;
+		lcd_receive_count = 0;
 	}
 }
 

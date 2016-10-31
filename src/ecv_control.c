@@ -1,5 +1,6 @@
 #include "ecv_control.h"
 #include "timer_opts.h"
+#include "led.h"
 
 PwmParaStruct Timer4PwmPara;
 PwmParaStruct_P timer4PwmParaPtr = &Timer4PwmPara;
@@ -65,6 +66,8 @@ u8 CheckFECV_Limt2(Ecv_Ctrl_Struct_P ptr)
 	return flag;
 }
 
+#if 0
+
 u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 {
 	u8 flag = 0;
@@ -93,7 +96,34 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 	return flag;
 }
 
+#else
 
+u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
+{
+	u8 flag = 0;
+	
+	if(ptr->EcvHallCountRec != ptr->EcvHallCount)
+	{
+		ptr->EcvHallCountRec 		= ptr->EcvHallCount;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+	}
+	else
+	{
+		if(SystemRunningTime - ptr->EcvHallCountTimeRec >= ptr->EcvHallCountTimeOut_ms * 10)
+		{
+			flag 					= 1;
+			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
+			ptr->EcvHallCountTimeoutUpdate = 1;
+			ptr->EcvHallCountRec 	= 0;
+			//printf("time out\r\n");
+		}
+	}
+
+	return flag;
+}
+
+
+#endif
 
 void FECV_UpDownFunc(EcvDir ecvDir)
 {
@@ -215,7 +245,7 @@ void BECV_PowerOnOffFunc(ECV_PowerOnOff PowerOnOff)
 		else if(ECV_POWER_OFF == PowerOnOff)
 		{
 			BECV_POWER_OFF();
-			printf("BECV_POWER_OFF!\r\n");
+			//printf("BECV_POWER_OFF!\r\n");
 		}
 		
 	}
@@ -398,7 +428,7 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 				ptr->UseStatus = ECV_COMPLETE;
 				speed = 0;
 				ptr->ECV_SetSpeedFunc(0);
-				printf("ECV_STOP!\r\n");
+				//printf("ECV_STOP!\r\n");
 			}
 			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
 		}
@@ -412,7 +442,7 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 				ptr->UseStatus = ECV_COMPLETE;
 				speed = 0;
 				ptr->ECV_SetSpeedFunc(0);
-				printf("ECV_STOP!\r\n");
+				//printf("ECV_STOP!\r\n");
 			}
 		}
 
@@ -459,7 +489,7 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 				speed = 0;
 				ptr->ECV_SetSpeedFunc(0);
 				ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
-				printf("BECV_STOP!\r\n");
+				//printf("BECV_STOP!\r\n");
 			}
 			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
 		}
@@ -474,7 +504,7 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 				speed = 0;
 				ptr->ECV_SetSpeedFunc(0);
 				ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
-				printf("BECV_STOP!\r\n");
+				//printf("BECV_STOP!\r\n");
 			}
 			
 		}
@@ -489,7 +519,7 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 			speed = 0;
 			ptr->ECV_SetSpeedFunc(0);
 			ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
-			printf("BECV_SW_STOP!\r\n");
+			//printf("BECV_SW_STOP!\r\n");
 		}
 		
 		ptr->ECV_SetSpeedFunc(speed);
@@ -559,6 +589,8 @@ void Machine_Arm_Init3(void)
 {
 	Ecv_Para temp;	
 
+	Warning_LED_RESET_STATUS();
+
 	temp.Dir			= ECV_DOWN;
 	temp.EcvSpeed		= 100;
 	temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
@@ -576,6 +608,7 @@ void Machine_Arm_Init3(void)
 	{
 		ECV_Ctrl_Func(FECV_Str_Ptr);
 		ECV_Ctrl_Func_SW(BECV_Str_Ptr);
+		WarningLedCtrlPtr->twinkleCtrlFunc(WarningLedCtrlPtr);
 	}
 	
 	BECV_Str_Ptr->ECV_SetSpeedFunc(0);
@@ -592,6 +625,7 @@ void Machine_Arm_Init3(void)
 	while(ECV_USEING == BECV_Str_Ptr->UseStatus)
 	{
 		ECV_Ctrl_Func_SW(BECV_Str_Ptr);
+		WarningLedCtrlPtr->twinkleCtrlFunc(WarningLedCtrlPtr);
 	}
 
 	BECV_Str_Ptr->ECV_Clean_Use_Status();
@@ -600,7 +634,8 @@ void Machine_Arm_Init3(void)
 	{
 		WECV_Str_Ptr->Dir = ECV_DOWN;
 	}
-	
+
+	Warning_LED_NORMAL_STATUS();
 }
 
 
@@ -634,19 +669,19 @@ void ECV_GPIO_Config(void)
 
 	GPIO_InitTypeDef  GPIO_InitStructure; 
 
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_8 | GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;  
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
 	
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_14 | GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_15;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);	/*打开APB2总线上的GPIOA时钟*/
 
-	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -668,7 +703,7 @@ void ECV_HALL_Config(void)
 
 	GPIO_InitTypeDef  GPIO_InitStructure; 
 
-	GPIO_InitStructure.GPIO_Pin 	=  GPIO_Pin_8 | GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_8 | GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_IN_FLOATING;  
 	GPIO_Init(GPIOC, &GPIO_InitStructure);

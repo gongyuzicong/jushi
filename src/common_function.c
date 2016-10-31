@@ -14,9 +14,15 @@ vu32 SystemRunningTime = 0x00000000;
 
 int fputc(int ch, FILE *f)
 {
+	USART_SendData(UART5, (u16)ch);
+	//while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
+	while (!(UART5->SR & USART_FLAG_TXE));
+
+	#if 1
 	USART_SendData(UART4, (u16)ch);
 	//while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
 	while (!(UART4->SR & USART_FLAG_TXE));
+	#endif
 	return ch;
 }
 

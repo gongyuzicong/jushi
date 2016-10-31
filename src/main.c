@@ -25,6 +25,8 @@
 #include "circle_recoder.h"
 #include "ecv_control.h"
 #include "battery.h"
+#include "agv_debug.h"
+#include "buffer.h"
 
 void SystemInit(void)
 {	
@@ -88,11 +90,7 @@ int main(void)
 	CB_GPIO_Config();	/*配置GPIO口*/
 	CB_USART_Config();	/*配置USART*/
 	SystemInit();
-	
-	//mslRecF = FMSDS_Ptr->AgvMSLocation;
-	//mslRecR = FMSDS_Ptr->AgvMSLocation;
-	
-	//MPU6050_Data_init3();
+		
 	
 	FECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
@@ -132,7 +130,7 @@ int main(void)
 		
 		Lcd_Handle();							// 小屏幕接收操作函数
 		
-		SIMU_PWM_BreathBoardLED_Ctrl();			// 模拟PWM控制主控板LED呼吸灯
+		//SIMU_PWM_BreathBoardLED_Ctrl();		// 模拟PWM控制主控板LED呼吸灯
 		
 		Scan_Weight_Func();						// 扫描称重模块数据
 		
@@ -143,9 +141,9 @@ int main(void)
 		LED_Status_Handle();
 		
 		WarningLedCtrlPtr->twinkleCtrlFunc(WarningLedCtrlPtr);	// 警告灯闪烁控制
-		FECV_Str_Ptr->ECV_Ctrl_Function(FECV_Str_Ptr);// 前电缸控制
-		BECV_Str_Ptr->ECV_Ctrl_Function(BECV_Str_Ptr);// 后电缸控制
-		//WECV_Str_Ptr->ECV_Ctrl_Function(WECV_Str_Ptr);// 直行辅助轮电缸控制
+		FECV_Str_Ptr->ECV_Ctrl_Function(FECV_Str_Ptr);			// 前电缸控制
+		BECV_Str_Ptr->ECV_Ctrl_Function(BECV_Str_Ptr);			// 后电缸控制
+		//WECV_Str_Ptr->ECV_Ctrl_Function(WECV_Str_Ptr);		// 直行辅助轮电缸控制
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
@@ -156,7 +154,7 @@ int main(void)
 		}
 		else if(ManualMode == ctrlParasPtr->agvWalkingMode)
 		{
-			//MOTOR_POWER_ON();
+			
 			ManualModeFunc(ctrlParasPtr->manualCtrl);
 
 			if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_Respond && Return_SW_RR_Respond)
@@ -175,23 +173,15 @@ int main(void)
 			}
 			
 		}
-		else if(RFID_Setting_Mode == ctrlParasPtr->agvWalkingMode)
-		{
-			MOTOR_POWER_ON();
-			
-			if(1 == RFID_Info_Ptr->noValide)
-			{
-				
-			}
-			
-		}
 		else if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 		{
 			Magn_Sensor_Scan();				// 磁传感器数据处理
 
-			ZigbeeRecv_Simu();
+			ZigbeeRecv_Simu();				// 
+
+			ZB_Data_Analysis();				// 
 			
-			Receive_handle2();				// ZigBee数据接收处理函数
+			Receive_handle();				// ZigBee数据接收处理函数
 			
 			CrossRoad_Count();				// 磁条十字交叉路口的计算
 			
@@ -205,9 +195,9 @@ int main(void)
 			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
 				
-			#if 0
+				#if 0
 				AGV_Walking();
-			#else
+				#else
 				
 				if(goStraightStatus == ctrlParasPtr->agvStatus)		// 高速直行状态
 				{
@@ -246,7 +236,7 @@ int main(void)
 					back_slow2(ctrlParasPtr->gear);
 				}
 									
-			#endif
+				#endif
 				
 			}
 
@@ -270,10 +260,10 @@ int main(void)
 			
 			//SIMU_PWM_BreathWarningLED_Ctrl();
 			//LeftOrRight_Counter();
-			//printf("1agvStatus = %d\r\n", ctrlParasPtr->agvStatus);
-			//printf("1walkingstep = %d, agvStatus = %d\r\n", ctrlParasPtr->walkingstep, ctrlParasPtr->agvStatus);
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
+
+			AGV_Debug_Func();
 			
 			// 小车调试信息的打印
 			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
@@ -302,93 +292,12 @@ int main(void)
 			#endif
 				
 			}
+
+			//show_info();
 		}
 
 		#else
 		
-		/*
-		u8 data1[9] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-		u8 data2[9] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-		u8 data3[9] = {0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01};
-		u8 cir = 9;
-		static u8 flag = 0;
-
-		if(0 == flag)
-		{
-			flag = 1;
-			EEPROM_Write_Data(1, data1, 9);
-		}
-		else if(1 == flag)
-		{
-			flag = 0;
-			EEPROM_Write_Data(1, data3, 9);
-		}
-		
-		Delay_ms(10);
-		EEPROM_Read_Data(1, data2, 9);
-		for(cir = 0; cir < 9; cir++)
-		{
-			printf("%02x ", data2[cir]);
-		}
-		printf("\r\n");
-		
-		Delay_ns(1);
-		*/
-		//Lcd_Handle();
-		//Get_Weight_Data();
-				
-		//Lcd_Handle();
-
-		/*
-		static u32 timRec = 0;
-		
-		if(0 == timRec)
-		{
-			ctrlParasPtr->rightHallCounter = 0;
-			ctrlParasPtr->leftHallCounter = 0;
-			timRec = SystemRunningTime;
-			set_duty_Com(100, 100);
-		}
-		else
-		{
-			if(SystemRunningTime - timRec >= 10000 * 60)
-			{
-				printf("leftH = %d, rightH = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
-				timRec = 0;
-			}
-			
-		}
-		*/		
-
-		//ManualModeEcvCtrlFunc();
-		/*
-		if(zbDataRecvBufCtrl_Ptr->Total > 0)
-		{
-			printf("%02x ", Get_ZB_DATA());
-			ZB_DATA_BUF_DELETE();
-		}
-		*/
-
-		static u32 count = 0;
-		
-		if(receive_state == 1)
-		{
-			receive_state = 0;
-			count++;
-			printf("count = %d\r\n", count);
-		}
-		else if(Return_SW_LR_Respond)
-		{
-			Delay_ms(10);
-			
-			if(Return_SW_LR_Respond)
-			{
-				while(Return_SW_LR_Respond);
-
-				count = 0;
-				printf("count clean!\r\n");
-			}
-		}
 		
 		
 		#endif

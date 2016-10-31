@@ -6,9 +6,6 @@ LED_Control_Str 	WarningLedCtrl;
 LED_Control_Str_P 	WarningLedCtrlPtr = &WarningLedCtrl;
 
 
-
-
-
 void LED_Status_Handle(void)
 {
 	if(0x00 != ctrlParasPtr->LED_Warning)
@@ -179,7 +176,10 @@ void WarningLedTwinkleCtrl(LED_Control_Str_P ptr)
 		}
 		
 	}
-	
+	else
+	{
+		ptr->LED_ON_CHECK();
+	}
 }
 
 
@@ -227,6 +227,7 @@ void LED_Init(void)
 	WarningLedCtrlPtr->twinkleFlag = 0;
 	WarningLedCtrlPtr->intervalTime_ms = 100;
 	WarningLedCtrlPtr->twinkleNum = 2;
+	WarningLedCtrlPtr->mode = LED_Twinkle_Count_Enable;
 
 	WarningLedCtrlPtr->step = 0;
 	WarningLedCtrlPtr->twinkleCounter = 0;

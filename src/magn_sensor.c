@@ -798,7 +798,27 @@ void Show_Infomation(void)
 	printf("\r\n");
 }
 
-
+void show_info(void)
+{
+	#if 0
+	printf("F: ");
+	MSD_Show_Bin(FMSDS_Ptr->MSD_Hex);
+	printf(",\t");
+	//printf("%02x\t", FMSDS_Ptr->MSD_Hex);
+	Show_Resualt_Analy(FMSDS_Ptr);
+	
+	printf("\r\n");
+	
+	#else
+	
+	printf("R: ");
+	MSD_Show_Bin(RMSDS_Ptr->MSD_Hex);
+	printf(",\t");
+	Show_Resualt_Analy(RMSDS_Ptr);
+	printf("\r\n");
+	
+	#endif
+}
 void show_Excel_Analysis_Info(void)
 {
 	printf("%d,%d,%d,%d,%d,", OutPut_ZeroOrOne(AGV_Pat_Ptr->MidpointDirection), AGV_Pat_Ptr->Midpoint, (AGV_Pat_Ptr->MidpointVxt) / 100, AGV_Pat_Ptr->Angle, OutPut_ZeroOrOne(AGV_Pat_Ptr->AngleDirection));
