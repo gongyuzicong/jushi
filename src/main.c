@@ -177,7 +177,7 @@ int main(void)
 
 			ZigbeeRecv_Simu();				// 
 
-			ZB_Data_Receive_handle();				// 
+			ZB_Data_Receive_handle();		// 
 			
 			ZB_Data_Analysis();				// ZigBee数据接收处理函数
 			
@@ -233,7 +233,7 @@ int main(void)
 				{
 					back_slow2(ctrlParasPtr->gear);
 				}
-									
+								
 				#endif
 				
 			}

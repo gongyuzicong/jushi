@@ -20,6 +20,8 @@ typedef struct
 	u8 recvValidDataFlag;
 	u8 ZigbeeRecvCmdData[8];
 	u8 ZigbeeRecvCmdUpdate;
+
+	u8 ZigbeeSendCmdData[8];
 	ReqQueueStr runningInfo;
 }Zigbee_Info, *Zigbee_Info_P;
 
@@ -69,7 +71,7 @@ void UART2_REC_IRQ(u8);
 void Send_Arrive(void);
 void Send_WaitForGoods(void);
 void ZB_Data_Analysis(void);
-void Send_GettedGoods3(void);
+void Send_GettedGoods(void);
 void Send_Zigbee_LM_ACK(void);
 void Send_FiberMachine(void);
 void ZB_Data_Receive_handle(void);

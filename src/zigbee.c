@@ -18,12 +18,16 @@ RecvCmdFlag_P CMD_Flag_Ptr = &CMD_Flag;
 Zigbee_ACK_Info ZigbeeResendInfo;
 Zigbee_ACK_Info_P ZigbeeResendInfo_Ptr = &ZigbeeResendInfo;
 
-
-/////////////////uart波特率115200，八位数据，一位停止位
-///////变量声明//////////////
-
 ZigbeeID_Info Id_Arr[12]; 
 
+#define WaitForGoods()			{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x01;}
+#define AgvArrive()				{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x02;}
+#define AgvAbnormal()			{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x03;}
+#define GetGoods()				{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x01;}
+#define MachineAutoRun()		{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x05;}
+#define Ack()					{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x8F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0xFF;}
+
+/*
 u8 nc_send1[8]=
 	{0xfe, 0x08, 0x73, 0xD7, 0x01, 0x02, 0x7F, 0x01};//小车已取物请龙门准备
 u8 nc_send2[8]=
@@ -38,7 +42,7 @@ u8 nc_send5[8]=
 
 u8 zigbeeAck[8] = {0xfe, 0x08, 0x00, 0x00, 0x01, 0x02, 0x8f, 0xff};
 u8 zigbeeAck_LM[8] = {0xfe, 0x08, 0x00, 0x00, 0x01, 0x02, 0x8f, 0xff};
-
+*/
 
 #if 1
 
@@ -113,9 +117,11 @@ u8 SendChar_Zigbee(u8 ch)  //发送单个数据
 void Send_Zigbee_ACK(u8 node)
 {
 	u8 cir = 8;
+
 	
-	zigbeeAck[2] = Id_Arr[node].zigbee_ID1;
-	zigbeeAck[3] = Id_Arr[node].zigbee_ID2;
+	Ack();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[node].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[node].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
@@ -124,7 +130,7 @@ void Send_Zigbee_ACK(u8 node)
 			printf("Send_Zigbee_ACK\r\n");
 		}
 		
-		SendChar_Zigbee(zigbeeAck[cir]);
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
 		ZigbeeResendInfo_Ptr->resendFlag = 0;
 		//ZigbeeResendInfo_Ptr->resendInfo = zigbeeAck;
 	}
@@ -135,8 +141,9 @@ void Send_Zigbee_LM_ACK(void)
 {
 	u8 cir = 8;
 
-	zigbeeAck_LM[2] = Id_Arr[11].zigbee_ID1;
-	zigbeeAck_LM[3] = Id_Arr[11].zigbee_ID2;
+	Ack();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[11].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[11].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
@@ -145,9 +152,9 @@ void Send_Zigbee_LM_ACK(void)
 			printf("Send_Zigbee_LM_ACK\r\n");
 		}
 		
-		SendChar_Zigbee(zigbeeAck_LM[cir]);
-		ZigbeeResendInfo_Ptr->resendFlag = 1;
-		ZigbeeResendInfo_Ptr->resendInfo = zigbeeAck_LM;
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
+		ZigbeeResendInfo_Ptr->resendFlag = 0;
+		//ZigbeeResendInfo_Ptr->resendInfo = zigbeeAck_LM;
 	}
 	
 }
@@ -273,7 +280,7 @@ void ZB_Data_Analysis(void)
 				else
 				{
 					u8 index = 0;
-					
+					Send_Zigbee_ACK(node);
 					if(0 == searchZigbeeData(node, &index))
 					{
 						u8 data = 0;
@@ -287,7 +294,7 @@ void ZB_Data_Analysis(void)
 						Id_Arr[node].zigbee_ID1 = Zigbee_Ptr->ZigbeeRecvCmdData[2];
 						Id_Arr[node].zigbee_ID2 = Zigbee_Ptr->ZigbeeRecvCmdData[3];
 						
-						Send_Zigbee_ACK(node);
+						
 						
 						ReqInfo.Req_Station = node;
 						data = (Zigbee_Ptr->ZigbeeRecvCmdData[7] & 0x0f);
@@ -319,14 +326,14 @@ void ZB_Data_Analysis(void)
 						BuzzerCtrlPtr->buzzerFlag = 1;
 						WarningLedCtrlPtr->twinkleFlag = 1;
 					}				}
-				
+					
 			}
 			else if((0x02 == (Zigbee_Ptr->ZigbeeRecvCmdData[7] & 0x0f)) || (0x04 == (Zigbee_Ptr->ZigbeeRecvCmdData[7] & 0x0f)))		// 请求取消取物
 			{
 				if(1 == ctrlParasPtr->AutoCancel_Respond)
 				{
 					u8 index = 0;
-				
+					Send_Zigbee_ACK(node);
 					if(1 == searchZigbeeData(node, &index))
 					{
 						//printf("1 Total = %d\r\n", zigbeeQueueCtrl.Total);
@@ -342,7 +349,7 @@ void ZB_Data_Analysis(void)
 						ctrlParasPtr->rifdAdaptFlag = 0;
 						//printf("GoodReqCancel step_origin = %d\r\n", ctrlParasPtr->walkingstep);
 						
-						Send_Zigbee_ACK(node);
+						
 						CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
 						
 						BuzzerCtrlPtr->buzzerFlag = 1;
@@ -378,9 +385,10 @@ void ZB_Data_Analysis(void)
 void Send_FiberMachine(void)
 {
 	u8 cir = 8;
-	
-	nc_send5[2] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID1;
-	nc_send5[3] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID2;
+
+	MachineAutoRun();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
@@ -388,48 +396,48 @@ void Send_FiberMachine(void)
 		{
 			printf("Send_FiberMachine\r\n");
 		}
-		//printf("nc_send5[%d] = %02x\r\n", cir , nc_send5[cir]);
-		SendChar_Zigbee(nc_send5[cir]);
-
-		//printf("nc_send5[%d] = %d\r\n", cir, nc_send5[cir]);
+		//printf("Zigbee_Ptr->ZigbeeSendCmdData[%d] = %02x\r\n", cir , Zigbee_Ptr->ZigbeeSendCmdData[cir]);
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
 	}
 	
-	//printf("************cmdFlag = %d***********\r\n", CMD_Flag_Ptr->cmdFlag);
+	//printf("************ cmdFlag = %d ***********\r\n", CMD_Flag_Ptr->cmdFlag);
 	CMD_Flag_Ptr->cmdFlag = NcNone;
 	ZigbeeResendInfo_Ptr->resendFlag = 1;
-	ZigbeeResendInfo_Ptr->resendInfo = nc_send5;
+	ZigbeeResendInfo_Ptr->resendInfo = Zigbee_Ptr->ZigbeeSendCmdData;
+	//ZigbeeResendInfo_Ptr->resendInfo = nc_send5;
 }
 
 
-void Send_GettedGoods3(void)
+void Send_GettedGoods(void)
 {
 	u8 cir = 8;
-	
-	nc_send4[2] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID1;
-	nc_send4[3] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID2;
+
+	GetGoods();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[Zigbee_Ptr->runningInfo.Req_Station].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
 		if(0 == cir)
 		{
-			printf("Send_GettedGoods3\r\n");
+			printf("Send_GettedGoods\r\n");
 		}
-		//printf("nc_send4[%d] = %02x\r\n", cir, nc_send4[cir]);
-		SendChar_Zigbee(nc_send4[cir]);
-
-		//printf("nc_send4[%d] = %d\r\n", cir, nc_send4[cir]);
+		
+		//printf("Zigbee_Ptr->ZigbeeSendCmdData[%d] = %02x\r\n", cir, Zigbee_Ptr->ZigbeeSendCmdData[cir]);
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
 	}
 	
 	ZigbeeResendInfo_Ptr->resendFlag = 1;
-	ZigbeeResendInfo_Ptr->resendInfo = nc_send4;
+	ZigbeeResendInfo_Ptr->resendInfo = Zigbee_Ptr->ZigbeeSendCmdData;
+	//ZigbeeResendInfo_Ptr->resendInfo = nc_send4;
 }
 
 void Send_WaitForGoods(void)
 {
 	u8 cir = 8;
-	
-	nc_send1[2] = Id_Arr[11].zigbee_ID1;
-	nc_send1[3] = Id_Arr[11].zigbee_ID2;
+	WaitForGoods();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[11].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[11].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
@@ -438,24 +446,26 @@ void Send_WaitForGoods(void)
 			printf("Send_WaitForGoods\r\n");
 		}
 		
-		SendChar_Zigbee(nc_send1[cir]);
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
 
-		//printf("nc_send1[%d] = %02x\r\n", cir, nc_send1[cir]);
+		//printf("Zigbee_Ptr->ZigbeeSendCmdData[%d] = %02x\r\n", cir, Zigbee_Ptr->ZigbeeSendCmdData[cir]);
 	}
 
 	//printf("************cmdFlag = %d***********\r\n", CMD_Flag_Ptr->cmdFlag);
 	CMD_Flag_Ptr->cmdFlag = NcNone;
 	ZigbeeResendInfo_Ptr->resendFlag = 1;
-	ZigbeeResendInfo_Ptr->resendInfo = nc_send1;
+	ZigbeeResendInfo_Ptr->resendInfo = Zigbee_Ptr->ZigbeeSendCmdData;
+	//ZigbeeResendInfo_Ptr->resendInfo = nc_send1;
 }
 
 
 void Send_Arrive(void)
 {
 	u8 cir = 8;
-	
-	nc_send2[2] = Id_Arr[11].zigbee_ID1;
-	nc_send2[3] = Id_Arr[11].zigbee_ID2;
+
+	AgvArrive();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[11].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[11].zigbee_ID2;
 	
 	for(cir = 0; cir < 8; cir++)
 	{
@@ -464,15 +474,16 @@ void Send_Arrive(void)
 			printf("Send_Arrive\r\n");
 		}
 		
-		SendChar_Zigbee(nc_send2[cir]);
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
 		
-		//printf("nc_send2[%d] = %d\r\n", cir, nc_send2[cir])
+		//printf("Zigbee_Ptr->ZigbeeSendCmdData[%d] = %d\r\n", cir, Zigbee_Ptr->ZigbeeSendCmdData[cir])
 	}
 
 	//printf("************cmdFlag = %d***********\r\n", CMD_Flag_Ptr->cmdFlag);
 	CMD_Flag_Ptr->cmdFlag = NcNone;
 	ZigbeeResendInfo_Ptr->resendFlag = 1;
-	ZigbeeResendInfo_Ptr->resendInfo = nc_send2;
+	ZigbeeResendInfo_Ptr->resendInfo = Zigbee_Ptr->ZigbeeSendCmdData;
+	//ZigbeeResendInfo_Ptr->resendInfo = nc_send2;
 }
 
 
@@ -607,6 +618,15 @@ void Zigbee_Init(void)
 	Zigbee_Ptr->recvValidDataFlag = 0;
 	Zigbee_Ptr->runningInfo.Req_Station = 0x0000;
 	Zigbee_Ptr->runningInfo.Req_Type = TypeUnknow;
+
+	Zigbee_Ptr->ZigbeeSendCmdData[0] = 0xFE;
+	Zigbee_Ptr->ZigbeeSendCmdData[1] = 0x08;
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = 0x00;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = 0x00;
+	Zigbee_Ptr->ZigbeeSendCmdData[4] = 0x01;
+	Zigbee_Ptr->ZigbeeSendCmdData[5] = 0x02;
+	Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F;
+	Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x00;
 
 	CMD_Flag_Ptr->cmdFlag = NcNone;
 	CMD_Flag_Ptr->Cancel_Flag = NcNone;

@@ -4752,7 +4752,7 @@ void step_catch_Func(void)
 		RFID_Info_Ptr->updateFlag 	= 0;
 
 	#ifdef USE_SEND_ZIGBEE		
-		Send_GettedGoods3();
+		Send_GettedGoods();
 	#endif
 		
 		//printf("change to exit\r\n");
