@@ -177,9 +177,9 @@ int main(void)
 
 			ZigbeeRecv_Simu();				// 
 
-			ZB_Data_Analysis();				// 
+			ZB_Data_Receive_handle();				// 
 			
-			Receive_handle();				// ZigBee数据接收处理函数
+			ZB_Data_Analysis();				// ZigBee数据接收处理函数
 			
 			CrossRoad_Count();				// 磁条十字交叉路口的计算
 			
@@ -252,7 +252,6 @@ int main(void)
 				
 				ctrlParasPtr->cirDuty = 8;
 				Origin_PatCtrl(ctrlParasPtr->cirDuty);
-				//AutoRunningFunc();
 			}
 			#endif
 			
@@ -297,22 +296,8 @@ int main(void)
 
 		#else
 
-		ZB_Data_Analysis();				// 
-		
-		if(receive_state == 1)
-		{
-			static u32 counter = 0;
-			static u32 timRec = 0;
-			
-			receive_state = 0;
-
-			counter++;
-
-			 
-			printf("counter = %d, timeFlag = %d\r\n", counter, (SystemRunningTime - timRec) / 10);
-			timRec = SystemRunningTime;
-			
-		}
+		ZB_Data_Receive_handle();				// 
+	
 		
 		#endif
 		

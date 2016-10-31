@@ -5346,25 +5346,7 @@ void startup_origin_Func(void)
 }
 
 
-void AutoRunningFunc(void)
-{
-	static u8 cir = 5;
-	
-	receive_state = 1;
-	nc_receive[6] = 0x7f;
-	
-	nc_receive[7] = (cir << 4) | 0x01;
 
-	if(cir < 9)
-	{
-		cir++;
-	}
-	else
-	{
-		cir = 5;
-	}
-	
-}
 
 void Walking_Step_Controler(void)
 {
@@ -5858,22 +5840,22 @@ void ZigbeeRecv_Simu2(u8 *flag)
 		
 		if((cir > 0) && (cir <= 10))
 		{
-			receive_state = 1;
+			Zigbee_Ptr->ZigbeeRecvCmdUpdate = 1;
 			
-			nc_receive[6] = 0x7f;
-			nc_receive[7] = ((cir - 1) << 4) | 0x03;
-			printf("############ cir = %d, nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", cir, nc_receive[6], nc_receive[7]);		
+			Zigbee_Ptr->ZigbeeRecvCmdData[6] = 0x7f;
+			Zigbee_Ptr->ZigbeeRecvCmdData[7] = ((cir - 1) << 4) | 0x03;
+			printf("############ cir = %d, ZigbeeRecvCmdData[6] = %02x, ZigbeeRecvCmdData[7] = %02x\r\n", cir, Zigbee_Ptr->ZigbeeRecvCmdData[6], Zigbee_Ptr->ZigbeeRecvCmdData[7]);		
 			cir += 6;
 		}
 
 		/*
 		if(0x04 == RFID_Info_Ptr->rfidData)
 		{
-			receive_state = 1;
+			Zigbee_Ptr->ZigbeeRecvCmdUpdate = 1;
 				
-			nc_receive[6] = 0x7f;
-			nc_receive[7] = ((9 - 1) << 4) | 0x02;
-			printf("########### nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", nc_receive[6], nc_receive[7]);
+			Zigbee_Ptr->ZigbeeRecvCmdData[6] = 0x7f;
+			Zigbee_Ptr->ZigbeeRecvCmdData[7] = ((9 - 1) << 4) | 0x02;
+			printf("########### ZigbeeRecvCmdData[6] = %02x, ZigbeeRecvCmdData[7] = %02x\r\n", Zigbee_Ptr->ZigbeeRecvCmdData[6], Zigbee_Ptr->ZigbeeRecvCmdData[7]);
 			*flag = 2;
 		}
 		*/
@@ -5884,21 +5866,21 @@ void ZigbeeRecv_Simu2(u8 *flag)
 
 		if((cir > 0) && (cir <= 10))
 		{
-			receive_state = 1;
+			Zigbee_Ptr->ZigbeeRecvCmdUpdate = 1;
 			
-			nc_receive[6] = 0x7f;
-			nc_receive[7] = ((cir - 1) << 4) | 0x01;
-			printf("############ cir = %d, nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", cir, nc_receive[6], nc_receive[7]);		
+			Zigbee_Ptr->ZigbeeRecvCmdData[6] = 0x7f;
+			Zigbee_Ptr->ZigbeeRecvCmdData[7] = ((cir - 1) << 4) | 0x01;
+			printf("############ cir = %d, ZigbeeRecvCmdData[6] = %02x, ZigbeeRecvCmdData[7] = %02x\r\n", cir, Zigbee_Ptr->ZigbeeRecvCmdData[6], Zigbee_Ptr->ZigbeeRecvCmdData[7]);		
 			cir += 5;
 		}
 		
 		if(0x02 == RFID_Info_Ptr->rfidData)
 		{
-			receive_state = 1;
+			Zigbee_Ptr->ZigbeeRecvCmdUpdate = 1;
 			
-			nc_receive[6] = 0x7f;
-			nc_receive[7] = ((5 - 1) << 4) | 0x02;
-			printf("########### nc_receive[6] = %02x, nc_receive[7] = %02x\r\n", nc_receive[6], nc_receive[7]);
+			Zigbee_Ptr->ZigbeeRecvCmdData[6] = 0x7f;
+			Zigbee_Ptr->ZigbeeRecvCmdData[7] = ((5 - 1) << 4) | 0x02;
+			printf("########### ZigbeeRecvCmdData[6] = %02x, ZigbeeRecvCmdData[7] = %02x\r\n", Zigbee_Ptr->ZigbeeRecvCmdData[6], Zigbee_Ptr->ZigbeeRecvCmdData[7]);
 			*flag = 2;
 		}
 

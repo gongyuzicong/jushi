@@ -481,7 +481,6 @@ void SIMU_PWM_BreathWarningLED_Ctrl(void);
 void ProtectSW_GPIO_Config(void);
 void walking_cir(u8);
 u8 Origin_PatCtrl(u8);
-void AutoRunningFunc(void);
 void ManualModeFunc(ManualMode_Ctrl);
 void AGV_Correct_2(void);
 void Recv_RFID_CrossRoad(u8);
