@@ -2295,7 +2295,7 @@ void scale_1_mode20(u8 gear)
 	
 	if(goStraightStatus == ctrlParasPtr->agvStatus)
 	{
-		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
+		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D - 2;
 		
 		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
 		
@@ -3004,7 +3004,7 @@ void Get_Zigbee_Info_From_Buf(void)
 			#endif
 
 			printf("\r\n********************* get station ID: %d\t", info.Req_Station);
-			printf("20%02x-%02x-%02x, %02x:%02x:%02x***************************\r\n", BackgroudRTC_Rec.year, BackgroudRTC_Rec.month, BackgroudRTC_Rec.day, BackgroudRTC_Rec.hour, BackgroudRTC_Rec.minute, BackgroudRTC_Rec.second);
+			printf("20%02x-%02x-%02x, %02x:%02x:%02x ***************************\r\n", BackgroudRTC_Rec.year, BackgroudRTC_Rec.month, BackgroudRTC_Rec.day, BackgroudRTC_Rec.hour, BackgroudRTC_Rec.minute, BackgroudRTC_Rec.second);
 		}
 		
 		//zigbeeRecvDataBuf_Delete();
@@ -5030,7 +5030,7 @@ void step_wFTans_Func(void)
 			}
 		}	
 	}
-	/*
+	
 	else if(2 == step)
 	{
 		static u16 weight = 0;
@@ -5051,7 +5051,7 @@ void step_wFTans_Func(void)
 			weight += FiberglasInfo_Ptr->weight_H;
 		}
 	}
-	*/
+	
 	
 	if(Return_SW_Respond)
 	{

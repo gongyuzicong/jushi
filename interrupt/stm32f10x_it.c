@@ -799,7 +799,6 @@ void USART2_IRQHandler(void)
 		u8 recvD = USART2_RECV_DATA;
 		//printf("U2D = %x\r\n", recvD);
 		
-		//Protocol_analysis(recvD);
 		UART2_REC_IRQ(recvD);
 	}
 	

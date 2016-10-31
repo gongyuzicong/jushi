@@ -5,11 +5,9 @@
 #include "timer_opts.h"
 #include "key_opts.h"
 #include "buffer.h"
-//#include "dht11_opts.h"
 #include "pwm_opts.h"
 #include "motion_control.h"
 #include "exti_opts.h"
-#include "nrf24l01_opts.h"
 #include "spi_opts.h"
 #include "magn_sensor.h"
 #include "zigbee.h"
@@ -271,9 +269,10 @@ int main(void)
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
 				
-			#if 0
+			#if 1
 				
-				if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
+				//if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
+				if((goStraightStatus == ctrlParasPtr->agvStatus) || (gSslow == ctrlParasPtr->agvStatus))
 				{
 					Show_Infomation();
 					//show_Excel_Analysis_Info();
@@ -297,8 +296,23 @@ int main(void)
 		}
 
 		#else
+
+		ZB_Data_Analysis();				// 
 		
-		
+		if(receive_state == 1)
+		{
+			static u32 counter = 0;
+			static u32 timRec = 0;
+			
+			receive_state = 0;
+
+			counter++;
+
+			 
+			printf("counter = %d, timeFlag = %d\r\n", counter, (SystemRunningTime - timRec) / 10);
+			timRec = SystemRunningTime;
+			
+		}
 		
 		#endif
 		
