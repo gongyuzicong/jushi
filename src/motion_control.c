@@ -5750,7 +5750,21 @@ void ProtectFunc(void)
 	else
 	{
 		timRec = 0;
+
+		if((cirLeft != ctrlParasPtr->agvStatus) && (cirRight != ctrlParasPtr->agvStatus))
+		{
+			if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+			{
+				MOTOR_POWER_OFF();
+			}
+			else
+			{
+				MOTOR_POWER_ON();
+			}
+		}
+		
 	}
+	
 	
 }
 
@@ -6293,10 +6307,16 @@ void Motion_Ctrl_Init(void)
 	agv_walking_func[stopStatus] 		= walking_stopStatus;
 	agv_walking_func[goStraightStatus] 	= AGV_Correct_gS_8ug;
 	agv_walking_func[backStatus] 		= AGV_Correct_back_ug;
-	agv_walking_func[cirLeft] 			= walking_cir;
-	agv_walking_func[cirRight] 			= walking_cir;
 	agv_walking_func[gSslow] 			= gS_slow2;
 	agv_walking_func[bSslow] 			= back_slow2;
+
+	#if USE_HALL_CTRL
+	agv_walking_func[cirLeft] 			= walking_cir_hall;
+	agv_walking_func[cirRight] 			= walking_cir_hall;
+	#else
+	agv_walking_func[cirLeft] 			= walking_cir;
+	agv_walking_func[cirRight] 			= walking_cir;
+	#endif
 	
 
 	ZBandRFIDmapping[ControlCenter] 	= 0x0000;

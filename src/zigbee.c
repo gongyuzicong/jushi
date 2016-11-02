@@ -336,28 +336,40 @@ void ZB_Data_Analysis(void)
 					Send_Zigbee_ACK(node);
 					if(1 == searchZigbeeData(node, &index))
 					{
-						//printf("1 Total = %d\r\n", zigbeeQueueCtrl.Total);
-						CHANGE_TO_STOP_MODE();
-						Show_Queue_Data();
-						zigbeeDeleteQueue(index);
-						Show_Queue_Data();
-						//printf("2 Total = %d\r\n", zigbeeQueueCtrl.Total);
-						printf("Good cancel node = %d, index = %d\r\n", node, index);
-						
-						ctrlParasPtr->walkingstep = step_origin;
-						
-						ctrlParasPtr->rifdAdaptFlag = 0;
-						//printf("GoodReqCancel step_origin = %d\r\n", ctrlParasPtr->walkingstep);
-						
-						
-						CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
-						
-						BuzzerCtrlPtr->buzzerFlag = 1;
-						//printf("@!@!@!@!@! cancel %04x\r\n", node);
+						if(0 == index)
+						{
+							//printf("1 Total = %d\r\n", zigbeeQueueCtrl.Total);
+							CHANGE_TO_STOP_MODE();
+							Show_Queue_Data();
+							zigbeeDeleteQueue(index);
+							Show_Queue_Data();
+							//printf("2 Total = %d\r\n", zigbeeQueueCtrl.Total);
+							printf("Good cancel node = %d, index = %d\r\n", node, index);
+							
+							ctrlParasPtr->walkingstep = step_origin;
+							
+							ctrlParasPtr->rifdAdaptFlag = 0;
+							//printf("GoodReqCancel step_origin = %d\r\n", ctrlParasPtr->walkingstep);
+							
+							
+							CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
+							
+							BuzzerCtrlPtr->buzzerFlag = 1;
+							//printf("@!@!@!@!@! cancel %04x\r\n", node);
 
-						#if USE_CIRCLE_INFO_RECODER
-						CircleInfoStrPtr->lock = 0;
-						#endif
+							#if USE_CIRCLE_INFO_RECODER
+							CircleInfoStrPtr->lock = 0;
+							#endif
+						}
+						else
+						{
+							zigbeeDeleteQueue(index);
+							Show_Queue_Data();
+							//printf("2 Total = %d\r\n", zigbeeQueueCtrl.Total);
+							printf("Good cancel node = %d, index = %d\r\n", node, index);
+							BuzzerCtrlPtr->buzzerFlag = 1;
+						}
+						
 					}
 				}
 				
@@ -513,7 +525,8 @@ void ZigbeeWaitForAck(void)
 			{
 				if(SystemRunningTime - recTime > ZigbeeResendInfo_Ptr->intervalTime_ms * 10)
 				{
-					u8 cir = 8;
+					u8 cir = 0;
+					
 					for(cir = 0; cir < 8; cir++)
 					{
 						if(0 == cir)
@@ -522,19 +535,28 @@ void ZigbeeWaitForAck(void)
 						}
 						
 						SendChar_Zigbee(ZigbeeResendInfo_Ptr->resendInfo[cir]);
+					}					
+
+					if(ZIGBEE_RESEND_COUNT_MODE_ENABLE == ZigbeeResendInfo_Ptr->ResendCountMode)
+					{
+						resendCount++;
+						recTime = 0;
+						
+						if(resendCount >= ZigbeeResendInfo_Ptr->resendNum)
+						{
+							resendCount = 0;
+							ZigbeeResendInfo_Ptr->resendFlag = 0;
+							printf("resend failed\r\n");
+						}
+					}
+					else if(ZIGBEE_RESEND_COUNT_MODE_DISABLE == ZigbeeResendInfo_Ptr->ResendCountMode)
+					{
+						resendCount = 0;
+						recTime = 0;
 					}
 					
-					resendCount++;
-					recTime = 0;
 				}
-
-				if(resendCount >= ZigbeeResendInfo_Ptr->resendNum)
-				{
-					resendCount = 0;
-					ZigbeeResendInfo_Ptr->resendFlag = 0;
-					recTime = 0;
-					printf("resend failed\r\n");
-				}
+				
 			}
 		}
 		
@@ -670,7 +692,7 @@ void Zigbee_Init(void)
 	
 	ZigbeeResendInfo_Ptr->resendFlag = 0;
 	ZigbeeResendInfo_Ptr->intervalTime_ms = 500;
-	ZigbeeResendInfo_Ptr->resendNum = 3;
+	ZigbeeResendInfo_Ptr->resendNum = 30;
 	ZigbeeResendInfo_Ptr->resendCtrlFunc = ZigbeeWaitForAck;
 }
 

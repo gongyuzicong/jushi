@@ -99,7 +99,7 @@ void Show_Queue_Data(void)
 
 u8 searchZigbeeData(u8 data, u8 *index)
 {
-	u8 cir = 0, flag = 0, searchIndex = 0;
+	u8 cir = 0, flag = 0;
 
 	for(cir = 0; cir < zigbeeQueueCtrl.Total; cir++)
 	{
@@ -110,7 +110,7 @@ u8 searchZigbeeData(u8 data, u8 *index)
 		}
 	}
 
-	*index = searchIndex;
+	*index = cir;
 	
 	return flag;
 }

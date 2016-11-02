@@ -175,9 +175,9 @@ int main(void)
 		{
 			Magn_Sensor_Scan();				// 磁传感器数据处理
 
-			ZigbeeRecv_Simu();				// 
+			ZigbeeRecv_Simu();				// 模拟
 
-			ZB_Data_Receive_handle();		// 
+			ZB_Data_Receive_handle();		// ZigBee数据接收函数
 			
 			ZB_Data_Analysis();				// ZigBee数据接收处理函数
 			

@@ -11,6 +11,9 @@
 
 #define USE_SEND_ZIGBEE
 
+#define ZIGBEE_RESEND_COUNT_MODE_ENABLE		0x10
+#define ZIGBEE_RESEND_COUNT_MODE_DISABLE	0x00
+
 /******************数据和函数定义*********************/
 #define baurd_uart1 (u32)19200
 
@@ -55,6 +58,7 @@ typedef struct
 	u16 intervalTime_ms;
 	u8 resendNum;
 	u8 *resendInfo;
+	u8 ResendCountMode;
 	void (*resendCtrlFunc)(void);
 }Zigbee_ACK_Info, *Zigbee_ACK_Info_P;
 
