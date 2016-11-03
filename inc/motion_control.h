@@ -237,7 +237,7 @@ typedef enum
 
 typedef enum
 {
-	step_gS = 1,
+	step_gS,
 	step_gVeer,
 	step_entry,
 	step_catch,
@@ -248,14 +248,8 @@ typedef enum
 	step_wFTans,
 	step_origin,
 	step_stop,
+	step_end,
 }WalkStep;
-
-
-#define MOTOR1_HallCtrlFlag()		{MotorLeftHallCtrlPtr->MotorHallCtrlFlag = 1;}
-#define MOTOR2_HallCtrlFlag()		{MotorLeftHallCtrlPtr->MotorHallCtrlFlag = 1;}
-#define MOTORLeft_HallCtrlFlag()	{MOTOR1_HallCtrlFlag();}
-#define MotorRight_HallCtrlFlag()	{MOTOR2_HallCtrlFlag();}
-#define Motor_HallCtrlFlag()		{MOTORLeft_HallCtrlFlag(); MotorRight_HallCtrlFlag();}
 
 
 
@@ -452,7 +446,7 @@ typedef struct
 
 
 void Motion_Ctrl_Init(void);
-void AGV_Walking(void);
+void AGV_Walking_Opt(void);
 void AGV_Change_Mode(void);
 void LeftOrRight_Counter(void);
 void AGV_Walking_Test(void);

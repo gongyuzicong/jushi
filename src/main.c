@@ -193,48 +193,7 @@ int main(void)
 			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
 				
-				#if 0
-				AGV_Walking();
-				#else
-				
-				if(goStraightStatus == ctrlParasPtr->agvStatus)		// 高速直行状态
-				{
-					
-					AGV_Correct_gS_8ug(ctrlParasPtr->gear);
-				}
-				else if(backStatus == ctrlParasPtr->agvStatus)		// 高速后退状态
-				{
-					
-					AGV_Correct_back_ug(ctrlParasPtr->gear);
-				}
-				else if(cirLeft == ctrlParasPtr->agvStatus)			// 左转状态
-				{
-					#if USE_HALL_CTRL
-					walking_cir_hall(ctrlParasPtr->cirDuty);
-					#else
-					walking_cir(ctrlParasPtr->cirDuty);
-					#endif
-					
-				}
-				else if(cirRight == ctrlParasPtr->agvStatus)		// 右转状态
-				{
-					#if USE_HALL_CTRL
-					walking_cir_hall(ctrlParasPtr->cirDuty);
-					#else
-					walking_cir(ctrlParasPtr->cirDuty);
-					#endif
-					
-				}
-				else if(gSslow == ctrlParasPtr->agvStatus)			// 低速直行
-				{
-					gS_slow2(ctrlParasPtr->gear);
-				}
-				else if(bSslow == ctrlParasPtr->agvStatus)			// 低速后退
-				{
-					back_slow2(ctrlParasPtr->gear);
-				}
-								
-				#endif
+				AGV_Walking_Opt();
 				
 			}
 

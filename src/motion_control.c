@@ -58,7 +58,8 @@ ControlerParaStruct_P 	ctrlParasPtr = &ctrlParas;
 
 u32 responseTime = 0;
 
-void (*agv_walking_func[StatusEnd]) (u8);
+void (*agv_walking[StatusEnd]) (u8);
+void (*walking_step[step_end])(void);
 
 #define MOTOR_RIGHT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, speed))
 #define MOTOR_LEFT_DUTY_SET(speed)			(pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, speed))
@@ -302,8 +303,10 @@ void walking_cir(u8 duty)
 {
 	static u8 lmSpeed = 0, rmSpeed = 0;
 
-	lmSpeed = duty + AgvGearCompDutyLF[2];
-	rmSpeed = duty + AgvGearCompDutyLF[2];
+	//lmSpeed = duty + AgvGearCompDutyLF[2];
+	//rmSpeed = duty + AgvGearCompDutyLF[2];	
+	lmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+	rmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
 	
 	ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
 	ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
@@ -2295,7 +2298,7 @@ void scale_1_mode20(u8 gear)
 	
 	if(goStraightStatus == ctrlParasPtr->agvStatus)
 	{
-		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D - 2;
+		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D - 1;
 		
 		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
 		
@@ -2356,7 +2359,7 @@ void scale_1_mode20_back(u8 gear)
 		
 		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
 		
-		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D - 1;
+		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
 		
 	}
 
@@ -3097,13 +3100,15 @@ void RFID_Goal_Node_Analy(void)
 }
 
 
-void AGV_Walking(void)
+void AGV_Walking_Opt(void)
 {
 	
 	if(AutomaticMode == ctrlParasPtr->agvWalkingMode)
 	{
-		
-		agv_walking_func[ctrlParasPtr->agvStatus](ctrlParasPtr->gear);
+		if((ctrlParasPtr->agvStatus > StatusStart) && (ctrlParasPtr->agvStatus < StatusEnd))
+		{
+			agv_walking[ctrlParasPtr->agvStatus](ctrlParasPtr->gear);
+		}
 		
 	}
 	
@@ -5350,55 +5355,9 @@ void startup_origin_Func(void)
 
 void Walking_Step_Controler(void)
 {
-	
-	if(step_gS == ctrlParasPtr->walkingstep)
+	if(ctrlParasPtr->walkingstep < step_end)
 	{
-		#if 1
-		step_gS_Func();
-		#else
-		step_gS_Func2();
-		#endif
-	}
-	else if(step_gVeer == ctrlParasPtr->walkingstep)
-	{
-		step_gVeer_Func();
-	}
-	else if(step_entry == ctrlParasPtr->walkingstep)
-	{
-		step_entry_Func();
-	}
-	else if(step_catch == ctrlParasPtr->walkingstep)
-	{
-		step_catch_Func();
-	}
-	else if(step_exit == ctrlParasPtr->walkingstep)
-	{
-		step_exit_Func();
-	}
-	else if(step_weigh == ctrlParasPtr->walkingstep)
-	{
-		step_weigh_Func();
-	}
-	else if(step_bVeer == ctrlParasPtr->walkingstep)
-	{
-		step_bVeer_Func();
-	}
-	else if(step_gB == ctrlParasPtr->walkingstep)
-	{
-		step_gB_Func();
-	}
-	else if(step_wFTans == ctrlParasPtr->walkingstep)
-	{
-		step_wFTans_Func();
-	}
-	else if(step_origin == ctrlParasPtr->walkingstep)
-	{
-		//step_origin_Func();
-		step_origin_Func2();
-	}
-	else if(step_stop == ctrlParasPtr->walkingstep)
-	{
-		step_stop_Func();
+		walking_step[ctrlParasPtr->walkingstep]();
 	}
 
 	
@@ -6303,20 +6262,36 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->ECV_StepFlag				= 0x00;
 	ctrlParasPtr->AutoCancel_Respond		= 0x01;
 	
-	agv_walking_func[StatusStart] 		= NullFunc;
-	agv_walking_func[stopStatus] 		= walking_stopStatus;
-	agv_walking_func[goStraightStatus] 	= AGV_Correct_gS_8ug;
-	agv_walking_func[backStatus] 		= AGV_Correct_back_ug;
-	agv_walking_func[gSslow] 			= gS_slow2;
-	agv_walking_func[bSslow] 			= back_slow2;
+	agv_walking[StatusStart] 		= NullFunc;
+	agv_walking[stopStatus] 		= walking_stopStatus;
+	agv_walking[goStraightStatus] 	= AGV_Correct_gS_8ug;
+	agv_walking[backStatus] 		= AGV_Correct_back_ug;
+	agv_walking[gSslow] 			= gS_slow2;
+	agv_walking[bSslow] 			= back_slow2;
 
 	#if USE_HALL_CTRL
-	agv_walking_func[cirLeft] 			= walking_cir_hall;
-	agv_walking_func[cirRight] 			= walking_cir_hall;
+	agv_walking[cirLeft] 			= walking_cir_hall;
+	agv_walking[cirRight] 			= walking_cir_hall;
 	#else
-	agv_walking_func[cirLeft] 			= walking_cir;
-	agv_walking_func[cirRight] 			= walking_cir;
+	agv_walking[cirLeft] 			= walking_cir;
+	agv_walking[cirRight] 			= walking_cir;
 	#endif
+
+	#if 1
+	walking_step[step_gS]			= step_gS_Func;
+	#else
+	walking_step[step_gS]			= step_gS_Func2;
+	#endif
+	walking_step[step_gVeer]		= step_gVeer_Func;
+	walking_step[step_entry]		= step_entry_Func;
+	walking_step[step_catch]		= step_catch_Func;
+	walking_step[step_exit]			= step_exit_Func;
+	walking_step[step_weigh]		= step_weigh_Func;
+	walking_step[step_bVeer]		= step_bVeer_Func;
+	walking_step[step_gB]			= step_gB_Func;
+	walking_step[step_wFTans]		= step_wFTans_Func;
+	walking_step[step_origin]		= step_origin_Func2;
+	walking_step[step_stop]			= step_stop_Func;
 	
 
 	ZBandRFIDmapping[ControlCenter] 	= 0x0000;
@@ -6330,36 +6305,6 @@ void Motion_Ctrl_Init(void)
 	ZBandRFIDmapping[SpinStation_8] 	= 0x0008;
 	ZBandRFIDmapping[SpinStation_9] 	= 0x0009;
 	ZBandRFIDmapping[SpinStation_10] 	= 0x000A;
-
-	/*
-	CrossRoadHallCountArrGS[0].HallCountLeft 	= 0;
-	CrossRoadHallCountArrGS[1].HallCountLeft 	= 29;
-	CrossRoadHallCountArrGS[2].HallCountLeft 	= 29;
-	CrossRoadHallCountArrGS[3].HallCountLeft 	= 97;
-	CrossRoadHallCountArrGS[4].HallCountLeft 	= 120;
-	CrossRoadHallCountArrGS[5].HallCountLeft 	= 120;
-
-	CrossRoadHallCountArrGS[0].HallCountRight 	= 0;
-	CrossRoadHallCountArrGS[1].HallCountRight 	= 29;
-	CrossRoadHallCountArrGS[2].HallCountRight 	= 29;
-	CrossRoadHallCountArrGS[3].HallCountRight 	= 97;
-	CrossRoadHallCountArrGS[4].HallCountRight 	= 120;
-	CrossRoadHallCountArrGS[5].HallCountRight 	= 120;
-	
-	CrossRoadHallCountArrGB[0].HallCountLeft 	= 0;
-	CrossRoadHallCountArrGB[1].HallCountLeft 	= 29;
-	CrossRoadHallCountArrGB[2].HallCountLeft 	= 29;
-	CrossRoadHallCountArrGB[3].HallCountLeft 	= 29;
-	CrossRoadHallCountArrGB[4].HallCountLeft 	= 29;
-	CrossRoadHallCountArrGB[5].HallCountLeft 	= 29;
-
-	CrossRoadHallCountArrGB[0].HallCountRight 	= 0;
-	CrossRoadHallCountArrGB[1].HallCountRight 	= 29;
-	CrossRoadHallCountArrGB[2].HallCountRight 	= 29;
-	CrossRoadHallCountArrGB[3].HallCountRight 	= 29;
-	CrossRoadHallCountArrGB[4].HallCountRight 	= 29;
-	CrossRoadHallCountArrGB[5].HallCountRight 	= 29;
-	*/
 	
 	#if USE_MPU6050
 	for(cir = 0; cir < MAX_DAMP_ADAPT_NUM; cir++)
