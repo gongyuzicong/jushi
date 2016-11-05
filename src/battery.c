@@ -1,6 +1,8 @@
 #include "battery.h"
 #include "timer_opts.h"
 
+Battery_Info_Str BatteryStr;
+Battery_Info_Str_P BatteryStrPtr = &BatteryStr;
 
 
 /**
@@ -56,6 +58,12 @@ void Get_Voltage(void)
 	printf("Voltage = %f\r\n", Voltage);
 }
 
+void Scan_Voltage(void)
+{
+	
+	
+}
+
 
 
 /**
@@ -97,9 +105,6 @@ void ADC_Initialize(void)
 	while(ADC_GetCalibrationStatus(ADC1));	 							//等待校准结束 
 	
 }
-
-
-
 
 
 void Battery_Init(void)

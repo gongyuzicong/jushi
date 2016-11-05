@@ -48,6 +48,9 @@
 #define MAX_GEAR_NUM		21
 #define MAX_GEAR_OFFSET		11
 
+#define ACC_CTRL_MODE_TIME			0X01
+#define ACC_CTRL_MODE_HALL			0X02
+
 #define MOTOR_RIGHT_CR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_CCR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_STOP_PIN_SET()			{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
@@ -251,9 +254,33 @@ typedef enum
 	step_end,
 }WalkStep;
 
+typedef struct AccPara
+{
+	u8 AccEnableFlag;
+	u8 AccMode;
+
+	// time ctrl setted para
+	u8 AccTime_ms;
+	u8 AccLevel;
+
+	// hall ctrl setted para
+	u16 HallCmp;
+
+	// common setted para
+	u8 AccMaxSpeed;
+	u8 AccPwmIT_Duty;
+
+	// recode para
+	u8 AccSpeedRec;
+
+	// output para
+	u8 outPutSpeed;
+	
+	void (*AccCtrlFunc)(struct AccPara *, u8 *);
+}AccCtrlParaStr, *AccCtrlParaStr_P;
 
 
-typedef struct
+typedef struct ControlerPara
 {
 	u8 	settedSpeed;
 	u8 	rightMotorSettedSpeed;
@@ -329,7 +356,10 @@ typedef struct
 	u8 LED_Warning;
 
 	u8 AutoCancel_Respond;
+
+	AccCtrlParaStr AccCtrl;
 }ControlerParaStruct, *ControlerParaStruct_P;
+
 
 
 typedef struct

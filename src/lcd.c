@@ -221,25 +221,25 @@ void Lcd_Handle(void)
 	if(1 == flag_recok)
 	{
 /////////处理三个字节数据/////////
-		if(lcd_receive_count==2)
+		if(2 == lcd_receive_count)
 		{
 
 /////////LCD反馈信息////////////
-			if(receive_buf[0]==0x43)
+			if(receive_buf[0] == 0x43)
 			{
-				if(receive_buf[1]==0x2D)
+				if(receive_buf[1] == 0x2D)
 				{
 					//指令错误//
 				}
-				if(receive_buf[1]==0x2B)
+				if(receive_buf[1] == 0x2B)
 				{
 					//指令正确//
 				}								
 			}
 ///////页面切换/////////
-			else if(receive_buf[0]==0x50)
+			else if(receive_buf[0] == 0x50)
 			{
-				if(receive_buf[1]==0x41)//任务状态页面
+				if(receive_buf[1] == 0x41)//任务状态页面
 				{
 					Set_batter(98);
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
@@ -248,7 +248,7 @@ void Lcd_Handle(void)
 					WarningLedCtrlPtr->twinkleNum = 2;
 				}
 				
-				if(receive_buf[1]==0x42)//称重页面
+				if(receive_buf[1] == 0x42)//称重页面
 				{
 					Set_batter(98);
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
@@ -257,7 +257,7 @@ void Lcd_Handle(void)
 					WarningLedCtrlPtr->twinkleNum = 2;
 				}
 				
-				if(receive_buf[1]==0x44)//手动控制页面
+				if(receive_buf[1] == 0x44)//手动控制页面
 				{
 					Set_batter(98);
 					////进入手动控制界面////
@@ -325,8 +325,7 @@ void Lcd_Handle(void)
 		if (('E' == receive_buf[0]) && ('+' == receive_buf[1]))
 		{
 			// 收到屏幕完全启动信号
-			
-			
+			LCD_Info_Ptr->LCD_Ready = 1;
 			
 		}
 		

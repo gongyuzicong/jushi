@@ -8,7 +8,10 @@
 
 typedef struct BatteryInfo
 {
-	u8 data;
+	u8 Batter_H;
+	u8 Batter_L;
+
+	void (*Scan_Battery)(struct BatteryInfo *);
 }Battery_Info_Str, *Battery_Info_Str_P;
 
 void Battery_Init(void);

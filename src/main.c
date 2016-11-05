@@ -142,6 +142,12 @@ int main(void)
 		FECV_Str_Ptr->ECV_Ctrl_Function(FECV_Str_Ptr);			// 前电缸控制
 		BECV_Str_Ptr->ECV_Ctrl_Function(BECV_Str_Ptr);			// 后电缸控制
 		//WECV_Str_Ptr->ECV_Ctrl_Function(WECV_Str_Ptr);		// 直行辅助轮电缸控制
+
+		if(1 == LCD_Info_Ptr->LCD_Ready)
+		{
+			
+			
+		}
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)
@@ -192,11 +198,8 @@ int main(void)
 			/************小车驱动轮控制************/
 			if((FMSDS_Ptr->AgvMSLocation >= Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Right_End))
 			{
-				
 				AGV_Walking_Opt();
-				
 			}
-
 			
 			//AGV_Change_Mode();
 			
@@ -255,8 +258,9 @@ int main(void)
 
 		#else
 
-		ZB_Data_Receive_handle();				// 
-	
+		//ZB_Data_Receive_handle();				// 
+		//set_duty(100, 100);
+		Get_Voltage();
 		
 		#endif
 		

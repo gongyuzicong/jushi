@@ -11,7 +11,9 @@ typedef enum
 
 typedef struct LCD_Info_Struct
 {
+	u8 LCD_Ready;
 	LCD_View_Page ViewPage;
+	
 }LCD_Info_Str, *LCD_Info_Str_P;
 
 

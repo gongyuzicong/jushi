@@ -2216,6 +2216,39 @@ void so_This_is_D5(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 }
 
 
+void AcceCtrl_Func(AccCtrlParaStr_P ptr, u8 *basc_speed)
+{
+	if(1 == ptr->AccEnableFlag)
+	{
+		if(ACC_CTRL_MODE_TIME == ptr->AccMode)
+		{
+			
+			
+		}
+		else if(ACC_CTRL_MODE_HALL == ptr->AccMode)
+		{
+			
+			
+		}
+
+		if(ptr->AccSpeedRec >  ptr->AccMaxSpeed)
+		{
+			ptr->AccSpeedRec =  ptr->AccMaxSpeed;
+		}
+		
+	}
+	else
+	{
+		ptr->AccSpeedRec = 0;
+		
+		
+	}
+
+	*basc_speed = ptr->AccSpeedRec;
+	
+}
+
+
 void Pat_ShowAs_Symble(void)
 {
 	if(AGV_Pat_Ptr->Midpoint > 0)
@@ -2298,7 +2331,7 @@ void scale_1_mode20(u8 gear)
 	
 	if(goStraightStatus == ctrlParasPtr->agvStatus)
 	{
-		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D - 1;
+		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
 		
 		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
 		
@@ -4215,7 +4248,6 @@ void step_gS_Func(void)
 						//printf("ctrlParasPtr->gear = 3\r\n");
 					}
 					#endif
-					
 					else
 					{
 						CHANGE_TO_GO_STRAIGHT_MODE();
@@ -4281,6 +4313,7 @@ void step_gS_Func(void)
 		
 		if(1 == RFID_Info_Ptr->updateFlag)
 		{
+			
 			RFID_Info_Ptr->updateFlag = 0;
 			//printf("rfidData = %08x, goalRFIDnode = %d\r\n", RFID_Info_Ptr->rfidData, ctrlParasPtr->goalRFIDnode);
 			//printf("1LHC = %d, RHC = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
@@ -4294,6 +4327,10 @@ void step_gS_Func(void)
 				#if USE_CIRCLE_INFO_RECODER
 				CircleInfoStrPtr->CircleTime.Go2RFIDTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
 				#endif
+			}
+			else
+			{
+				ctrlParasPtr->rifdAdaptFlag = 0;
 			}
 		}
 
@@ -4330,7 +4367,6 @@ void step_gS_Func(void)
 					ctrlParasPtr->Machine_ARM_Toggle_Flag = 0;
 					flag = 3;
 				}
-
 				
 			}
 		}
@@ -6261,6 +6297,7 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->Catch_Goods_Flag			= 0x00;
 	ctrlParasPtr->ECV_StepFlag				= 0x00;
 	ctrlParasPtr->AutoCancel_Respond		= 0x01;
+	ctrlParasPtr->AccCtrl.AccCtrlFunc		= AcceCtrl_Func;
 	
 	agv_walking[StatusStart] 		= NullFunc;
 	agv_walking[stopStatus] 		= walking_stopStatus;
