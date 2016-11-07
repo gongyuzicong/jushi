@@ -6,13 +6,14 @@
 #include "fiberglas.h"
 #include "ecv_control.h"
 #include "fiberglas.h"
+#include "battery.h"
 
 //添加到全局变量//
 u8 receive_buf[150];
 u8 lcd_receive_count=0;
 u8 flag_recok=0;
 
-u16 main_state[10]={11,22,33,44,55,66,77,88,99,100};
+u16 task_state[10]={11,22,33,44,55,66,77,88,99,100};
 
 LCD_Info_Str LCD_Info;
 LCD_Info_Str_P LCD_Info_Ptr = &LCD_Info;
@@ -115,48 +116,66 @@ void Set_time(u8 h,u8 m,u8 s)
 	Uart_Send_Char(0x0d);	
 }
 
-
 //设置电量//
-void Set_batter(u8 batter)
+void LCD_Report_Battery(u8* str)
 {
-	u8 temp1,temp2;
-	if(batter>=100)
-	{
-	Uart_Send_Str("main_battery.vakue=100");
-	}
-	else
-	{
-	temp1=(batter/10)+0x30;
-	temp2=(batter%10)+0x30;
 	
-	Uart_Send_Str("main_battery.value=");
-	Uart_Send_Char(temp1);
-	Uart_Send_Char(temp2);
+	Uart_Send_Str(str);
+	Uart_Send_Char(BatteryInfoPtr->Battery_H);
+	Uart_Send_Char(BatteryInfoPtr->Battery_L);
 	Uart_Send_Char(0x0d);
-	
-	Uart_Send_Str("scale_battery.value=");
-	Uart_Send_Char(temp1);
-	Uart_Send_Char(temp2);
-	Uart_Send_Char(0x0d);
-	
-	Uart_Send_Str("systemSetup_battery.value=");
-	Uart_Send_Char(temp1);
-	Uart_Send_Char(temp2);	
-	Uart_Send_Char(0x0d);
-	
-	Uart_Send_Str("manualControl_battery.value=");
-	Uart_Send_Char(temp1);
-	Uart_Send_Char(temp2);	
-	Uart_Send_Char(0x0d);
+		
+}
 
-	Uart_Send_Str("help_battery.value=");
-	Uart_Send_Char(temp1);
-	Uart_Send_Char(temp2);
-	Uart_Send_Char(0x0d);
-	}	
+void LCD_Report_MainPage_Battery(void)
+{
+	LCD_Report_Battery("main_battery.value=");
+	
+}
+
+void LCD_Report_WeightPage_Battery(void)
+{
+	LCD_Report_Battery("scale_battery.value=");
+	
+}
+
+void LCD_Report_SystemPage_Battery(void)
+{
+	LCD_Report_Battery("systemSetup_battery.value=");
+	
+}
+
+void LCD_Report_ManualPage_Battery(void)
+{
+	LCD_Report_Battery("manualControl_battery.value=");
+	
+}
+
+void LCD_Report_HelpPage_Battery(void)
+{
+	LCD_Report_Battery("help_battery.value=");
+	
+}
+
+void LCD_Report_AuthorityPage_Battery(void)
+{
+	LCD_Report_Battery("authority_battery.value=");
+	
+}
+
+void LCD_Report_RfidPage_Battery(void)
+{
+	LCD_Report_Battery("rfidSetup_battery.value=");
+	
+}
+
+void LCD_Report_TaskPage_Battery(void)
+{
+	LCD_Report_Battery("task_battery.value=");
+	
 }
 //更新主页任务状态//
-void Set_main_state(u16 *buf)
+void Set_task_state(u16 *buf)
 {
 	u8 i,temp=0;
 	u8 temp1=0,temp2=0,temp3=0,temp4=0;
@@ -169,7 +188,7 @@ void Set_main_state(u16 *buf)
 		temp2=(buf[i]%1000)/100+0x30;
 		temp3=(buf[i]%100)/10+0x30;
 		temp4=buf[i]%10+0x30;
-		Uart_Send_Str("main_L");
+		Uart_Send_Str("task_L");
 		Uart_Send_Char(temp);
 		Uart_Send_Str("a.text=\"");
 		Uart_Send_Char(temp1);
@@ -185,7 +204,7 @@ void Set_main_state(u16 *buf)
 	temp2=(buf[i]%1000)/100+0x30;
 	temp3=(buf[i]%100)/10+0x30;
 	temp4=buf[i]%10+0x30;
-	Uart_Send_Str("main_L");
+	Uart_Send_Str("task_L");
 	Uart_Send_Char('1');
 	Uart_Send_Char('0');	
 	Uart_Send_Str("a.text=\"");
@@ -194,7 +213,7 @@ void Set_main_state(u16 *buf)
 	Uart_Send_Char(temp3);
 	Uart_Send_Char(temp4);
 	Uart_Send_Char('\"');
-	Uart_Send_Char(0x0d);		
+	Uart_Send_Char(0x0d);	
 }
 
 //更新称重页面//z为整数部分,x为小数部分//
@@ -220,47 +239,73 @@ void Lcd_Handle(void)
 {
 	if(1 == flag_recok)
 	{
-/////////处理三个字节数据/////////
+		/////////处理三个字节数据/////////
 		if(2 == lcd_receive_count)
 		{
 
-/////////LCD反馈信息////////////
-			if(receive_buf[0] == 0x43)
+
+			/////////LCD反馈信息////////////
+			//printf("If flag_recok=1: receive_buf=%c%c\r\n",receive_buf[0],receive_buf[1]);
+			
+			if('C' == receive_buf[0])
 			{
-				if(receive_buf[1] == 0x2D)
+				if('-' == receive_buf[1])
 				{
+					//printf("C-\r\n");
 					//指令错误//
 				}
-				if(receive_buf[1] == 0x2B)
+				if('+' == receive_buf[1])
 				{
+					//printf("C+\r\n");
 					//指令正确//
 				}								
 			}
-///////页面切换/////////
-			else if(receive_buf[0] == 0x50)
+/*
+1=PA	//主页面
+2=PB	//称重
+3=PC	//系统设置
+4=PD	//手动控制
+5=PE	//操作说明
+6=PF	//权限设置
+7=PG	//数据导出
+8=PH	//RFID设置
+9=PK	//任务统计页面
+*/			
+			
+			///////页面切换/////////
+			if('P' == receive_buf[0])
 			{
-				if(receive_buf[1] == 0x41)//任务状态页面
+				LCD_Info_Ptr->LCD_Ready = 1;
+				
+				if('A' == receive_buf[1])
 				{
-					Set_batter(98);
-					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+					//printf("PA\r\n");
 					LCD_Info_Ptr->ViewPage = LCD_MainPage;
-					Set_main_state(main_state);
+					LCD_Info_Ptr->mainPage.battery_report();
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					WarningLedCtrlPtr->twinkleNum = 2;
 				}
-				
-				if(receive_buf[1] == 0x42)//称重页面
+				else if('B' == receive_buf[1])//称重页面
 				{
-					Set_batter(98);
+					LCD_Info_Ptr->weightPage.battery_report();
+					//printf("PB\r\n");
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					LCD_Info_Ptr->ViewPage = LCD_WeightPage;
-					//Set_scale_weight(00, 00);
-					WarningLedCtrlPtr->twinkleNum = 2;
+					WarningLedCtrlPtr->twinkleNum = 2;					
 				}
-				
-				if(receive_buf[1] == 0x44)//手动控制页面
+				else if('C' == receive_buf[1])
 				{
-					Set_batter(98);
+					//printf("PC\r\n");
+					LCD_Info_Ptr->ViewPage = LCD_SystemPage;
+					LCD_Info_Ptr->systemPage.battery_report();
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+				}	
+				else if('D' == receive_buf[1])//手动控制页面
+				{
 					////进入手动控制界面////
+					//printf("PD\r\n");
+					LCD_Info_Ptr->ViewPage = LCD_ManualPage;
+					LCD_Info_Ptr->manualPage.battery_report();
 					ctrlParasPtr->agvWalkingMode = ManualMode;
 					ctrlParasPtr->manualCtrl = Man_Stop;
 					#if USE_ECV
@@ -270,49 +315,92 @@ void Lcd_Handle(void)
 					#endif
 					printf("ManualMode\r\n");
 				}
-				
+				else if('E' == receive_buf[1])
+				{	
+					//printf("PE\r\n");					
+					LCD_Info_Ptr->ViewPage = LCD_HelpPage;
+					LCD_Info_Ptr->helpPage.battery_report();
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+				}
+				else if('F' == receive_buf[1])
+				{	
+					//printf("PF\r\n");					
+					LCD_Info_Ptr->ViewPage = LCD_AuthorityPage;
+					LCD_Info_Ptr->authorityPage.battery_report();
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+				}
+				else if('G' == receive_buf[1])
+				{
+					/////////数据导出////////////
+					//printf("PG\r\n");
+					LCD_Info_Ptr->ViewPage = LCD_DataoutPage;
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;					
+					
+				}
+				else if('H' == receive_buf[1])
+				{	
+					//printf("PH\r\n");
+					
+					LCD_Info_Ptr->ViewPage = LCD_RfidPage;
+					LCD_Info_Ptr->rfidPage.battery_report();
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+				}
+				else if('K' == receive_buf[1])//任务统计页面
+				{		
+					//printf("PK\r\n");
+					LCD_Info_Ptr->ViewPage = LCD_TaskPage;
+					LCD_Info_Ptr->taskPage.battery_report();
+					//Set_task_state(task_state);	
+					ctrlParasPtr->agvWalkingMode = AutomaticMode;
+				}
+				else
+				{
+					printf("page error!!!");
+				}
 			}
-		//////删除数据///////
-			else if(receive_buf[0]==0x44)
+			//////删除数据///////
+			else if('D' == receive_buf[0])
 			{
-				if(receive_buf[1]==0x44)
+				LCD_Info_Ptr->LCD_Ready = 1;
+				if('D' == receive_buf[1])
 				{
 					//////删除数据///////
 					
 				}
 			}
-/////手动控制//////
-			else if(receive_buf[0]==0x56)
+			/////手动控制//////
+			else if('V' == receive_buf[0])
 			{
-				if(receive_buf[1]==0x46)
+				LCD_Info_Ptr->LCD_Ready = 1;
+				if('F' == receive_buf[1])
 				{
 					////前进//////
 					ctrlParasPtr->manualCtrl = Man_Forward;
 					//printf("Man_Forward\r\n");
 					//ctrlParasPtr->agvWalkingMode = ManualMode;
 				}
-				if(receive_buf[1]==0x42)
+				if('B' == receive_buf[1])
 				{
 					///后退/////
 					ctrlParasPtr->manualCtrl = Man_Backward;
 					//printf("Man_Backward\r\n");
 					//ctrlParasPtr->agvWalkingMode = ManualMode;
 				}
-				if(receive_buf[1]==0x4C)
+				if('L' == receive_buf[1])
 				{
 					///左转/////
 					ctrlParasPtr->manualCtrl = Man_CirL;
 					//printf("Man_CirL\r\n");
 					//ctrlParasPtr->agvWalkingMode = ManualMode;
 				}
-				if(receive_buf[1]==0x52)
+				if('R' == receive_buf[1])
 				{
 					///右转/////
 					ctrlParasPtr->manualCtrl = Man_CirR;
 					//printf("Man_CirR\r\n");
 					//ctrlParasPtr->agvWalkingMode = ManualMode;
 				}
-				if(receive_buf[1]==0x53)
+				if('S' == receive_buf[1])
 				{
 					///停止/////
 					ctrlParasPtr->manualCtrl = Man_Stop;
@@ -326,42 +414,11 @@ void Lcd_Handle(void)
 		{
 			// 收到屏幕完全启动信号
 			LCD_Info_Ptr->LCD_Ready = 1;
-			
+			Set_date(BackgroudRTC_Rec_Hex.year, BackgroudRTC_Rec_Hex.month, BackgroudRTC_Rec_Hex.day);
+			Set_time(BackgroudRTC_Rec_Hex.hour, BackgroudRTC_Rec_Hex.minute, BackgroudRTC_Rec_Hex.second);
 		}
-		
-		if(lcd_receive_count==4)
-		{
-			if((receive_buf[1]==0x47)&&(receive_buf[3]==0x41))
-			{
-				/////////数据导出////////////
 				
-			}
-		}
-/////////处理十八个字节数据/////////
-
-		if(lcd_receive_count > 10)
-		{
-			/*
-			Set_date(16,8,7);
-			Set_time(12,13,14);
-			Set_batter(100);
-			Delay_ms(500);
-			Set_date(16,8,7);
-			Set_time(12,13,14);
-			Set_batter(100);
-			Set_main_state(main_state);
-			*/
-			Set_date(BackgroudRTC_Rec_Hex.year, BackgroudRTC_Rec_Hex.month, BackgroudRTC_Rec_Hex.day);
-			Set_time(BackgroudRTC_Rec_Hex.hour, BackgroudRTC_Rec_Hex.minute, BackgroudRTC_Rec_Hex.second);
-			Set_batter(98);
-			Delay_ms(500);
-			Set_date(BackgroudRTC_Rec_Hex.year, BackgroudRTC_Rec_Hex.month, BackgroudRTC_Rec_Hex.day);
-			Set_time(BackgroudRTC_Rec_Hex.hour, BackgroudRTC_Rec_Hex.minute, BackgroudRTC_Rec_Hex.second);
-			Set_batter(98);
-			Set_main_state(main_state);
-			Light_Up_Screen();
-		}
-//////清除flag，接收计数//////
+		//////清除flag，接收计数//////
 		flag_recok = 0;
 		lcd_receive_count = 0;
 	}
@@ -369,19 +426,102 @@ void Lcd_Handle(void)
 
 void LCD_Page_Report(void)
 {
-	if(LCD_MainPage == LCD_Info_Ptr->ViewPage)
+	if(1 == LCD_Info_Ptr->LCD_Ready)
 	{
-		
-	}
-	else if(LCD_WeightPage == LCD_Info_Ptr->ViewPage)
-	{
-		if(1 == getWeightCtrl_Ptr->weightUpdate)
+		if(LCD_MainPage == LCD_Info_Ptr->ViewPage)
 		{
-			getWeightCtrl_Ptr->weightUpdate = 0;
-			Report_Weight_Data();
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("main_battery.value=");
+				LCD_Info_Ptr->mainPage.battery_report();
+			}
+		}
+		else if(LCD_WeightPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == getWeightCtrl_Ptr->weightUpdate)
+			{
+				getWeightCtrl_Ptr->weightUpdate = 0;
+				Report_Weight_Data();
+			}
+
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("scale_battery.value=");
+				LCD_Info_Ptr->weightPage.battery_report();
+			}
+			
+		}
+		else if(LCD_SystemPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("systemSetup_battery.value=");
+				LCD_Info_Ptr->systemPage.battery_report();
+			}
+		}
+		else if(LCD_ManualPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("manualControl_battery.value=");
+				LCD_Info_Ptr->manualPage.battery_report();
+			}
+		}
+		else if(LCD_HelpPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("help_battery.value=");
+				LCD_Info_Ptr->helpPage.battery_report();
+			}
+		}
+		else if(LCD_AuthorityPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("authority_battery.value=");
+				LCD_Info_Ptr->authorityPage.battery_report();
+			}
+		}
+		else if(LCD_DataoutPage == LCD_Info_Ptr->ViewPage)
+		{
+			
+		}
+		else if(LCD_RfidPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("rfidSetup_battery.value=");
+				LCD_Info_Ptr->rfidPage.battery_report();
+			}
+		}
+		else if(LCD_TaskPage == LCD_Info_Ptr->ViewPage)
+		{
+			if(1 == BatteryInfoPtr->BatteryUpdate)
+			{
+				BatteryInfoPtr->BatteryUpdate = 0;
+
+				//LCD_Report_Battery("task_battery.value=");
+				LCD_Info_Ptr->taskPage.battery_report();
+			}
 		}
 		
 	}
+	
 }
 
 
@@ -390,7 +530,7 @@ void UART1_REC(u8 data)
 {
 	receive_buf[lcd_receive_count] = data;
 	
-	if(receive_buf[lcd_receive_count]!=0x0D)
+	if(receive_buf[lcd_receive_count] != 0x0D)
 	{
 		lcd_receive_count++;
 	}
@@ -398,13 +538,57 @@ void UART1_REC(u8 data)
 	{
 		flag_recok=1;
 	}
-	
 }
+
 
 void Weight_Screen_Show(void)
 {
 	Uart_Send_Str("scale.show()\r");
 }
+
+void Main_Screen_Show(void)
+{
+	Uart_Send_Str("main.show()\r");
+}
+
+void Task_Screen_Show(void)
+{
+	Uart_Send_Str("task.show()\r");
+	
+}
+
+void RFID_Screen_Show(void)
+{
+	Uart_Send_Str("rfidSetup.show()\r");
+	
+}
+void System_Screen_Show(void)
+{
+	Uart_Send_Str("systemSetup.show()\r");
+	
+}
+void Help_Screen_Show(void)
+{
+	Uart_Send_Str("help.show()\r");
+	
+}
+void Dataout_Screen_Show(void)
+{
+	Uart_Send_Str("dataout.show()\r");
+	
+}
+void Manual_Screen_Show(void)
+{
+	Uart_Send_Str("manualControl.show()\r");
+	
+}
+
+void Authority_Screen_Show(void)
+{
+	Uart_Send_Str("authority.show()\r");
+	
+}
+
 
 void Screen_Save_Power_Mode(void)
 {
@@ -543,6 +727,25 @@ void LCD_UART_INIT(void)
 void LCD_Struct_Init(void)
 {
 	LCD_Info_Ptr->ViewPage = LCD_MainPage;
+
+	LCD_Info_Ptr->mainPage.battery_report = LCD_Report_MainPage_Battery;
+	LCD_Info_Ptr->weightPage.battery_report = LCD_Report_WeightPage_Battery;
+	LCD_Info_Ptr->systemPage.battery_report = LCD_Report_SystemPage_Battery;
+	LCD_Info_Ptr->manualPage.battery_report = LCD_Report_ManualPage_Battery;
+	LCD_Info_Ptr->helpPage.battery_report = LCD_Report_HelpPage_Battery;
+	LCD_Info_Ptr->authorityPage.battery_report = LCD_Report_AuthorityPage_Battery;
+	LCD_Info_Ptr->rfidPage.battery_report = LCD_Report_RfidPage_Battery;
+	LCD_Info_Ptr->taskPage.battery_report = LCD_Report_TaskPage_Battery;
+
+	LCD_Info_Ptr->mainPage.show = Main_Screen_Show;
+	LCD_Info_Ptr->weightPage.show = Weight_Screen_Show;
+	LCD_Info_Ptr->taskPage.show = Task_Screen_Show;
+	LCD_Info_Ptr->rfidPage.show = RFID_Screen_Show;
+	LCD_Info_Ptr->systemPage.show = System_Screen_Show;
+	LCD_Info_Ptr->helpPage.show = Help_Screen_Show;
+	LCD_Info_Ptr->dataOutPage.show = Dataout_Screen_Show;
+	LCD_Info_Ptr->manualPage.show = Manual_Screen_Show;
+	LCD_Info_Ptr->authorityPage.show = Authority_Screen_Show;
 }
 
 
@@ -551,6 +754,8 @@ void LCD_INIT(void)
 	LCD_UART_INIT();
 
 	LCD_Struct_Init();
+
+	
 }
 
 

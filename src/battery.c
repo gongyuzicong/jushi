@@ -2,7 +2,7 @@
 #include "timer_opts.h"
 
 Battery_Info_Str BatteryStr;
-Battery_Info_Str_P BatteryStrPtr = &BatteryStr;
+Battery_Info_Str_P BatteryInfoPtr = &BatteryStr;
 
 
 /**
@@ -58,9 +58,70 @@ void Get_Voltage(void)
 	printf("Voltage = %f\r\n", Voltage);
 }
 
-void Scan_Voltage(void)
+
+void Get_Battery(Battery_Info_Str_P ptr)
 {
+	u16 value;
+	float Voltage;
+	int Batter_value;
+
+	value = Get_Adc_Average(ADC1, ADC_Channel_1);		
+	Voltage = (float)(value * (3.3 / 4096.0));
 	
+	if(Voltage > 2.8)
+	{
+		Batter_value = 100;
+	}
+	else if (Voltage < 2)
+	{
+		Batter_value = 0;
+	}
+	else
+	{
+		Batter_value = (Voltage - 2) / 0.008;
+	}			
+	
+	ptr->Battery_H = (u8)(Batter_value / 10) + 0x30;
+	ptr->Battery_L = (u8)(Batter_value % 10) + 0x30;
+
+	//printf("vol = %f, battery = %c %c\r\n", Voltage, ptr->Battery_H, ptr->Battery_L);
+	
+}
+
+void Scan_Battery(Battery_Info_Str_P ptr)
+{
+	static u32 timRec = 0;
+	static u8 battery_L_Rec = 0, counter = 0;
+	
+	if(0 == timRec)
+	{
+		timRec = SystemRunningTime;
+	}
+	else
+	{
+		if(SystemRunningTime - timRec >= 10000)
+		{
+			Get_Battery(ptr);
+
+			if(battery_L_Rec == ptr->Battery_L)
+			{
+				counter++;
+
+				if(counter >= 10)
+				{
+					counter = 0;
+					ptr->BatteryUpdate = 1;
+				}
+			}
+			else
+			{
+				battery_L_Rec = ptr->Battery_L;
+				counter = 0;
+			}			
+			
+			timRec = 0;
+		}
+	}
 	
 }
 
@@ -111,6 +172,11 @@ void Battery_Init(void)
 {
 	
 	ADC_Initialize();
+	
+	BatteryInfoPtr->Scan_Battery = Scan_Battery;
+
+	Get_Battery(BatteryInfoPtr);
+	BatteryInfoPtr->BatteryUpdate = 1;
 	
 }
 

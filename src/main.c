@@ -96,11 +96,13 @@ int main(void)
 	
 	WECV_Str_Ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
 	
-	Machine_Arm_Init3();
 	
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
 	//AGV_Walking_Test();
+	
+	Machine_Arm_Init3();
+
 	Get_Weight_Offset_Data_One();
 	
 	#if USE_IWDG
@@ -115,7 +117,6 @@ int main(void)
 	
 	while(1)
 	{
-		
 		#if 1
 		
 		#if USE_IWDG
@@ -137,17 +138,14 @@ int main(void)
 		Machinearm_Control_Handle();			// 取纱臂动作控制函数
 
 		LED_Status_Handle();
+
+		BatteryInfoPtr->Scan_Battery(BatteryInfoPtr);
 		
 		WarningLedCtrlPtr->twinkleCtrlFunc(WarningLedCtrlPtr);	// 警告灯闪烁控制
 		FECV_Str_Ptr->ECV_Ctrl_Function(FECV_Str_Ptr);			// 前电缸控制
 		BECV_Str_Ptr->ECV_Ctrl_Function(BECV_Str_Ptr);			// 后电缸控制
 		//WECV_Str_Ptr->ECV_Ctrl_Function(WECV_Str_Ptr);		// 直行辅助轮电缸控制
-
-		if(1 == LCD_Info_Ptr->LCD_Ready)
-		{
-			
-			
-		}
+		
 		
 		/****控制逻辑部分 start****/
 		if(TestMode == ctrlParasPtr->agvWalkingMode)

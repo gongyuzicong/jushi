@@ -2285,7 +2285,7 @@ void Pat_ShowAs_Symble(void)
 			printf("*** -->|\t|");
 		}
 	}
-
+	
 	if(AGV_Pat_Ptr->Angle > 0)
 	{
 		printf("/ ***\r\n");

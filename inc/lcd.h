@@ -7,13 +7,34 @@ typedef enum
 {
 	LCD_MainPage,
 	LCD_WeightPage,
+	LCD_SystemPage,
+	LCD_ManualPage,
+	LCD_HelpPage,
+	LCD_AuthorityPage,
+	LCD_DataoutPage,
+	LCD_RfidPage,
+	LCD_TaskPage,
 }LCD_View_Page;
+
+typedef struct PageClass
+{
+	void (*show)(void);
+	void (*battery_report)(void);
+}Page_Class_Struct, *Page_Class_Struct_P;
 
 typedef struct LCD_Info_Struct
 {
 	u8 LCD_Ready;
 	LCD_View_Page ViewPage;
-	
+	Page_Class_Struct mainPage;
+	Page_Class_Struct weightPage;
+	Page_Class_Struct systemPage;
+	Page_Class_Struct manualPage;
+	Page_Class_Struct helpPage;
+	Page_Class_Struct dataOutPage;
+	Page_Class_Struct authorityPage;
+	Page_Class_Struct rfidPage;
+	Page_Class_Struct taskPage;
 }LCD_Info_Str, *LCD_Info_Str_P;
 
 
