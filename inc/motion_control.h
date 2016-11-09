@@ -48,9 +48,6 @@
 #define MAX_GEAR_NUM		21
 #define MAX_GEAR_OFFSET		11
 
-#define ACC_CTRL_MODE_TIME			0X01
-#define ACC_CTRL_MODE_HALL			0X02
-
 #define MOTOR_RIGHT_CR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_CCR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_STOP_PIN_SET()			{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
@@ -254,35 +251,62 @@ typedef enum
 	step_end,
 }WalkStep;
 
-typedef struct AccPara
+
+
+/**************************** Acc Dec Speed Start ***************************************/
+#define USE_ACC_DEC					1
+#define SPEED_ACCELERATE			0x10
+#define SPEED_DECELERATE			0x20
+
+#define ACC_DEC_CTRL_MODE_TIME		0x10
+#define ACC_DEC_CTRL_MODE_HALL		0x20
+
+typedef struct AccDecPara
 {
-	u8 AccEnableFlag;
-	u8 AccMode;
+	u8 EnableFlag;
+	u8 Mode;
+	u8 Dir;
 
 	// time ctrl setted para
-	u8 AccTime_ms;
-	u8 AccLevel;
+	u32 Time_ms_Acc;
+	u32 Time_ms_Dec;
+	u32 TimeRec;
 
 	// hall ctrl setted para
 	u16 HallCmp;
 
 	// common setted para
-	u8 AccMaxSpeed;
-	u8 AccPwmIT_Duty;
+	u8 MaxSpeed_Acc;
+	u8 MinSpeed_Acc;
+	u8 MaxSpeed_Dec;
+	u8 MinSpeed_Dec;
+	u8 PwmIT_Duty_Acc;
+	u8 PwmIT_Duty_Dec;
 
 	// recode para
-	u8 AccSpeedRec;
+	u8 SpeedRec;
 
 	// output para
-	u8 outPutSpeed;
+	u8 OutputSpeed_Acc;
+	u8 OutputSpeed_Dec;
 	
-	void (*AccCtrlFunc)(struct AccPara *, u8 *);
-}AccCtrlParaStr, *AccCtrlParaStr_P;
+	void (*CtrlFunc)(struct AccDecPara *);
+}AccDecCtrlParaStr, *AccDecCtrlParaStr_P;
+
+
+#define ACCELERATE_TIME_SET()		{ctrlParasPtr->AccCtrl.EnableFlag = 1;\
+									 ctrlParasPtr->AccCtrl.Dir = SPEED_ACCELERATE;\
+									 ctrlParasPtr->AccCtrl.Mode = ACC_DEC_CTRL_MODE_TIME;}
+#define DECELERATE_TIME_SET()		{ctrlParasPtr->AccCtrl.EnableFlag = 1;\
+									 ctrlParasPtr->AccCtrl.Dir = SPEED_ACCELERATE;\
+									 ctrlParasPtr->AccCtrl.Mode = ACC_DEC_CTRL_MODE_TIME;}
+
+/**************************** Acc Dec Speed End ***************************************/
 
 
 typedef struct ControlerPara
 {
-	u8 	settedSpeed;
+	u8 	BasicSpeed;
 	u8 	rightMotorSettedSpeed;
 	u8 	leftMotorSettedSpeed;	
 	u8 	rightMotorRealSpeed;	// 电机实际速度
@@ -357,7 +381,7 @@ typedef struct ControlerPara
 
 	u8 AutoCancel_Respond;
 
-	AccCtrlParaStr AccCtrl;
+	AccDecCtrlParaStr AccCtrl;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -477,9 +501,7 @@ typedef struct
 
 void Motion_Ctrl_Init(void);
 void AGV_Walking_Opt(void);
-void AGV_Change_Mode(void);
 void LeftOrRight_Counter(void);
-void AGV_Walking_Test(void);
 void AVG_Calu_Program(void);
 void CleanAllSpeed(void);
 void AGV_Correct_1(void);
@@ -489,7 +511,6 @@ void AGV_Correct_gS_8ug(u8 gear);
 void AGV_Correct_back_ug(u8);
 void CrossRoad_Hall_Count_Start(void);
 void CrossRoad_Hall_Count_Stop(void);
-void AGV_Proc(void);
 void MPU6050_Data_init(void);
 void MPU6050_Data(void);
 void MPU6050_Data1(void);
@@ -522,7 +543,7 @@ extern u8 AgvGear[MAX_GEAR_NUM];
 extern u16 ZBandRFIDmapping[11];
 extern MPU6050_Para_P mpu6050DS_ptr;
 extern Buzzer_Ctrl_P BuzzerCtrlPtr;
-
+extern AccDecCtrlParaStr_P AccDecCtrl_Ptr;
 
 #endif
 

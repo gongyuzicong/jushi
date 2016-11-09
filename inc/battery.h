@@ -4,13 +4,20 @@
 
 #include "common_include.h"
 
+typedef struct BatteryValue
+{
+	u8 Battery_HEX_H;
+	u8 Battery_HEX_L;
 
+	u8 Battery_ASCII_H;
+	u8 Battery_ASCII_L;
+	
+}BatteryValueStr, *BatteryValueStr_P;
 
 typedef struct BatteryInfo
 {
 	u8 BatteryUpdate;
-	u8 Battery_H;
-	u8 Battery_L;
+	BatteryValueStr BatteryVal;
 	
 	void (*Scan_Battery)(struct BatteryInfo *);
 }Battery_Info_Str, *Battery_Info_Str_P;

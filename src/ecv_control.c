@@ -104,17 +104,17 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 	
 	if(ptr->EcvHallCountRec != ptr->EcvHallCount)
 	{
-		ptr->EcvHallCountRec 		= ptr->EcvHallCount;
-		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+		ptr->EcvHallCountRec = ptr->EcvHallCount;
+		ptr->EcvHallCountTimeRec = SystemRunningTime;
 	}
 	else
 	{
 		if(SystemRunningTime - ptr->EcvHallCountTimeRec >= ptr->EcvHallCountTimeOut_ms * 10)
 		{
-			flag 					= 1;
+			flag = 1;
 			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
 			ptr->EcvHallCountTimeoutUpdate = 1;
-			ptr->EcvHallCountRec 	= 0;
+			ptr->EcvHallCountRec = 0;
 			//printf("time out\r\n");
 		}
 	}

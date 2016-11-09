@@ -121,8 +121,8 @@ void LCD_Report_Battery(u8* str)
 {
 	
 	Uart_Send_Str(str);
-	Uart_Send_Char(BatteryInfoPtr->Battery_H);
-	Uart_Send_Char(BatteryInfoPtr->Battery_L);
+	Uart_Send_Char(BatteryInfoPtr->BatteryVal.Battery_ASCII_H);
+	Uart_Send_Char(BatteryInfoPtr->BatteryVal.Battery_ASCII_L);
 	Uart_Send_Char(0x0d);
 		
 }

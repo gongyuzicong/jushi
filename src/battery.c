@@ -59,7 +59,7 @@ void Get_Voltage(void)
 }
 
 
-void Get_Battery(Battery_Info_Str_P ptr)
+void Get_Battery(BatteryValueStr_P ptr)
 {
 	u16 value;
 	float Voltage;
@@ -79,10 +79,13 @@ void Get_Battery(Battery_Info_Str_P ptr)
 	else
 	{
 		Batter_value = (Voltage - 2) / 0.008;
-	}			
+	}
+
+	ptr->Battery_HEX_H = (u8)(Batter_value / 10);
+	ptr->Battery_HEX_L = (u8)(Batter_value % 10);
 	
-	ptr->Battery_H = (u8)(Batter_value / 10) + 0x30;
-	ptr->Battery_L = (u8)(Batter_value % 10) + 0x30;
+	ptr->Battery_ASCII_H = ptr->Battery_HEX_H + 0x30;
+	ptr->Battery_ASCII_L = ptr->Battery_HEX_L + 0x30;
 
 	//printf("vol = %f, battery = %c %c\r\n", Voltage, ptr->Battery_H, ptr->Battery_L);
 	
@@ -92,6 +95,7 @@ void Scan_Battery(Battery_Info_Str_P ptr)
 {
 	static u32 timRec = 0;
 	static u8 battery_L_Rec = 0, counter = 0;
+	//BatteryValueStr batteryVal;
 	
 	if(0 == timRec)
 	{
@@ -101,21 +105,22 @@ void Scan_Battery(Battery_Info_Str_P ptr)
 	{
 		if(SystemRunningTime - timRec >= 10000)
 		{
-			Get_Battery(ptr);
+			Get_Battery(&(ptr->BatteryVal));
 
-			if(battery_L_Rec == ptr->Battery_L)
+			if(battery_L_Rec == ptr->BatteryVal.Battery_ASCII_L)
 			{
 				counter++;
 
-				if(counter >= 10)
+				if(counter >= 20)
 				{
 					counter = 0;
 					ptr->BatteryUpdate = 1;
 				}
+				
 			}
 			else
 			{
-				battery_L_Rec = ptr->Battery_L;
+				battery_L_Rec = ptr->BatteryVal.Battery_ASCII_L;
 				counter = 0;
 			}			
 			
@@ -175,7 +180,7 @@ void Battery_Init(void)
 	
 	BatteryInfoPtr->Scan_Battery = Scan_Battery;
 
-	Get_Battery(BatteryInfoPtr);
+	Get_Battery(&(BatteryInfoPtr->BatteryVal));
 	BatteryInfoPtr->BatteryUpdate = 1;
 	
 }

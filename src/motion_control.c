@@ -55,7 +55,6 @@ ControlerParaStruct_P 	ctrlParasPtr = &ctrlParas;
 //MotionOperaterStruct motionOpts;
 //MotionOperaterStruct_P motionOptsPtr = &motionOpts;
 
-
 u32 responseTime = 0;
 
 void (*agv_walking[StatusEnd]) (u8);
@@ -66,11 +65,6 @@ void (*walking_step[step_end])(void);
 
 #define MOTOR_RIGHT_DUTY_SET_Setted(speed)			{ctrlParasPtr->rightMotorSettedSpeed = speed; pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->rightMotorSettedSpeed);}
 #define MOTOR_LEFT_DUTY_SET_Setted(speed)			{ctrlParasPtr->leftMotorSettedSpeed = speed; pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->leftMotorSettedSpeed);}
-
-
-#define MOTOR_RIGHT_DUTY_OFFSET()		{pwmOptsPtr_1->Duty_Cycle_OC4_Set(pwmParaPtr_1, ctrlParasPtr->settedSpeed + ctrlParasPtr->rightMotorSpeedOffset);}
-#define MOTOR_LEFT_DUTY_OFFSET()		{pwmOptsPtr_1->Duty_Cycle_OC3_Set(pwmParaPtr_1, ctrlParasPtr->settedSpeed + ctrlParasPtr->leftMotorSpeedOffset);}
-
 
 
 
@@ -200,52 +194,6 @@ void set_duty_Com(u8 lmSpeed, u8 rmSpeed)
 }
 
 
-void goStraight_change(void)
-{
-	ctrlParasPtr->settedSpeed = 0;
-	ctrlParasPtr->leftMotorSettedSpeed = 0;
-	ctrlParasPtr->rightMotorSettedSpeed = 0;
-	ctrlParasPtr->leftMotorSpeedOffset = 0;
-	ctrlParasPtr->rightMotorSpeedOffset = 0;
-	MOTOR_RIGHT_DUTY_SET(0);
-	MOTOR_LEFT_DUTY_SET(0);
-	CHANGE_TO_STOP_MODE();
-	
-	Delay_ms(1000);
-	
-	
-	CHANGE_TO_GO_STRAIGHT_MODE();
-	ctrlParasPtr->settedSpeed = 10;
-	MOTOR_RIGHT_DUTY_SET(10);
-	MOTOR_LEFT_DUTY_SET(10);
-
-	
-	
-}
-
-void backStatus_change(void)
-{
-	ctrlParasPtr->settedSpeed = 0;
-	ctrlParasPtr->leftMotorSettedSpeed = 0;
-	ctrlParasPtr->rightMotorSettedSpeed = 0;
-	ctrlParasPtr->leftMotorSpeedOffset = 0;
-	ctrlParasPtr->rightMotorSpeedOffset = 0;
-	MOTOR_RIGHT_DUTY_SET(0);
-	MOTOR_LEFT_DUTY_SET(0);
-	CHANGE_TO_STOP_MODE();
-	
-	Delay_ms(1000);
-	
-	
-	CHANGE_TO_BACK_MODE();
-	ctrlParasPtr->settedSpeed = 10;
-	MOTOR_RIGHT_DUTY_SET(10);
-	MOTOR_LEFT_DUTY_SET(10);
-	
-	
-
-	
-}
 
 void CleanAllSpeed(void)
 {
@@ -451,6 +399,8 @@ void gS_startup_mode6(u8 gear)
 			ctrlParasPtr->gear = 7;
 			ctrlParasPtr->comflag = 6331;
 
+			
+
 			#endif
 			
 			startCount = 0;
@@ -473,7 +423,6 @@ void gS_startup_mode6(u8 gear)
 			ctrlParasPtr->gear 		= 12;
 			WECV_Str_Ptr->ECV_Clean_Use_Status();
 			
-			CHANGE_TO_GO_STRAIGHT_MODE();
 			flag = 0;
 		}
 	}
@@ -483,9 +432,10 @@ void gS_startup_mode6(u8 gear)
 	
 	//lmSpeed = AgvGear[gearRecod] + AgvGearCompDutyLF[gearRecod] - lmSpeedP;
 	//rmSpeed = AgvGear[gearRecod] + AgvGearCompDutyRF[gearRecod] - rmSpeedP;
-	lmSpeed = AgvGear[gearRecod] - lmSpeedP;
-	rmSpeed = AgvGear[gearRecod] - rmSpeedP;
-
+	ctrlParasPtr->BasicSpeed = AgvGear[gearRecod];
+	lmSpeed = ctrlParasPtr->BasicSpeed - lmSpeedP;
+	rmSpeed = ctrlParasPtr->BasicSpeed - rmSpeedP;
+	
 	set_duty(lmSpeed, rmSpeed);
 	
 }
@@ -2216,35 +2166,68 @@ void so_This_is_D5(u8 *lmSpeedPat_DP, u8 *rmSpeedPat_DP)
 }
 
 
-void AcceCtrl_Func(AccCtrlParaStr_P ptr, u8 *basc_speed)
-{
-	if(1 == ptr->AccEnableFlag)
+void AccDecCtrl_Func(AccDecCtrlParaStr_P ptr)
+{	
+	if(1 == ptr->EnableFlag)
 	{
-		if(ACC_CTRL_MODE_TIME == ptr->AccMode)
+		
+		if(SPEED_ACCELERATE == ptr->Dir)
 		{
-			
-			
-		}
-		else if(ACC_CTRL_MODE_HALL == ptr->AccMode)
-		{
-			
-			
-		}
+			if(ACC_DEC_CTRL_MODE_TIME == ptr->Mode)
+			{
+				if(SystemRunningTime - ptr->TimeRec >= ptr->Time_ms_Acc * 10)
+				{
+					ptr->OutputSpeed_Acc += ptr->PwmIT_Duty_Acc;
+					
+					ptr->TimeRec = SystemRunningTime;
+					
+					//printf("OutputSpeed_Acc = %d\r\n", ptr->OutputSpeed_Acc);
+				}
+				
+			}
+			else if(ACC_DEC_CTRL_MODE_HALL == ptr->Mode)
+			{
+				
+				
+			}
 
-		if(ptr->AccSpeedRec >  ptr->AccMaxSpeed)
+			if(ptr->OutputSpeed_Acc > ptr->MaxSpeed_Acc)
+			{
+				ptr->OutputSpeed_Acc =  ptr->MaxSpeed_Acc;
+				ptr->OutputSpeed_Dec = ptr->OutputSpeed_Acc;
+			}
+		}
+		else if(SPEED_DECELERATE == ptr->Dir)
 		{
-			ptr->AccSpeedRec =  ptr->AccMaxSpeed;
+			if(ACC_DEC_CTRL_MODE_TIME == ptr->Mode)
+			{
+				if(SystemRunningTime - ptr->TimeRec >= ptr->Time_ms_Acc * 10)
+				{
+					ptr->OutputSpeed_Dec -= ptr->PwmIT_Duty_Dec;
+					
+					ptr->TimeRec = SystemRunningTime;
+				}
+				
+			}
+			else if(ACC_DEC_CTRL_MODE_HALL == ptr->Mode)
+			{
+				
+				
+			}
+			
+			if(ptr->OutputSpeed_Dec < ptr->MinSpeed_Dec)
+			{
+				ptr->OutputSpeed_Dec =  ptr->MinSpeed_Dec;
+			}
 		}
 		
 	}
 	else
 	{
-		ptr->AccSpeedRec = 0;
-		
+		ptr->OutputSpeed_Acc = ptr->MinSpeed_Acc;
+		ptr->TimeRec = SystemRunningTime;
 		
 	}
-
-	*basc_speed = ptr->AccSpeedRec;
 	
 }
 
@@ -2305,7 +2288,8 @@ void scale_1_mode20(u8 gear)
 {
 	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeedPat_P = 0, rmSpeedPat_P = 0, lmSpeedPat_D = 0, rmSpeedPat_D = 0;
-	static Agv_MS_Location msfRec = AgvInits, msrRec = AgvInits;
+	//static Agv_MS_Location msfRec = AgvInits, msrRec = AgvInits;
+	u8 baseSpeed = 0;
 		
 	gearRecod = gear;
 	
@@ -2315,6 +2299,7 @@ void scale_1_mode20(u8 gear)
 	
 	so_This_is_D5(&lmSpeedPat_D, &rmSpeedPat_D);
 
+	#if 0
 	if((msfRec != FMSDS_Ptr->AgvMSLocation) || (msrRec != RMSDS_Ptr->AgvMSLocation))
 	{
 		
@@ -2322,28 +2307,49 @@ void scale_1_mode20(u8 gear)
 		
 		msrRec = RMSDS_Ptr->AgvMSLocation;
 		
-		//printf("*** P: lm = %d, rm = %d ***\r\n", lmSpeedPat_P, rmSpeedPat_P);
-		//printf("*** D: lm = %d, rm = %d ***\r\n", lmSpeedPat_D, rmSpeedPat_D);
+		printf("*** P: lm = %d, rm = %d ***\r\n", lmSpeedPat_P, rmSpeedPat_P);
+		printf("*** D: lm = %d, rm = %d ***\r\n", lmSpeedPat_D, rmSpeedPat_D);
 		
-		//Pat_ShowAs_Symble();
+		Pat_ShowAs_Symble();
 		
 	}
+	#endif
 	
 	if(goStraightStatus == ctrlParasPtr->agvStatus)
 	{
-		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
+		#if USE_ACC_DEC
 		
-		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
+		baseSpeed = ctrlParasPtr->AccCtrl.OutputSpeed_Acc;
+		//printf("baseSpeed = %d\r\n", baseSpeed);
+		
+		#else
+		
+		baseSpeed = AgvGear[gearRecod];
+		
+		#endif
+
+		lmSpeedSet = baseSpeed - lmSpeedPat_P - lmSpeedPat_D;
+		
+		rmSpeedSet = baseSpeed - rmSpeedPat_P - rmSpeedPat_D;
 		
 	}
 	else if(backStatus == ctrlParasPtr->agvStatus)
 	{
-		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
+		#if USE_ACC_DEC
 		
-		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
+		baseSpeed = ctrlParasPtr->AccCtrl.OutputSpeed_Dec;
 		
+		#else
+		
+		baseSpeed = AgvGear[gearRecod];
+		
+		#endif
+		
+		lmSpeedSet = baseSpeed - lmSpeedPat_P - lmSpeedPat_D;
+		
+		rmSpeedSet = baseSpeed - rmSpeedPat_P - rmSpeedPat_D;
 	}
-
+	
 	set_duty_Com(lmSpeedSet, rmSpeedSet);
 }
 
@@ -2352,7 +2358,8 @@ void scale_1_mode20_back(u8 gear)
 	u8 gearRecod = 0;
 	u8 lmSpeedSet = 0, rmSpeedSet = 0, lmSpeedPat_P = 0, rmSpeedPat_P = 0, lmSpeedPat_D = 0, rmSpeedPat_D = 0;
 	static Agv_MS_Location msfRec = AgvInits, msrRec = AgvInits;
-		
+	u8 baseSpeed = 0;
+	
 	gearRecod = gear;
 	
 	ctrlParasPtr->comflag = 64;
@@ -2389,10 +2396,21 @@ void scale_1_mode20_back(u8 gear)
 			lmSpeedPat_P *= 2;
 			rmSpeedPat_P *= 2;
 		}
+
+		#if USE_ACC_DEC
 		
-		lmSpeedSet = AgvGear[gearRecod] - lmSpeedPat_P - lmSpeedPat_D;
+		baseSpeed = ctrlParasPtr->AccCtrl.OutputSpeed_Acc;
+		//printf("baseSpeed = %d\r\n", baseSpeed);
 		
-		rmSpeedSet = AgvGear[gearRecod] - rmSpeedPat_P - rmSpeedPat_D;
+		#else
+		
+		baseSpeed = AgvGear[gearRecod];
+		
+		#endif
+		
+		lmSpeedSet = baseSpeed - lmSpeedPat_P - lmSpeedPat_D;
+		
+		rmSpeedSet = baseSpeed - rmSpeedPat_P - rmSpeedPat_D;
 		
 	}
 
@@ -2562,11 +2580,12 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 		{
 			// 低速启动模式
 			gS_startup_mode6(4);
+			ctrlParasPtr->AccCtrl.EnableFlag = 0;
+			ctrlParasPtr->FSflag = 1;
 		}
 		else if(1 == ctrlParasPtr->FSflag)
 		{
-			
-			
+			ACCELERATE_TIME_SET();
 			scale_1_mode20(gearRecod);
 			HighSpeed_Protect2();
 		}
@@ -2594,10 +2613,12 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 		{
 			// 启动模式
 			bS_startup_mode8(4);
+			ctrlParasPtr->AccCtrl.EnableFlag = 0;
+			//ctrlParasPtr->BSflag = 1;
 		}
 		else if(1 == ctrlParasPtr->BSflag)
 		{
-			
+			DECELERATE_TIME_SET();
 			//printf("gearRecod = %d\r\n", gearRecod);
 			scale_1_mode20_back(gearRecod);
 			HighSpeed_Protect2();
@@ -3171,331 +3192,8 @@ void LeftOrRight_Counter(void)
 	
 }
 
-void AGV_Change_Mode(void)
-{
-	//static u8 flag = 1;
-	
-	if((goStraightStatus == ctrlParasPtr->agvStatus) || (backStatus == ctrlParasPtr->agvStatus))
-	{
-#if 0
-		if(1 == flag)
-		{
-			if(0xFFFF == FMSDS_Ptr->MSD_Hex)
-			{
-				flag = 0;
-			}
-		}
-		else
-		{
-			if(FMSDS_Ptr->zeropointfive >= 500)
-			{
-				if(0x0000 == FMSDS_Ptr->MSD_Hex)
-				{
-					
-					if(goStraightStatus == ctrlParasPtr->agvStatus)
-					{
-						backStatus_change();
-						printf("backStatus_change\r\n");
-					}
-					else if(backStatus == ctrlParasPtr->agvStatus)
-					{
-						goStraight_change();
-						printf("goStraight_change\r\n");
-					}
-				}
-
-				flag = 1;
-				
-			}
-			
-		}
-#else
-
-		#if 0
-		// 在单独直线磁条跑前后退
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-				backStatus_change();
-				printf("backStatus_change\r\n");
-				
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-				goStraight_change();
-				printf("goStraight_change\r\n");
-			}
-		}
-		#endif
-		
-		#if 1
-		// 有十字路口的直线前后跑
-		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
-		{
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-				backStatus_change();
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				CHANGE_TO_STOP_MODE();
-			}
-			
-		}
-		#endif
-
-		
-		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-		{
-			CHANGE_TO_STOP_MODE();
-		}
-		
-		
-#endif
-	}
-	else if((cirLeft == ctrlParasPtr->agvStatus) || (cirRight == ctrlParasPtr->agvStatus))
-	{
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			if(cirLeft == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 1;
-				ctrlParasPtr->settedSpeed = 0;
-				ctrlParasPtr->leftMotorSettedSpeed = 0;
-				ctrlParasPtr->rightMotorSettedSpeed = 0;
-				ctrlParasPtr->leftMotorSpeedOffset = 0;
-				ctrlParasPtr->rightMotorSpeedOffset = 0;
-				MOTOR_RIGHT_DUTY_SET(0);
-				MOTOR_LEFT_DUTY_SET(0);
-				CHANGE_TO_STOP_MODE();
-				printf("cirLeft_change\r\n");
-			}
-			else if(cirRight == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 1;
-				ctrlParasPtr->settedSpeed = 0;
-				ctrlParasPtr->leftMotorSettedSpeed = 0;
-				ctrlParasPtr->rightMotorSettedSpeed = 0;
-				ctrlParasPtr->leftMotorSpeedOffset = 0;
-				ctrlParasPtr->rightMotorSpeedOffset = 0;
-				MOTOR_RIGHT_DUTY_SET(0);
-				MOTOR_LEFT_DUTY_SET(0);
-				CHANGE_TO_STOP_MODE();
-				printf("cirRight_change\r\n");
-			}
-		}
-		
-	}
-
-}
 
 
-void AGV_Proc(void)
-{
-	u8 flag = 4;
-
-	// 跑出去的紧急模式
-	if(1 == flag)
-	{
-		if((goStraightStatus == ctrlParasPtr->agvStatus) || (backStatus == ctrlParasPtr->agvStatus) ||\
-			(gSslow == ctrlParasPtr->agvStatus) || (bSslow == ctrlParasPtr->agvStatus))
-		{
-			if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-			{
-				CHANGE_TO_STOP_MODE();
-			}
-		}
-	}
-	
-
-	if(2 == flag)
-	{
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-				backStatus_change();
-				printf("backStatus_change\r\n");
-				Delay_ns(2);
-				
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-				goStraight_change();
-				
-				printf("goStraight_change\r\n");
-				Delay_ns(2);
-			}
-		}
-
-		if(0xFFFF == FMSDS_Ptr->MSD_Hex)
-		{
-			MOTOR_RIGHT_DUTY_SET(0);
-			MOTOR_LEFT_DUTY_SET(0);
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-			}
-		}
-		
-		/*
-		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-		{
-			//CHANGE_TO_STOP_MODE();
-			MOTOR_RIGHT_DUTY_SET(0);
-			MOTOR_LEFT_DUTY_SET(0);
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-			}
-		}
-		*/
-		
-		if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Left_3) || (FMSDS_Ptr->AgvMSLocation > Agv_MS_Right_3))
-		{
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-			}
-		}
-	}
-
-
-	
-	if(3 == flag)
-	{
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-				backStatus_change();
-				printf("backStatus_change\r\n");
-				Delay_ns(2);
-				
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-				goStraight_change();
-				
-				printf("goStraight_change\r\n");
-				Delay_ns(2);
-			}
-		}
-
-		if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_8) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_8))
-		{
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-			}
-		}
-		
-		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
-		{
-			MOTOR_RIGHT_DUTY_SET(0);
-			MOTOR_LEFT_DUTY_SET(0);
-			MOTOR_POWER_OFF();
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->BSflag = 0;
-			}
-			//MOTOR_POWER_OFF();
-		}
-		else
-		{
-			if(1 == PDin(15))
-			{
-				MOTOR_POWER_ON();
-			}
-			
-		}
-	}
-
-	if(4 == flag)
-	{
-		if(0x0000 == FMSDS_Ptr->MSD_Hex)
-		{
-			if(goStraightStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-				ctrlParasPtr->BSflag = 0;
-				backStatus_change();
-				printf("backStatus_change\r\n");
-				Delay_ns(2);
-				
-			}
-			else if(backStatus == ctrlParasPtr->agvStatus)
-			{
-				ctrlParasPtr->FSflag = 0;
-				ctrlParasPtr->BSflag = 0;
-				goStraight_change();
-				
-				printf("goStraight_change\r\n");
-				Delay_ns(2);
-			}
-		}
-	}
-	
-}
-
-
-void AGV_Walking_Test(void)
-{
-	//MOTOR_POWER = 0;
-	
-	#if 1
-	//MOTOR_RIGHT_CR_PIN_SET();
-	//MOTOR_LEFT_CR_PIN_SET();
-	CHANGE_TO_GO_STRAIGHT_MODE();
-	//CHANGE_TO_TEST_MODE();
-	//CHANGE_TO_CIR_LEFT_MODE();
-	//CHANGE_TO_CIR_LEFT_MODE();
-	#else
-	CHANGE_TO_BACK_MODE();
-	#endif
-	//MOTOR_LEFT_STOP_PIN_SET();
-	#if 1
-
-	TRIGGER_PIN_O = 0;
-	
-	ctrlParasPtr->settedSpeed 			= AgvGear[15];
-	ctrlParasPtr->leftMotorSettedSpeed 	= ctrlParasPtr->settedSpeed + 2;
-	ctrlParasPtr->rightMotorSettedSpeed = ctrlParasPtr->settedSpeed;
-	
-	MOTOR_RIGHT_DUTY_SET(ctrlParasPtr->rightMotorSettedSpeed);
-	MOTOR_LEFT_DUTY_SET(ctrlParasPtr->leftMotorSettedSpeed);
-	#endif
-	//CHANGE_TO_BACK_MODE();
-}
 
 
 void SHOW_ARR(s16 *arr, int head)
@@ -5395,7 +5093,7 @@ void Walking_Step_Controler(void)
 	{
 		walking_step[ctrlParasPtr->walkingstep]();
 	}
-
+	
 	
 }
 
@@ -5916,7 +5614,7 @@ void ZigbeeRecv_Simu(void)
 				ctrlParasPtr->agvWalkingMode = ManualMode;
 			}
 		}
-		/*
+		#if 0
 		else if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_Respond)
 		{
 			Delay_ms(20);
@@ -5928,7 +5626,7 @@ void ZigbeeRecv_Simu(void)
 				Zigbee_Ptr->recvValidDataFlag = 1;
 			}
 		}
-		*/
+		#endif
 	}
 
 
@@ -6255,7 +5953,7 @@ void Motion_Ctrl_Init(void)
 	//Trigger_Gpio_Init();
 	
 	ctrlParasPtr->agvStatus 				= StatusStart;
-	ctrlParasPtr->settedSpeed 				= 0;
+	ctrlParasPtr->BasicSpeed 				= 0;
 	ctrlParasPtr->rightMotorRealSpeed 		= 0;
 	ctrlParasPtr->rightMotorSettedSpeed 	= 0;
 	ctrlParasPtr->leftMotorRealSpeed 		= 0;
@@ -6297,7 +5995,7 @@ void Motion_Ctrl_Init(void)
 	ctrlParasPtr->Catch_Goods_Flag			= 0x00;
 	ctrlParasPtr->ECV_StepFlag				= 0x00;
 	ctrlParasPtr->AutoCancel_Respond		= 0x01;
-	ctrlParasPtr->AccCtrl.AccCtrlFunc		= AcceCtrl_Func;
+	ctrlParasPtr->AccCtrl.CtrlFunc			= AccDecCtrl_Func;
 	
 	agv_walking[StatusStart] 		= NullFunc;
 	agv_walking[stopStatus] 		= walking_stopStatus;
@@ -6372,6 +6070,16 @@ void Motion_Ctrl_Init(void)
 	BuzzerCtrlPtr->buzzerTime_ms = 150;
 	BuzzerCtrlPtr->buzzerNum = 2;
 	BuzzerCtrlPtr->buzzerCtrlFunc = BuzzerCtrlFunc;
+
+
+	ctrlParasPtr->AccCtrl.MaxSpeed_Acc = AgvGear[17];
+	ctrlParasPtr->AccCtrl.MinSpeed_Acc = AgvGear[4];
+	ctrlParasPtr->AccCtrl.MaxSpeed_Dec = AgvGear[15];
+	ctrlParasPtr->AccCtrl.MinSpeed_Dec = AgvGear[4];
+	ctrlParasPtr->AccCtrl.PwmIT_Duty_Acc = 1;
+	ctrlParasPtr->AccCtrl.Time_ms_Acc = 40;
+	ctrlParasPtr->AccCtrl.PwmIT_Duty_Dec = 3;
+	ctrlParasPtr->AccCtrl.Time_ms_Dec = 40;
 }
 
 

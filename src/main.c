@@ -99,7 +99,6 @@ int main(void)
 	
 	MOTOR_POWER_ON();
 	//MOTOR_POWER_OFF();
-	//AGV_Walking_Test();
 	
 	Machine_Arm_Init3();
 
@@ -138,6 +137,8 @@ int main(void)
 		Machinearm_Control_Handle();			// 取纱臂动作控制函数
 
 		LED_Status_Handle();
+
+		ctrlParasPtr->AccCtrl.CtrlFunc(&(ctrlParasPtr->AccCtrl));
 
 		BatteryInfoPtr->Scan_Battery(BatteryInfoPtr);
 		
@@ -199,9 +200,6 @@ int main(void)
 				AGV_Walking_Opt();
 			}
 			
-			//AGV_Change_Mode();
-			
-			//AGV_Proc();
 			
 			#if 0
 			// 在原点待机时自动回正
@@ -228,7 +226,7 @@ int main(void)
 				hexF = FMSDS_Ptr->MSD_Hex;
 				hexR = RMSDS_Ptr->MSD_Hex;
 				
-			#if 1
+			#if 0
 				
 				//if(((goStraightStatus == ctrlParasPtr->agvStatus) && (0 != ctrlParasPtr->FSflag)) || (gSslow == ctrlParasPtr->agvStatus))
 				if((goStraightStatus == ctrlParasPtr->agvStatus) || (gSslow == ctrlParasPtr->agvStatus))
