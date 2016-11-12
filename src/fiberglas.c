@@ -166,7 +166,7 @@ void Scan_Weight_Func(void)
 
 	if(1 == getWeightCtrl_Ptr->weightScanEnable)
 	{
-		if(Delay_Func(&timRec, 500))
+		if(Delay_Func(&timRec, 200))
 		{
 			Adc = ADS1256ReadData( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	// Ïàµ±ÓÚ ( ADS1256_MUXP_AIN0 | ADS1256_MUXN_AINCOM );	
 			Volts = (Adc * 0.000000598);

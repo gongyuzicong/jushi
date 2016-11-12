@@ -416,6 +416,9 @@ void Lcd_Handle(void)
 			LCD_Info_Ptr->LCD_Ready = 1;
 			Set_date(BackgroudRTC_Rec_Hex.year, BackgroudRTC_Rec_Hex.month, BackgroudRTC_Rec_Hex.day);
 			Set_time(BackgroudRTC_Rec_Hex.hour, BackgroudRTC_Rec_Hex.minute, BackgroudRTC_Rec_Hex.second);
+			Delay_ms(500);
+			Set_date(BackgroudRTC_Rec_Hex.year, BackgroudRTC_Rec_Hex.month, BackgroudRTC_Rec_Hex.day);
+			Set_time(BackgroudRTC_Rec_Hex.hour, BackgroudRTC_Rec_Hex.minute, BackgroudRTC_Rec_Hex.second);
 		}
 				
 		//////清除flag，接收计数//////
@@ -426,7 +429,8 @@ void Lcd_Handle(void)
 
 void LCD_Page_Report(void)
 {
-	if(1 == LCD_Info_Ptr->LCD_Ready)
+	//if(1 == LCD_Info_Ptr->LCD_Ready)
+	if(1)
 	{
 		if(LCD_MainPage == LCD_Info_Ptr->ViewPage)
 		{
@@ -544,48 +548,56 @@ void UART1_REC(u8 data)
 void Weight_Screen_Show(void)
 {
 	Uart_Send_Str("scale.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_WeightPage;
 }
 
 void Main_Screen_Show(void)
 {
 	Uart_Send_Str("main.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_MainPage;
 }
 
 void Task_Screen_Show(void)
 {
 	Uart_Send_Str("task.show()\r");
-	
+	LCD_Info_Ptr->ViewPage = LCD_TaskPage;
 }
 
 void RFID_Screen_Show(void)
 {
 	Uart_Send_Str("rfidSetup.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_RfidPage;
 	
 }
 void System_Screen_Show(void)
 {
 	Uart_Send_Str("systemSetup.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_SystemPage;
 	
 }
 void Help_Screen_Show(void)
 {
 	Uart_Send_Str("help.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_HelpPage;
 	
 }
 void Dataout_Screen_Show(void)
 {
 	Uart_Send_Str("dataout.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_DataoutPage;
 	
 }
 void Manual_Screen_Show(void)
 {
 	Uart_Send_Str("manualControl.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_ManualPage;
 	
 }
 
 void Authority_Screen_Show(void)
 {
 	Uart_Send_Str("authority.show()\r");
+	LCD_Info_Ptr->ViewPage = LCD_AuthorityPage;
 	
 }
 

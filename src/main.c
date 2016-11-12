@@ -123,6 +123,8 @@ int main(void)
 		#endif
 		
 		ProtectFunc();							// 行人保护
+
+		ctrlParasPtr->AccCtrl.CtrlFunc(&(ctrlParasPtr->AccCtrl));
 		
 		Read_RTC_Data();						// 年月日
 		
@@ -138,7 +140,7 @@ int main(void)
 
 		LED_Status_Handle();
 
-		ctrlParasPtr->AccCtrl.CtrlFunc(&(ctrlParasPtr->AccCtrl));
+		Motor_Count_Cmp_Func();					// 
 
 		BatteryInfoPtr->Scan_Battery(BatteryInfoPtr);
 		
@@ -180,9 +182,9 @@ int main(void)
 		{
 			Magn_Sensor_Scan();				// 磁传感器数据处理
 
-			ZigbeeRecv_Simu();				// 模拟
-
 			ZB_Data_Receive_handle();		// ZigBee数据接收函数
+
+			ZigbeeRecv_Simu();				// 模拟
 			
 			ZB_Data_Analysis();				// ZigBee数据接收处理函数
 			
@@ -200,7 +202,6 @@ int main(void)
 				AGV_Walking_Opt();
 			}
 			
-			
 			#if 0
 			// 在原点待机时自动回正
 			//if(ControlCenter == ctrlParasPtr->goalStation)
@@ -217,7 +218,7 @@ int main(void)
 			//LeftOrRight_Counter();
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
-
+			Clean_Motor_Hall_Counter();
 			AGV_Debug_Func();
 			
 			// 小车调试信息的打印

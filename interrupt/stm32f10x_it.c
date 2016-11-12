@@ -849,30 +849,21 @@ void EXTI15_10_IRQHandler(void)
 		{
 			if(0xFFFFFFFF == ctrlParasPtr->rightHallCounter)
 			{
-				ctrlParasPtr->rightHallCounter = 0;
+				//ctrlParasPtr->rightHallCounter = 0;
 			}
 			else
 			{
 				ctrlParasPtr->rightHallCounter++;
 			}
 		}
+		/*
 		else
 		{
 			ctrlParasPtr->rightHallCounter = 0;
 		}
-		
-
-		if(1 == ctrlParasPtr->CrossRoadHallCountFlag)
-		{
-			ctrlParasPtr->CrossRoadHallCountR++;
-		}
-		
-		/*
-		if(0 == ctrlParasPtr->rightHallIntervalTime)
-		{
-			printf("rtt = %d, rtr = %d\r\n", rtempTime, rTimeRecode);
-		}
 		*/
+
+		
 		rTimeRecode = SystemRunningTime;
 
 		EXTI->PR = ((u32)0x04000);
@@ -886,29 +877,21 @@ void EXTI15_10_IRQHandler(void)
 		{
 			if(0xFFFFFFFF == ctrlParasPtr->leftHallCounter)
 			{
-				ctrlParasPtr->leftHallCounter = 0;
+				//ctrlParasPtr->leftHallCounter = 0;
 			}
 			else
 			{
 				ctrlParasPtr->leftHallCounter++;
 			}
 		}
+		/*
 		else
 		{
-			ctrlParasPtr->rightHallCounter = 0;
-		}
-		
-
-		if(1 == ctrlParasPtr->CrossRoadHallCountFlag)
-		{
-			ctrlParasPtr->CrossRoadHallCountL++;
-		}
-		/*
-		if(0 == ctrlParasPtr->leftHallIntervalTime)
-		{
-			printf("ltt = %d, ltr = %d\r\n", ltempTime, lTimeRecode);
+			ctrlParasPtr->leftHallCounter = 0;
 		}
 		*/
+
+		
 		lTimeRecode = SystemRunningTime;
 
 		EXTI->PR = ((u32)0x01000);

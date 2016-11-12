@@ -22,10 +22,12 @@
 #define ProtectSW_R_RESPOND		(0 == ProtectSW_R)
 #define ProtectSW_R_UNRESPOND	(1 == ProtectSW_R)
 
-//#define MOTOR1_HALL_COUNT_FLAG	ctrlParasPtr->rightHallCounterFlag
-//#define MOTOR2_HALL_COUNT_FLAG	ctrlParasPtr->leftHallCounterFlag
-#define MOTOR1_HALL_COUNT_FLAG		ctrlParasPtr->HallCounterFlag
-#define MOTOR2_HALL_COUNT_FLAG		ctrlParasPtr->HallCounterFlag
+#define MOTOR1_HALL_COUNT_FLAG		ctrlParasPtr->rightHallCounterFlag
+#define MOTOR2_HALL_COUNT_FLAG		ctrlParasPtr->leftHallCounterFlag
+//#define MOTOR1_HALL_COUNT_FLAG		ctrlParasPtr->HallCounterFlag
+//#define MOTOR2_HALL_COUNT_FLAG		ctrlParasPtr->HallCounterFlag
+#define MOTOR_HALL_COUNT_ENABLE()	{MOTOR1_HALL_COUNT_FLAG = 1; MOTOR2_HALL_COUNT_FLAG = 1;}
+#define MOTOR_HALL_COUNT_DISABLE()	{MOTOR1_HALL_COUNT_FLAG = 0; MOTOR2_HALL_COUNT_FLAG = 0;}
 
 #define MOTOR_RIGHT_CCR_DEF(X) 	Motor_Right_CR(X)
 #define MOTOR_LEFT_CCR_DEF(X) 	Motor_Left_CCR(X)
@@ -55,14 +57,14 @@
 #define MOTOR_LEFT_CCR_PIN_SET()			{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 0;}
 #define MOTOR_LEFT_STOP_PIN_SET()			{MOTOR_LEFT_BK = 0;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 1;}
 
-#define CHANGE_TO_GO_STRAIGHT_MODE()		{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus;}
-#define CHANGE_TO_BACK_MODE()				{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus;}
-#define CHANGE_TO_CIR_LEFT_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft;}
-#define CHANGE_TO_CIR_RIGHT_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight;}
-#define CHANGE_TO_STOP_MODE()				{RFID_Info_Ptr->lock = 1; MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus;}
+#define CHANGE_TO_GO_STRAIGHT_MODE()		{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus; ctrlParasPtr->AccCtrl.EnableFlag = 1;}
+#define CHANGE_TO_BACK_MODE()				{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus; ctrlParasPtr->AccCtrl.EnableFlag = 1;}
+#define CHANGE_TO_CIR_LEFT_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = cirLeft; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
+#define CHANGE_TO_CIR_RIGHT_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = cirRight; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
+#define CHANGE_TO_STOP_MODE()				{RFID_Info_Ptr->lock = 1; MOTOR_RIGHT_STOP_PIN_SET(); MOTOR_LEFT_STOP_PIN_SET(); ctrlParasPtr->agvStatus = stopStatus; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
 #define CHANGE_TO_TEST_MODE()				{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET();}
-#define CHANGE_TO_GO_STRAIGHT_SLOW_MODE()	{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = gSslow;}
-#define CHANGE_TO_BACK_SLOW_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = bSslow;}
+#define CHANGE_TO_GO_STRAIGHT_SLOW_MODE()	{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = gSslow; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
+#define CHANGE_TO_BACK_SLOW_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = bSslow; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
 
 /***********MOTOR RIGHT: START***************/
 /****MOTOR OUT: START****/
@@ -287,8 +289,7 @@ typedef struct AccDecPara
 	u8 SpeedRec;
 
 	// output para
-	u8 OutputSpeed_Acc;
-	u8 OutputSpeed_Dec;
+	u8 OutputSpeed;
 	
 	void (*CtrlFunc)(struct AccDecPara *);
 }AccDecCtrlParaStr, *AccDecCtrlParaStr_P;
@@ -296,9 +297,14 @@ typedef struct AccDecPara
 
 #define ACCELERATE_TIME_SET()		{ctrlParasPtr->AccCtrl.EnableFlag = 1;\
 									 ctrlParasPtr->AccCtrl.Dir = SPEED_ACCELERATE;\
-									 ctrlParasPtr->AccCtrl.Mode = ACC_DEC_CTRL_MODE_TIME;}
-#define DECELERATE_TIME_SET()		{ctrlParasPtr->AccCtrl.EnableFlag = 1;\
+									 ctrlParasPtr->AccCtrl.Mode = ACC_DEC_CTRL_MODE_TIME;\
+									  ctrlParasPtr->AccCtrl.MaxSpeed_Acc = AgvGear[17];}
+#define ACCELERATE_TIME_B_SET()		{ctrlParasPtr->AccCtrl.EnableFlag = 1;\
 									 ctrlParasPtr->AccCtrl.Dir = SPEED_ACCELERATE;\
+									 ctrlParasPtr->AccCtrl.Mode = ACC_DEC_CTRL_MODE_TIME;\
+									 ctrlParasPtr->AccCtrl.MaxSpeed_Acc = AgvGear[15];}
+#define DECELERATE_TIME_SET()		{ctrlParasPtr->AccCtrl.EnableFlag = 1;\
+									 ctrlParasPtr->AccCtrl.Dir = SPEED_DECELERATE;\
 									 ctrlParasPtr->AccCtrl.Mode = ACC_DEC_CTRL_MODE_TIME;}
 
 /**************************** Acc Dec Speed End ***************************************/
@@ -338,7 +344,6 @@ typedef struct ControlerPara
 
 	u8 	FSflag;
 	u8 	BSflag;
-	u8 	fgvflag;
 
 	u32 goalRFIDnode;
 	
@@ -362,11 +367,7 @@ typedef struct ControlerPara
 
 	u8 	cirDuty;
 	u8 	rifdAdaptFlag;
-
-	u16 CrossRoadHallCountL;
-	u16 CrossRoadHallCountR;
-	u8 	CrossRoadHallCountFlag;
-
+	
 	u8 	HallCounterFlag;
 
 	u8 	Use_WECV;
@@ -382,6 +383,8 @@ typedef struct ControlerPara
 	u8 AutoCancel_Respond;
 
 	AccDecCtrlParaStr AccCtrl;
+
+	u8 AccHallFlag;
 }ControlerParaStruct, *ControlerParaStruct_P;
 
 
@@ -509,8 +512,6 @@ void RFID_Goal_Node_Analy(void);
 void Walking_Step_Controler(void);
 void AGV_Correct_gS_8ug(u8 gear);
 void AGV_Correct_back_ug(u8);
-void CrossRoad_Hall_Count_Start(void);
-void CrossRoad_Hall_Count_Stop(void);
 void MPU6050_Data_init(void);
 void MPU6050_Data(void);
 void MPU6050_Data1(void);
@@ -533,6 +534,8 @@ u8 Origin_PatCtrl2(u8);
 void set_duty_Com(u8, u8);
 void ZigbeeRecv_Simu(void);
 void ManualModeEcvCtrlFunc(void);
+void Clean_Motor_Hall_Counter(void);
+void Motor_Count_Cmp_Func(void);
 
 
 

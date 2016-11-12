@@ -274,7 +274,7 @@ void ZB_Data_Analysis(void)
 					CMD_Flag_Ptr->cmdFlag = GoodLeav;
 					Send_Zigbee_LM_ACK();
 					
-					WarningLedCtrlPtr->twinkleFlag = 1;
+					//WarningLedCtrlPtr->twinkleFlag = 1;
 					printf("GoodLeav\r\n");
 				}
 				else
