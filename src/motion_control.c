@@ -263,43 +263,90 @@ void walking_cir(u8 duty)
 		
 }
 
-void walking_cir_hall_Left(u8 duty)
+void walking_cir_hall(u8 duty)
 {
-	static u8 step = 0;
+	static u8 step = 0, flag = 0;
 	u8 lmSpeed = 0, rmSpeed = 0;
-
+	
 	if(0 == step)
 	{
-		MOTOR2_HALL_COUNT_FLAG = 1;
+		if(cirLeft == ctrlParasPtr->agvStatus)
+		{
+			MOTOR2_HALL_COUNT_FLAG = 1;
 		
-		if(ctrlParasPtr->leftHallCounter >= 3)
-		{
-			MOTOR2_HALL_COUNT_FLAG = 0;
-			MOTOR_LEFT_STOP_PIN_SET();
-			lmSpeed = 0;
-			rmSpeed = 0;
-			step = 1;
-			
+			if(ctrlParasPtr->leftHallCounter >= 3)
+			{
+				MOTOR2_HALL_COUNT_FLAG = 0;
+				MOTOR_LEFT_STOP_PIN_SET();
+				lmSpeed = 0;
+				rmSpeed = 0;
+				step = 1;
+				
+			}
+			else
+			{
+				lmSpeed = duty;
+				rmSpeed = 0;
+			}
 		}
-		else
+		else if(cirRight == ctrlParasPtr->agvStatus)
 		{
-			lmSpeed = duty;
-			rmSpeed = 0;
+			MOTOR1_HALL_COUNT_FLAG = 1;
+		
+			if(ctrlParasPtr->rightHallCounter >= 3)
+			{
+				MOTOR1_HALL_COUNT_FLAG = 0;
+				MOTOR_RIGHT_STOP_PIN_SET();
+				lmSpeed = 0;
+				rmSpeed = 0;
+				step = 1;
+				
+			}
+			else
+			{
+				lmSpeed = 0;
+				rmSpeed = duty;
+			}
 		}
+		
 	}
 	else if(1 == step)
 	{
 		MOTOR_HALL_COUNT_ENABLE();
-
-		if(ctrlParasPtr->leftHallCounter >= 100)
+		
+		if(ctrlParasPtr->leftHallCounter >= 30)
 		{
-			
+			MOTOR_LEFT_STOP_PIN_SET();
+			flag |= 0x01;
+			lmSpeed = 0;
+		}
+		else
+		{
+			lmSpeed = duty;
 		}
 
-		if(ctrlParasPtr->leftHallCounter >= 100)
+		if(ctrlParasPtr->rightHallCounter >= 30)
 		{
+			MOTOR_RIGHT_STOP_PIN_SET();
+			flag |= 0x10;
+			rmSpeed = 0;
+		}
+		else
+		{
+			rmSpeed = duty;
+		}
+		
+		if(0x11 == flag)
+		{
+			MOTOR_HALL_COUNT_DISABLE();
+			
+			step = 2;
 			
 		}
+	}
+	else if(2 == step)
+	{
+		
 	}
 	
 	
@@ -311,9 +358,73 @@ void walking_cir_hall_Left(u8 duty)
 
 void walking_cir_hall_Right(u8 duty)
 {
-	MOTOR1_HALL_COUNT_FLAG = 1;
+	static u8 step = 0, flag = 0;
+	u8 lmSpeed = 0, rmSpeed = 0;
+
+	if(0 == step)
+	{
+		MOTOR1_HALL_COUNT_FLAG = 1;
+		
+		if(ctrlParasPtr->rightHallCounter >= 3)
+		{
+			MOTOR1_HALL_COUNT_FLAG = 0;
+			MOTOR_RIGHT_STOP_PIN_SET();
+			lmSpeed = 0;
+			rmSpeed = 0;
+			step = 1;
+			
+		}
+		else
+		{
+			lmSpeed = 0;
+			rmSpeed = duty;
+		}
+	}
+	else if(1 == step)
+	{
+		MOTOR_HALL_COUNT_ENABLE();
+		
+		if(ctrlParasPtr->leftHallCounter >= 30)
+		{
+			MOTOR_LEFT_STOP_PIN_SET();
+			flag |= 0x01;
+			lmSpeed = 0;
+		}
+		else
+		{
+			lmSpeed = duty;
+		}
+
+		if(ctrlParasPtr->rightHallCounter >= 30)
+		{
+			MOTOR_RIGHT_STOP_PIN_SET();
+			flag |= 0x10;
+			rmSpeed = 0;
+		}
+		else
+		{
+			rmSpeed = duty;
+		}
+		
+		if(0x11 == flag)
+		{
+			MOTOR_HALL_COUNT_DISABLE();
+			
+			step = 2;
+			
+		}
+	}
+	else if(2 == step)
+	{
+		
+	}
+	
+	
+	MOTOR_LEFT_DUTY_SET(lmSpeed);
+	MOTOR_RIGHT_DUTY_SET(rmSpeed);
 	
 }
+
 
 
 void walking_stopStatus(u8 gear)
@@ -6102,8 +6213,8 @@ void Motion_Ctrl_Init(void)
 	agv_walking[gSslow] 			= gS_slow2;
 	agv_walking[bSslow] 			= back_slow2;
 	#if USE_HALL_CTRL
-	agv_walking[cirLeft] 			= walking_cir_hall_Left;
-	agv_walking[cirRight] 			= walking_cir_hall_Right;
+	agv_walking[cirLeft] 			= walking_cir_hall;
+	agv_walking[cirRight] 			= walking_cir_hall;
 	#else
 	agv_walking[cirLeft] 			= walking_cir;
 	agv_walking[cirRight] 			= walking_cir;

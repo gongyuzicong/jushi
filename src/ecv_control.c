@@ -450,6 +450,7 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 	}
 }
 
+#if 0
 
 void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 {
@@ -526,6 +527,85 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 	}
 }
 
+#else
+
+void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
+{
+	u8 speed = 0;
+	
+	if(ECV_STOP == ptr->Dir)
+	{
+		ptr->ECV_BRK(ECV_BRK_ENABLE);
+		ptr->ECV_SetSpeedFunc(0);
+		ptr->EcvEnableHallFlag 		= 0;
+		ptr->EcvHallCountRec 		= 0;
+		ptr->EcvHallCount			= 0;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+		
+	}
+	else
+	{
+		ptr->ECV_BRK(ECV_BRK_DISABLE);
+		
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+		
+		ptr->EcvEnableHallFlag = 1;
+
+		ptr->ECV_UpDownFunc(ptr->Dir);
+
+		speed = ptr->EcvSpeed;
+		
+		if(ECV_USE_HALL_COUNT_MODE_ENABLE == ptr->HallCountMode)
+		{
+			if(CheckFECV_Limt(ptr) || (ptr->EcvHallCount >= ptr->EcvHallCountCmp))
+			{
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+				//printf("BECV_STOP!\r\n");
+			}
+			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
+		}
+		else if(ECV_USE_HALL_COUNT_MODE_DISABLE == ptr->HallCountMode)
+		{
+			if(CheckFECV_Limt(ptr))
+			{
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+				//printf("BECV_STOP!\r\n");
+			}
+			
+		}
+
+		if((ptr->Check_ECV_SW_Status()) && (ECV_DOWN == ptr->Dir))
+		{
+			ptr->Dir = ECV_STOP;
+			ptr->ECV_BRK(ECV_BRK_ENABLE);
+			ptr->EcvHallCount = 0;
+			ptr->EcvHallCountRec = 0;
+			ptr->UseStatus = ECV_COMPLETE;
+			speed = 0;
+			ptr->ECV_SetSpeedFunc(0);
+			ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+			//printf("BECV_SW_STOP!\r\n");
+		}
+		
+		ptr->ECV_SetSpeedFunc(speed);
+	}
+}
+
+
+#endif
 
 
 void ECV_Ctrl_Func_W(Ecv_Ctrl_Struct_P ptr)

@@ -167,6 +167,7 @@ typedef enum
 	ECV_UNUSED = 0,		// 电缸未使用
 	ECV_USEING,			// 电缸正在使用
 	ECV_COMPLETE,
+	ECV_TIMEOUT_ERR,
 }EcvUseStatus;
 
 typedef struct

@@ -330,6 +330,8 @@ void ZB_Data_Analysis(void)
 			}
 			else if((0x02 == (Zigbee_Ptr->ZigbeeRecvCmdData[7] & 0x0f)) || (0x04 == (Zigbee_Ptr->ZigbeeRecvCmdData[7] & 0x0f)))		// 请求取消取物
 			{
+				#if 0
+				
 				if(1 == ctrlParasPtr->AutoCancel_Respond)
 				{
 					u8 index = 0;
@@ -373,6 +375,54 @@ void ZB_Data_Analysis(void)
 					}
 				}
 				
+				#else
+				
+				Send_Zigbee_ACK(node);
+				
+				if(((node == Zigbee_Ptr->runningInfo.Req_Station) && (step_gS == ctrlParasPtr->walkingstep)) || (node != Zigbee_Ptr->runningInfo.Req_Station))
+				{
+					u8 index = 0;
+					
+					if(1 == searchZigbeeData(node, &index))
+					{
+						if(0 == index)
+						{
+							//printf("1 Total = %d\r\n", zigbeeQueueCtrl.Total);
+							CHANGE_TO_STOP_MODE();
+							Show_Queue_Data();
+							zigbeeDeleteQueue(index);
+							Show_Queue_Data();
+							//printf("2 Total = %d\r\n", zigbeeQueueCtrl.Total);
+							printf("Good cancel node = %d, index = %d\r\n", node, index);
+							
+							ctrlParasPtr->walkingstep = step_origin;
+							
+							ctrlParasPtr->rifdAdaptFlag = 0;
+							//printf("GoodReqCancel step_origin = %d\r\n", ctrlParasPtr->walkingstep);
+							
+							
+							CMD_Flag_Ptr->Cancel_Flag = GoodReqCancel;
+							
+							BuzzerCtrlPtr->buzzerFlag = 1;
+							//printf("@!@!@!@!@! cancel %04x\r\n", node);
+
+							#if USE_CIRCLE_INFO_RECODER
+							CircleInfoStrPtr->lock = 0;
+							#endif
+						}
+						else
+						{
+							zigbeeDeleteQueue(index);
+							Show_Queue_Data();
+							//printf("2 Total = %d\r\n", zigbeeQueueCtrl.Total);
+							printf("Good cancel node = %d, index = %d\r\n", node, index);
+							BuzzerCtrlPtr->buzzerFlag = 1;
+						}
+						
+					}
+				}
+				
+				#endif
 				
 			}
 			

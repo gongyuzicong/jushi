@@ -219,7 +219,7 @@ int main(void)
 			ZigbeeResendInfo_Ptr->resendCtrlFunc();
 			BuzzerCtrlPtr->buzzerCtrlFunc();
 			Clean_Motor_Hall_Counter();
-			AGV_Debug_Func();
+			//AGV_Debug_Func();
 			
 			// 小车调试信息的打印
 			if((hexF != FMSDS_Ptr->MSD_Hex) || (hexR != RMSDS_Ptr->MSD_Hex))
