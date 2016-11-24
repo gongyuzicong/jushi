@@ -111,7 +111,7 @@ void Scan_Battery(Battery_Info_Str_P ptr)
 			{
 				counter++;
 
-				if(counter >= 20)
+				if(counter >= 10)
 				{
 					counter = 0;
 					ptr->BatteryUpdate = 1;

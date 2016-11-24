@@ -204,13 +204,13 @@ typedef struct EcvCtrlStruct
 	u8 	EcvSpeed;									// 电缸速度, 范围 0 ~ 100
 	u8 	EcvSpeedRec;								// 记录电缸速度的临时变量
 	u8	EcvEnableHallFlag;							// 电缸霍尔信号计数使能
+	u8	EcvCheckTimeoutFlag;						// 1: 打开超时检测控制 0: 关闭超时检测控制
 	u16	EcvHallCount;								// 电缸霍尔信号计数
 	u16 EcvHallCountRec;							// 电缸霍尔信号计数临时变量
 	u32 EcvHallCountTimeRec;						// 电缸霍尔信号计数间隔时间
 	u32 EcvHallCountTimeOut_ms;						// 电缸霍尔信号计数超时时间, 一般不要更改
 	u16 EcvHallCountCmp;							// 设置用来比较的霍尔计数
 	u16 EcvHallCountTimeout;						// 超时的时候的霍尔计数值(此值由外部清零)
-	u16 EcvHallCountTimeoutUpdate;					// 超时霍尔计数值更新标志位(此值由外部清零)
 	EcvDir				Dir;						// 控制电缸方向
 	ECV_PowerOnOff 		Power;						// 控制电缸电源
 	EcvHallCountMode 	HallCountMode;				// 霍尔计数对比模式

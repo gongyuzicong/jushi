@@ -50,12 +50,52 @@
 #define MAX_GEAR_NUM		21
 #define MAX_GEAR_OFFSET		11
 
+/***********MOTOR LEFT: START***************/
+/****MOTOR OUT: START****/
+#define MOTOR_LEFT_EN		PDout(6)
+#define MOTOR_LEFT_FR		PDout(7)
+#define MOTOR_LEFT_BK		PDout(8)
+
+#define MOTOR_LEFT_EN_IN	PDin(6)
+#define MOTOR_LEFT_FR_IN	PDin(7)
+
+#define MOTOR_LEFT_SV		PBout(1)
+/****MOTOR OUT: END****/
+
+/****MOTOR IN: START****/
+#define MOTOR_LEFT_PG	PEin(12)
+/****MOTOR IN: END****/
+
+/***********MOTOR LEFT: END***************/
+
+/***********MOTOR RIGHT: START***************/
+/****MOTOR OUT: START****/
+#define MOTOR_RIGHT_EN		PDout(0)
+#define MOTOR_RIGHT_FR		PDout(1)
+#define MOTOR_RIGHT_BK		PCout(13)
+
+#define MOTOR_RIGHT_EN_IN	PDin(0)
+#define MOTOR_RIGHT_FR_IN	PDin(1)
+
+
+#define MOTOR_RIGHT_SV		PBout(0)
+/****MOTOR OUT: END****/
+
+/****MOTOR IN: START****/
+#define MOTOR_RIGHT_PG	PEin(14)
+/****MOTOR IN: END****/
+/***********MOTOR RIGHT: END***************/
+
+#define MOTOR_POWER			PDout(15)
+#define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
+#define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
+
 #define MOTOR_RIGHT_CR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 0; MOTOR_RIGHT_EN = 0;}
 #define MOTOR_RIGHT_CCR_PIN_SET()			{MOTOR_RIGHT_BK = 1; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 0;}
-#define MOTOR_RIGHT_STOP_PIN_SET()			{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_FR = 1; MOTOR_RIGHT_EN = 1;}
+#define MOTOR_RIGHT_STOP_PIN_SET()			{MOTOR_RIGHT_BK = 0; MOTOR_RIGHT_EN = 1;}
 #define MOTOR_LEFT_CR_PIN_SET()				{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 0;  MOTOR_LEFT_EN = 0;}
 #define MOTOR_LEFT_CCR_PIN_SET()			{MOTOR_LEFT_BK = 1;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 0;}
-#define MOTOR_LEFT_STOP_PIN_SET()			{MOTOR_LEFT_BK = 0;  MOTOR_LEFT_FR = 1;  MOTOR_LEFT_EN = 1;}
+#define MOTOR_LEFT_STOP_PIN_SET()			{MOTOR_LEFT_BK = 0;  MOTOR_LEFT_EN = 1;}
 
 #define CHANGE_TO_GO_STRAIGHT_MODE()		{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = goStraightStatus; ctrlParasPtr->AccCtrl.EnableFlag = 1;}
 #define CHANGE_TO_BACK_MODE()				{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = backStatus; ctrlParasPtr->AccCtrl.EnableFlag = 1;}
@@ -65,62 +105,6 @@
 #define CHANGE_TO_TEST_MODE()				{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET();}
 #define CHANGE_TO_GO_STRAIGHT_SLOW_MODE()	{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CR_PIN_SET(); MOTOR_LEFT_CR_PIN_SET(); ctrlParasPtr->agvStatus = gSslow; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
 #define CHANGE_TO_BACK_SLOW_MODE()			{RFID_Info_Ptr->lock = 0; MOTOR_RIGHT_CCR_PIN_SET(); MOTOR_LEFT_CCR_PIN_SET(); ctrlParasPtr->agvStatus = bSslow; ctrlParasPtr->AccCtrl.EnableFlag = 0;}
-
-/***********MOTOR RIGHT: START***************/
-/****MOTOR OUT: START****/
-#define MOTOR_RIGHT_EN		PDout(0)
-#define MOTOR_RIGHT_FR		PDout(1)
-//#define MOTOR_RIGHT_BK		PDout(2)
-#define MOTOR_RIGHT_BK		PCout(13)
-#define MOTOR_RIGHT_X1		PDout(3)
-#define MOTOR_RIGHT_X2		PDout(4)
-#define MOTOR_RIGHT_X3		PDout(5)
-
-#define MOTOR_RIGHT_EN_IN	PDin(0)
-#define MOTOR_RIGHT_FR_IN	PDin(1)
-#define MOTOR_RIGHT_X1_In	PDin(3)
-#define MOTOR_RIGHT_X2_In	PDin(4)
-#define MOTOR_RIGHT_X3_In	PDin(5)
-
-
-#define MOTOR_RIGHT_SV		PBout(0)
-/****MOTOR OUT: END****/
-
-/****MOTOR IN: START****/
-#define MOTOR_RIGHT_PG	PEin(14)
-#define MOTOR_RIGHT_ALM	PEin(15)
-/****MOTOR IN: END****/
-/***********MOTOR RIGHT: END***************/
-
-
-
-/***********MOTOR LEFT: START***************/
-/****MOTOR OUT: START****/
-#define MOTOR_LEFT_EN		PDout(6)
-#define MOTOR_LEFT_FR		PDout(7)
-#define MOTOR_LEFT_BK		PDout(8)
-#define MOTOR_LEFT_X1		PDout(9)
-#define MOTOR_LEFT_X2		PDout(10)
-#define MOTOR_LEFT_X3		PDout(11)
-
-#define MOTOR_LEFT_EN_IN	PDin(6)
-#define MOTOR_LEFT_FR_IN	PDin(7)
-#define MOTOR_LEFT_X1_In	PDin(9)
-#define MOTOR_LEFT_X2_In	PDin(10)
-#define MOTOR_LEFT_X3_In	PDin(11)
-
-#define MOTOR_LEFT_SV		PBout(1)
-/****MOTOR OUT: END****/
-
-/****MOTOR IN: START****/
-#define MOTOR_LEFT_PG	PEin(12)
-#define MOTOR_LEFT_ALM	PEin(13)
-/****MOTOR IN: END****/
-#define MOTOR_POWER			PDout(15)
-#define MOTOR_POWER_ON()	{MOTOR_POWER = 0;}
-#define MOTOR_POWER_OFF()	{MOTOR_POWER = 1;}
-/***********MOTOR LEFT: END***************/
-
 
 
 
@@ -536,6 +520,7 @@ void ZigbeeRecv_Simu(void);
 void ManualModeEcvCtrlFunc(void);
 void Clean_Motor_Hall_Counter(void);
 void Motor_Count_Cmp_Func(void);
+void walking_cir_hall(u8);
 
 
 

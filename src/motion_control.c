@@ -245,6 +245,124 @@ void MOTOR_DUTY_SET(u8 left, u8 right)
 	MOTOR_RIGHT_DUTY_SET_F(right);
 }
 
+void walking_cir_nohall(u8 duty)
+{
+	static u8 lmSpeed = 0, rmSpeed = 0;
+
+	lmSpeed = duty + AgvGearCompDutyLF[2];
+	rmSpeed = duty + AgvGearCompDutyLF[2];	
+	//lmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+	//rmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+	
+	ctrlParasPtr->leftMotorSettedSpeed = lmSpeed;
+	ctrlParasPtr->rightMotorSettedSpeed = rmSpeed;
+	//printf("lmSpeed = %d, rmSpeed = %d\r\n", lmSpeed, rmSpeed);
+	MOTOR_LEFT_DUTY_SET(lmSpeed);
+	MOTOR_RIGHT_DUTY_SET(rmSpeed);
+		
+}
+
+
+void walking_cir_hall(u8 duty)
+{
+	static u8 step = 0, flag = 0;
+	u8 lmSpeed = 0, rmSpeed = 0;
+	
+	if(0 == step)
+	{
+		if(cirLeft == ctrlParasPtr->agvStatus)
+		{
+			MOTOR1_HALL_COUNT_FLAG = 1;
+			printf("rightHallCounter = %d\r\n", ctrlParasPtr->rightHallCounter);
+			if(ctrlParasPtr->rightHallCounter >= 6)
+			{
+				MOTOR1_HALL_COUNT_FLAG = 0;
+				MOTOR_LEFT_STOP_PIN_SET();
+				MOTOR_RIGHT_STOP_PIN_SET();
+				lmSpeed = 0;
+				rmSpeed = 0;
+				step = 1;
+				
+			}
+			else
+			{
+				MOTOR_LEFT_STOP_PIN_SET();
+				
+				lmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+				//lmSpeed = 30;
+				rmSpeed = 0;
+			}
+		}
+		else if(cirRight == ctrlParasPtr->agvStatus)
+		{
+			MOTOR1_HALL_COUNT_FLAG = 1;
+		
+			if(ctrlParasPtr->rightHallCounter >= 3)
+			{
+				MOTOR1_HALL_COUNT_FLAG = 0;
+				MOTOR_RIGHT_STOP_PIN_SET();
+				lmSpeed = 0;
+				rmSpeed = 0;
+				//step = 1;
+				
+			}
+			else
+			{
+				lmSpeed = 0;
+				rmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+			}
+		}
+		
+	}
+	else if(1 == step)
+	{
+		MOTOR_HALL_COUNT_ENABLE();
+		printf("leftHallCounter = %d, rightHallCounter = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+		if(ctrlParasPtr->leftHallCounter >= 11)
+		{
+			MOTOR_RIGHT_STOP_PIN_SET();
+			flag |= 0x01;
+			lmSpeed = 0;
+		}
+		else
+		{
+			MOTOR_RIGHT_CCR_PIN_SET();
+			lmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+		}
+
+		if(ctrlParasPtr->rightHallCounter >= 11)
+		{
+			MOTOR_LEFT_STOP_PIN_SET();
+			flag |= 0x10;
+			rmSpeed = 0;
+		}
+		else
+		{
+			MOTOR_LEFT_CR_PIN_SET();
+			rmSpeed = ctrlParasPtr->cirDuty + AgvGearCompDutyLF[2];
+		}
+		
+		if(0x11 == flag)
+		{
+			MOTOR_HALL_COUNT_DISABLE();
+			printf("step = 2\r\n");
+			step = 2;
+			
+		}
+	}
+	else if(2 == step)
+	{
+		
+		MOTOR_LEFT_STOP_PIN_SET();
+		MOTOR_RIGHT_STOP_PIN_SET();
+	}
+	
+	
+	MOTOR_LEFT_DUTY_SET(lmSpeed);
+	MOTOR_RIGHT_DUTY_SET(rmSpeed);
+	
+}
+
 
 void walking_cir(u8 duty)
 {
@@ -260,170 +378,9 @@ void walking_cir(u8 duty)
 	
 	MOTOR_LEFT_DUTY_SET(lmSpeed);
 	MOTOR_RIGHT_DUTY_SET(rmSpeed);
-		
-}
-
-void walking_cir_hall(u8 duty)
-{
-	static u8 step = 0, flag = 0;
-	u8 lmSpeed = 0, rmSpeed = 0;
-	
-	if(0 == step)
-	{
-		if(cirLeft == ctrlParasPtr->agvStatus)
-		{
-			MOTOR2_HALL_COUNT_FLAG = 1;
-		
-			if(ctrlParasPtr->leftHallCounter >= 3)
-			{
-				MOTOR2_HALL_COUNT_FLAG = 0;
-				MOTOR_LEFT_STOP_PIN_SET();
-				lmSpeed = 0;
-				rmSpeed = 0;
-				step = 1;
-				
-			}
-			else
-			{
-				lmSpeed = duty;
-				rmSpeed = 0;
-			}
-		}
-		else if(cirRight == ctrlParasPtr->agvStatus)
-		{
-			MOTOR1_HALL_COUNT_FLAG = 1;
-		
-			if(ctrlParasPtr->rightHallCounter >= 3)
-			{
-				MOTOR1_HALL_COUNT_FLAG = 0;
-				MOTOR_RIGHT_STOP_PIN_SET();
-				lmSpeed = 0;
-				rmSpeed = 0;
-				step = 1;
-				
-			}
-			else
-			{
-				lmSpeed = 0;
-				rmSpeed = duty;
-			}
-		}
-		
-	}
-	else if(1 == step)
-	{
-		MOTOR_HALL_COUNT_ENABLE();
-		
-		if(ctrlParasPtr->leftHallCounter >= 30)
-		{
-			MOTOR_LEFT_STOP_PIN_SET();
-			flag |= 0x01;
-			lmSpeed = 0;
-		}
-		else
-		{
-			lmSpeed = duty;
-		}
-
-		if(ctrlParasPtr->rightHallCounter >= 30)
-		{
-			MOTOR_RIGHT_STOP_PIN_SET();
-			flag |= 0x10;
-			rmSpeed = 0;
-		}
-		else
-		{
-			rmSpeed = duty;
-		}
-		
-		if(0x11 == flag)
-		{
-			MOTOR_HALL_COUNT_DISABLE();
-			
-			step = 2;
-			
-		}
-	}
-	else if(2 == step)
-	{
-		
-	}
-	
-	
-	MOTOR_LEFT_DUTY_SET(lmSpeed);
-	MOTOR_RIGHT_DUTY_SET(rmSpeed);
 	
 }
 
-
-void walking_cir_hall_Right(u8 duty)
-{
-	static u8 step = 0, flag = 0;
-	u8 lmSpeed = 0, rmSpeed = 0;
-
-	if(0 == step)
-	{
-		MOTOR1_HALL_COUNT_FLAG = 1;
-		
-		if(ctrlParasPtr->rightHallCounter >= 3)
-		{
-			MOTOR1_HALL_COUNT_FLAG = 0;
-			MOTOR_RIGHT_STOP_PIN_SET();
-			lmSpeed = 0;
-			rmSpeed = 0;
-			step = 1;
-			
-		}
-		else
-		{
-			lmSpeed = 0;
-			rmSpeed = duty;
-		}
-	}
-	else if(1 == step)
-	{
-		MOTOR_HALL_COUNT_ENABLE();
-		
-		if(ctrlParasPtr->leftHallCounter >= 30)
-		{
-			MOTOR_LEFT_STOP_PIN_SET();
-			flag |= 0x01;
-			lmSpeed = 0;
-		}
-		else
-		{
-			lmSpeed = duty;
-		}
-
-		if(ctrlParasPtr->rightHallCounter >= 30)
-		{
-			MOTOR_RIGHT_STOP_PIN_SET();
-			flag |= 0x10;
-			rmSpeed = 0;
-		}
-		else
-		{
-			rmSpeed = duty;
-		}
-		
-		if(0x11 == flag)
-		{
-			MOTOR_HALL_COUNT_DISABLE();
-			
-			step = 2;
-			
-		}
-	}
-	else if(2 == step)
-	{
-		
-	}
-	
-	
-	MOTOR_LEFT_DUTY_SET(lmSpeed);
-	MOTOR_RIGHT_DUTY_SET(rmSpeed);
-	
-}
 
 
 
@@ -524,7 +481,7 @@ void gS_startup_mode6(u8 gear)
 			
 			#else
 
-			ctrlParasPtr->FSflag = 1;
+			//ctrlParasPtr->FSflag = 1;
 			ctrlParasPtr->gear = 7;
 			ctrlParasPtr->comflag = 6331;
 
@@ -2532,12 +2489,13 @@ void scale_1_mode20_back(u8 gear)
 	}
 	else if(backStatus == ctrlParasPtr->agvStatus)
 	{
+		/*
 		if(ECV_UP_LIMT == WECV_Str_Ptr->Location)
 		{
 			lmSpeedPat_P *= 2;
 			rmSpeedPat_P *= 2;
 		}
-
+		*/
 		#if USE_ACC_DEC
 		
 		baseSpeed = ctrlParasPtr->AccCtrl.OutputSpeed;
@@ -2562,7 +2520,7 @@ void scale_1_mode20_back(u8 gear)
 void HighSpeed_Protect2(void)
 {
 	
-	if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_7) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_7))
+	if((FMSDS_Ptr->AgvMSLocation <= Agv_MS_Left_5) || (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Right_5))
 	{
 		if(goStraightStatus == ctrlParasPtr->agvStatus)
 		{
@@ -2722,11 +2680,13 @@ void AGV_Correct_gS_8ug(u8 gear)		// 3 mode
 			// 低速启动模式
 			gS_startup_mode6(4);
 			ctrlParasPtr->AccCtrl.EnableFlag = 0;
-			ctrlParasPtr->FSflag = 1;
+			if(0 == ctrlParasPtr->AccHallFlag)
+			{
+				ctrlParasPtr->FSflag = 1;
+			}
 		}
 		else if(1 == ctrlParasPtr->FSflag)
 		{
-			
 			scale_1_mode20(gearRecod);
 			HighSpeed_Protect2();
 		}
@@ -2740,7 +2700,6 @@ void AGV_Correct_back_ug(u8 gear)		// 3 mode
 	static u8 gearRecod = 0;
 	
 	ctrlParasPtr->comflag = 6;
-
 	
 	gearRecod = gear;
 	
@@ -3174,14 +3133,15 @@ void AGV_Correct_2(void)
 void Get_Zigbee_Info_From_Buf(void)
 {
 	//if((step_stop == ctrlParasPtr->walkingstep) && (zigbeeQueueCtrl.Total > 0) && (ctrlParasPtr->crossRoadCountF >= 3))
-	if((ctrlParasPtr->walkingstep >= step_origin) && (zigbeeQueueCtrl.Total > 0))
+	//if((ctrlParasPtr->walkingstep >= step_origin) && (zigbeeQueueCtrl.Total > 0))
+	if((ctrlParasPtr->walkingstep >= step_origin) && (zigbeeQueueCtrl.Total > 0) && (0 == ctrlParasPtr->AccHallFlag))
 	{
 		ReqQueueStr info;
 		
 		info.Req_Station = 0;
 		
 		get_zigbeeData(&info);
-
+		
 		//printf("get_station = %d\r\n", info.Req_Station);
 
 		if(0 == info.Req_Station)
@@ -3199,7 +3159,8 @@ void Get_Zigbee_Info_From_Buf(void)
 			CircleInfoStrPtr->RESPOND_TIME = BackgroudRTC_Rec;
 			CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
 			#endif
-
+			LCD_Info_Ptr->mainPage.commonReport.show();
+			Zigbee_Ptr->SendLmAgvBusy();
 			printf("\r\n********************* get station ID: %d\t", info.Req_Station);
 			printf("20%02x-%02x-%02x, %02x:%02x:%02x ***************************\r\n", BackgroudRTC_Rec.year, BackgroudRTC_Rec.month, BackgroudRTC_Rec.day, BackgroudRTC_Rec.hour, BackgroudRTC_Rec.minute, BackgroudRTC_Rec.second);
 		}
@@ -4695,7 +4656,7 @@ void step_exit_Func(void)
 			MACHINE_ARM_WEIGHT_FIBER_SET();
 			if(LCD_WeightPage != LCD_Info_Ptr->ViewPage)
 			{
-				LCD_Info_Ptr->weightPage.show();
+				LCD_Info_Ptr->weightPage.commonReport.show();
 			}
 			
 			ctrlParasPtr->walkingstep = step_weigh;
@@ -4755,36 +4716,36 @@ void step_weigh_Func(void)
 		
 		
 		ctrlParasPtr->walkingstep = step_bVeer;
+
+		if((SpinStation_1 == ctrlParasPtr->goalStation) || \
+		   (SpinStation_3 == ctrlParasPtr->goalStation) || \
+		   (SpinStation_5 == ctrlParasPtr->goalStation) || \
+		   (SpinStation_7 == ctrlParasPtr->goalStation) || \
+		   (SpinStation_9 == ctrlParasPtr->goalStation))
+		{
+			CHANGE_TO_CIR_RIGHT_MODE();
+		}
+		else if((SpinStation_2 	== ctrlParasPtr->goalStation) || \
+				(SpinStation_4 	== ctrlParasPtr->goalStation) || \
+				(SpinStation_6 	== ctrlParasPtr->goalStation) || \
+				(SpinStation_8 	== ctrlParasPtr->goalStation) || \
+				(SpinStation_10 == ctrlParasPtr->goalStation))
+		{
+			CHANGE_TO_CIR_LEFT_MODE();
+		}
 	}
 }
 
-
+#if 0
 void step_bVeer_Func(void)
 {
 	static u8 stepFlag = 0;
-	
-	if((SpinStation_1 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_3 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_5 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_7 == ctrlParasPtr->goalStation) || \
-	   (SpinStation_9 == ctrlParasPtr->goalStation))
-	{
-		CHANGE_TO_CIR_RIGHT_MODE();
-	}
-	else if((SpinStation_2 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_4 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_6 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_8 	== ctrlParasPtr->goalStation) || \
-			(SpinStation_10 == ctrlParasPtr->goalStation))
-	{
-		CHANGE_TO_CIR_LEFT_MODE();
-	}
 
 	if(0 == stepFlag)
 	{
 		ctrlParasPtr->cirDuty = 13;
 		
-		stepFlag = 1;
+		stepFlag = 0;
 	}
 	else if(1 == stepFlag)
 	{
@@ -4832,7 +4793,279 @@ void step_bVeer_Func(void)
 	}
 	
 }
+#else
+void step_bVeer_Func(void)
+{
+	static u8 step = 0, flag = 0, step2 = 0;
+	
+	if(0 == step)
+	{
+		if(cirLeft == ctrlParasPtr->agvStatus)
+		{
+			MOTOR1_HALL_COUNT_FLAG = 1;
+			//printf("rightHallCounter = %d\r\n", ctrlParasPtr->rightHallCounter);
+			if(ctrlParasPtr->rightHallCounter >= 6)
+			{
+				MOTOR1_HALL_COUNT_FLAG = 0;
+				MOTOR_LEFT_STOP_PIN_SET();
+				MOTOR_RIGHT_STOP_PIN_SET();
+				//ctrlParasPtr->cirDuty = 0;
+				step = 1;
+				
+			}
+			else
+			{
+				MOTOR_LEFT_STOP_PIN_SET();
+				ctrlParasPtr->cirDuty = 13;
+			}
+		}
+		else if(cirRight == ctrlParasPtr->agvStatus)
+		{
+			MOTOR2_HALL_COUNT_FLAG = 1;
+			//printf("leftHallCounter = %d\r\n", ctrlParasPtr->leftHallCounter);
+			if(ctrlParasPtr->leftHallCounter >= 6)
+			{
+				MOTOR2_HALL_COUNT_FLAG = 0;
+				MOTOR_LEFT_STOP_PIN_SET();
+				MOTOR_RIGHT_STOP_PIN_SET();
+				ctrlParasPtr->cirDuty = 0;
+				step = 1;
+				
+			}
+			else
+			{
+				MOTOR_RIGHT_STOP_PIN_SET();
+				ctrlParasPtr->cirDuty = 13;
+			}
+		}
+		
+	}
+	else if(1 == step)
+	{
+		static u8 hallCmp = 15;
+		
+		MOTOR_HALL_COUNT_ENABLE();
+		ctrlParasPtr->cirDuty = 13;
+		//printf("leftHallCounter = %d, rightHallCounter = %d\r\n", ctrlParasPtr->leftHallCounter, ctrlParasPtr->rightHallCounter);
+		
+		if(cirLeft == ctrlParasPtr->agvStatus)
+		{
+			if(ctrlParasPtr->rightHallCounter >= hallCmp)		// left
+			{
+				MOTOR_RIGHT_STOP_PIN_SET();
+				flag |= 0x01;
+			}
+			else
+			{
+				MOTOR_RIGHT_CCR_PIN_SET();
+			}
+			
+			if(ctrlParasPtr->leftHallCounter >= hallCmp)			// right
+			{
+				MOTOR_LEFT_STOP_PIN_SET();
+				flag |= 0x10;
+			}
+			else
+			{
+				MOTOR_LEFT_CR_PIN_SET();
+			}
+		}
+		else if(cirRight == ctrlParasPtr->agvStatus)
+		{
+			if(ctrlParasPtr->rightHallCounter >= hallCmp)			// left
+			{
+				MOTOR_RIGHT_STOP_PIN_SET();
+				flag |= 0x01;
+			}
+			else
+			{
+				MOTOR_RIGHT_CR_PIN_SET();
+			}
+			
+			if(ctrlParasPtr->leftHallCounter >= hallCmp)			// right
+			{
+				MOTOR_LEFT_STOP_PIN_SET();
+				flag |= 0x10;
+			}
+			else
+			{
+				MOTOR_LEFT_CCR_PIN_SET();
+			}
+		}
 
+		if((0xFFFF == FMSDS_Ptr->MSD_Hex) && (0xFFFF == RMSDS_Ptr->MSD_Hex))
+		{
+			step2 = 1;
+		}
+
+		if(1 == step2)
+		{
+			#if 0
+			if(cirLeft == ctrlParasPtr->agvStatus)
+			{
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))		// 已经越过中点了
+				{
+					// break
+					MOTOR_LEFT_STOP_PIN_SET();
+					MOTOR_RIGHT_STOP_PIN_SET();
+					flag = 0x22;
+				}
+				else
+				{
+					if(0x11 == flag)
+					{
+						flag = 0;
+						hallCmp += 1;
+					}
+				}
+			}
+			else if(cirRight == ctrlParasPtr->agvStatus)
+			{
+				if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) && (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Center))		// 已经越过中点了
+				{
+					// break
+					MOTOR_LEFT_STOP_PIN_SET();
+					MOTOR_RIGHT_STOP_PIN_SET();
+					flag = 0x22;
+				}
+				else
+				{
+					if(0x11 == flag)
+					{
+						flag = 0;
+						hallCmp += 1;
+					}
+				}
+			}
+			#else
+			#if 0
+			if(0x11 == flag)
+			{
+				if(0xFFFF != FMSDS_Ptr->MSD_Hex)
+				{
+					MOTOR_LEFT_STOP_PIN_SET();
+					MOTOR_RIGHT_STOP_PIN_SET();
+					flag = 0x22;
+				}
+				else
+				{
+					flag = 0;
+					hallCmp += 1;
+				}
+				
+			}
+			#else
+			#if 0
+			if(cirLeft == ctrlParasPtr->agvStatus)
+			{
+				if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))		// 已经越过中点了
+				{
+					// break
+					MOTOR_LEFT_STOP_PIN_SET();
+					MOTOR_RIGHT_STOP_PIN_SET();
+					flag = 0x22;
+				}
+				
+			}
+			else if(cirRight == ctrlParasPtr->agvStatus)
+			{
+				if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) && (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Center))		// 已经越过中点了
+				{
+					// break
+					MOTOR_LEFT_STOP_PIN_SET();
+					MOTOR_RIGHT_STOP_PIN_SET();
+					flag = 0x22;
+				}
+				
+			}
+			#else
+			if(FMSDS_Ptr->MSD_Hex != 0xFFFF)
+			{
+				if(cirLeft == ctrlParasPtr->agvStatus)
+				{
+					if((FMSDS_Ptr->AgvMSLocation > Agv_MS_Left_End) && (FMSDS_Ptr->AgvMSLocation <= Agv_MS_Center))		// 已经越过中点了
+					{
+						// break
+						MOTOR_LEFT_STOP_PIN_SET();
+						MOTOR_RIGHT_STOP_PIN_SET();
+						flag = 0x22;
+					}
+					
+				}
+				else if(cirRight == ctrlParasPtr->agvStatus)
+				{
+					if((FMSDS_Ptr->AgvMSLocation < Agv_MS_Right_End) && (FMSDS_Ptr->AgvMSLocation >= Agv_MS_Center))		// 已经越过中点了
+					{
+						// break
+						MOTOR_LEFT_STOP_PIN_SET();
+						MOTOR_RIGHT_STOP_PIN_SET();
+						flag = 0x22;
+					}
+					
+				}
+
+				if(0x11 == flag)
+				{
+					flag = 0x22;
+				}
+			}
+			else
+			{
+				if(0x11 == flag)
+				{
+					flag = 0;
+					hallCmp += 1;
+					
+				}
+			}
+			
+			#endif
+			#endif
+			#endif
+		}		
+		
+
+		if(0x22 == flag)
+		{			
+			MOTOR_HALL_COUNT_DISABLE();
+			//printf("step = 2\r\n");
+			flag = 0;
+			step2 = 0;
+			step = 2;
+			hallCmp = 15;
+		}
+	}
+	else if(2 == step)
+	{
+		
+		CleanAllSpeed();
+				
+		CHANGE_TO_STOP_MODE();
+
+		#ifdef USE_SEND_ZIGBEE
+		Send_WaitForGoods();
+		#endif
+		step = 0;
+		
+		ctrlParasPtr->BSflag = 0;
+		
+		ctrlParasPtr->gear = 17;
+
+		#if USE_CIRCLE_INFO_RECODER
+		CircleInfoStrPtr->CircleTime.BackCirTime = (SystemRunningTime - CircleInfoStrPtr->TimeTempRec) / 1000;
+		CircleInfoStrPtr->TimeTempRec = SystemRunningTime;
+		#endif
+		
+		//printf("rightHall = %d, leftHall = %d\r\n", ctrlParasPtr->rightHallCounter, ctrlParasPtr->leftHallCounter);
+
+		ctrlParasPtr->Use_WECV = 0;
+		getWeightCtrl_Ptr->weightScanEnable = 0;
+		ctrlParasPtr->walkingstep = step_gB;
+	}
+	
+}
+
+#endif
 
 void step_gB_Func(void)
 {
@@ -5163,6 +5396,8 @@ void step_origin_Func(void)
 		
 		if(ORIGIN_STATION_NODE == RFID_Info_Ptr->rfidData)	// AGV到达所设原点
 		{
+			ReqQueueStr info;
+			
 			CleanAllSpeed();
 			CHANGE_TO_STOP_MODE();
 			
@@ -5179,11 +5414,18 @@ void step_origin_Func(void)
 			//printf("***************************!\r\n");
 			if((0x00 == FiberglasInfo_Ptr->weight_H) && (0x00 == FiberglasInfo_Ptr->weight_L))
 			{
-				//Get_Weight_Offset_Data();
+				Get_Weight_Offset_Data();
 			}
 			
+			Zigbee_Ptr->SendLmAgvFree();
 			ctrlParasPtr->originFlag = 1;
 			getWeightCtrl_Ptr->weightScanEnable = 1;
+
+			info.Req_Station = 0;
+			info.Req_Type = TypeUnknow;
+			Zigbee_Ptr->runningInfo = info;
+			LCD_Info_Ptr->mainPage.commonReport.show();
+			
 			ctrlParasPtr->walkingstep = step_stop;
 			
 		}
@@ -5296,6 +5538,9 @@ void ECV_Machine_ARM_Init_Func(u8 *step, u32 *timRec)
 	
 	if(0 == *step)
 	{
+		FECV_Str_Ptr->EcvCheckTimeoutFlag = 1;
+		BECV_Str_Ptr->EcvCheckTimeoutFlag = 1;
+		
 		temp.Dir			= ECV_DOWN;
 		temp.EcvSpeed		= 100;
 		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_DISABLE;
@@ -5351,6 +5596,8 @@ void ECV_Machine_ARM_Init_Func(u8 *step, u32 *timRec)
 void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 {
 	Ecv_Para temp;
+	static u8 flag = 0;
+	
 	
 	if(0 == *step)
 	{	
@@ -5377,6 +5624,9 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 		}
 		
 		#else
+
+		FECV_Str_Ptr->EcvCheckTimeoutFlag = 0;
+		BECV_Str_Ptr->EcvCheckTimeoutFlag = 0;
 		
 		temp.Dir			= ECV_UP;
 		temp.EcvSpeed		= 100;
@@ -5426,6 +5676,7 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 		}
 		else
 		{
+			#if 0
 			
 			if(RLMT_SW_RESPOND || (SystemRunningTime - *timRec >= 20000))
 			{
@@ -5444,6 +5695,117 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 				*step = 3;
 			}
 			
+			#else
+
+			#if 0
+			static u32 timRec2 = 0;
+
+			if(RLMT_SW_RESPOND)
+			{
+				if((SystemRunningTime - timRec2 >= 500) && RLMT_SW_RESPOND)
+				{
+					flag = 1;
+				}
+				
+			}
+			else
+			{
+				timRec2 = SystemRunningTime;
+			}
+			
+			if((1 == flag) || (SystemRunningTime - *timRec >= 20000))
+			{
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 200;
+				FECV_Str_Ptr->ECV_SetPara(&temp);
+				
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 320;
+				BECV_Str_Ptr->ECV_SetPara(&temp);
+				*timRec = 0;
+				*step = 3;
+			}
+			#else
+
+			#if 0
+			static u32 timRec2 = 0;
+
+			if(0 == flag)
+			{
+				if(RLMT_SW_RESPOND)
+				{
+					if((SystemRunningTime - timRec2 >= 500) && RLMT_SW_RESPOND)
+					{
+						flag = 1;
+						*timRec = SystemRunningTime;
+					}
+					
+				}
+				else
+				{
+					timRec2 = SystemRunningTime;
+				}
+			}
+			
+			if(((1 == flag) && (SystemRunningTime - *timRec >= 10000)) || (SystemRunningTime - *timRec >= 30000))
+			{
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 200;
+				FECV_Str_Ptr->ECV_SetPara(&temp);
+				
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 320;
+				BECV_Str_Ptr->ECV_SetPara(&temp);
+				*timRec = 0;
+				*step = 3;
+			}
+			#else
+			
+			if(FiberglasInfo_Ptr->weight_H >= 0x01)
+			{
+				flag = 1;
+			}
+			else if(SystemRunningTime - *timRec >= 50000)
+			{
+				// Error
+				Warning_LED_ECV_TIMEOUT_STATUS();
+				if(Return_SW_Respond)
+				{
+					flag = 1;
+				}
+				
+			}
+
+			if(1 == flag)
+			{
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 200;
+				FECV_Str_Ptr->ECV_SetPara(&temp);
+				
+				temp.Dir			= ECV_UP;
+				temp.EcvSpeed		= 100;
+				temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
+				temp.EcvHallCountCmp= 320;
+				BECV_Str_Ptr->ECV_SetPara(&temp);
+				*timRec = 0;
+				*step = 3;
+			}
+			
+			#endif
+			
+			#endif
+			
+			#endif
 		}
 		
 	}
@@ -5466,16 +5828,20 @@ void ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(u8 *step, u32 *timRec)
 			FECV_Str_Ptr->ECV_Clean_Use_Status();
 			BECV_Str_Ptr->ECV_Clean_Use_Status();
 			*step = 0;
+			flag = 0;
 			MACHINE_ARM_INIT_SET();
 			MACHINE_ARM_WEIGHT_FIBER_CLEAN();
 		}
 	}
 	
-	if(1 == FECV_Str_Ptr->EcvHallCountTimeoutUpdate)
+	if((ECV_TIMEOUT_ERR == FECV_Str_Ptr->UseStatus) || (ECV_TIMEOUT_ERR ==BECV_Str_Ptr->UseStatus))
 	{
-		FECV_Str_Ptr->EcvHallCountTimeoutUpdate = 0;
 		Warning_LED_ECV_TIMEOUT_STATUS();
+		
+		FECV_Str_Ptr->ECV_Clean_Use_Status();
+		BECV_Str_Ptr->ECV_Clean_Use_Status();
 	}
+	
 }
 
 void ECV_Machine_ARM_Catch_Func(u8 *step, u32 *timRec)
@@ -5485,13 +5851,16 @@ void ECV_Machine_ARM_Catch_Func(u8 *step, u32 *timRec)
 	
 	if(0 == *step)
 	{
-		
 		Ecv_Para temp;
 		temp.Dir				= ECV_UP;
 		temp.EcvSpeed			= 100;
 		temp.HallCountMode		= ECV_USE_HALL_COUNT_MODE_DISABLE;
 		FECV_Str_Ptr->ECV_SetPara(&temp);
-		FECV_Str_Ptr->EcvHallCountTimeoutUpdate = 0;
+		
+		FECV_Str_Ptr->EcvCheckTimeoutFlag = 1;
+		BECV_Str_Ptr->EcvCheckTimeoutFlag = 1;
+		
+		
 		*step = 1;
 	}
 	else if(1 == *step)
@@ -5528,14 +5897,7 @@ void ECV_Machine_ARM_Catch_Func(u8 *step, u32 *timRec)
 				*step = 0;
 			}
 		}
-		
-		if(1 == FECV_Str_Ptr->EcvHallCountTimeoutUpdate)
-		{
-			FECV_Str_Ptr->EcvHallCountTimeoutUpdate = 0;
-			counter = FECV_Str_Ptr->EcvHallCountTimeout;
-			flag = 1;
-		}
-		
+				
 		
 	}
 	
@@ -5547,6 +5909,9 @@ void ECV_Machine_ARM_Toggle_Func(u8 *step, u32 *timRec)
 	
 	if(0 == *step)
 	{
+		FECV_Str_Ptr->EcvCheckTimeoutFlag = 1;
+		BECV_Str_Ptr->EcvCheckTimeoutFlag = 1;
+		
 		temp.Dir			= ECV_UP;
 		temp.EcvSpeed		= 100;
 		temp.HallCountMode	= ECV_USE_HALL_COUNT_MODE_ENABLE;
@@ -5600,7 +5965,11 @@ void Machinearm_Control_Handle(void)
 	{
 		ECV_Machine_ARM_WEIGHT_Small_Fiber_Func(&step, &timRec);
 	}
-	
+	else
+	{
+		//step = 0;
+		//timRec = 0;
+	}
 }
 
 void ProtectFunc(void)
@@ -5830,9 +6199,9 @@ void ZigbeeRecv_Simu(void)
 				{
 					while(Return_SW_RR_Respond);
 					//flag = 1;
-					//Zigbee_Ptr->runningInfo.Req_Station = 0x000a;
-					//Zigbee_Ptr->recvValidDataFlag = 1;
-					LCD_Info_Ptr->weightPage.show();
+					Zigbee_Ptr->runningInfo.Req_Station = 0x000a;
+					Zigbee_Ptr->recvValidDataFlag = 1;
+					//LCD_Info_Ptr->weightPage.commonReport.show();
 					
 				}
 			}
@@ -6068,7 +6437,7 @@ void PG_EXTI_CFG(void)
 
 	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQChannel;	//选择中断通道
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断
@@ -6086,7 +6455,7 @@ void PG_EXTI_CFG(void)
 
 	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//选择中断分组
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQChannel;		//选择中断通道
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQChannel;	//选择中断通道
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢断式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;			//响应式中断优先级设置
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//使能中断

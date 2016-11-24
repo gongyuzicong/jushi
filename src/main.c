@@ -257,8 +257,25 @@ int main(void)
 
 		//ZB_Data_Receive_handle();				// 
 		//set_duty(100, 100);
-		Get_Voltage();
+		//Get_Voltage();
+		if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_Respond)
+		{
+			
+			Delay_ms(20);			
+			if(Return_SW_LF_UnRespond && Return_SW_LR_UnRespond && Return_SW_RF_UnRespond && Return_SW_RR_Respond)
+			{
+				while(Return_SW_RR_Respond);
+				//ctrlParasPtr->cirDuty = 13;
+				ctrlParasPtr->walkingstep = step_bVeer;
+				CHANGE_TO_CIR_LEFT_MODE();
+				//CHANGE_TO_CIR_RIGHT_MODE();
+			}
+			
+		}
 		
+		Walking_Step_Controler();		// 整个大逻辑的控制
+		AGV_Walking_Opt();
+		Clean_Motor_Hall_Counter();
 		#endif
 		
 	}

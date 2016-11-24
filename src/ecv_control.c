@@ -57,7 +57,6 @@ u8 CheckFECV_Limt2(Ecv_Ctrl_Struct_P ptr)
 		{
 			flag 					= 1;
 			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
-			ptr->EcvHallCountTimeoutUpdate = 1;
 			ptr->EcvHallCountRec 	= 0;
 			printf("time out\r\n");
 		}
@@ -83,7 +82,6 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 		{
 			flag 					= 1;
 			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
-			ptr->EcvHallCountTimeoutUpdate = 1;
 			ptr->EcvHallCountRec 	= 0;
 			printf("time out\r\n");
 		}
@@ -113,7 +111,6 @@ u8 CheckFECV_Limt(Ecv_Ctrl_Struct_P ptr)
 		{
 			flag = 1;
 			ptr->EcvHallCountTimeout = ptr->EcvHallCount;
-			ptr->EcvHallCountTimeoutUpdate = 1;
 			ptr->EcvHallCountRec = 0;
 			//printf("time out\r\n");
 		}
@@ -395,6 +392,7 @@ void WECV_Clean_Use_Status(void)
 	WECV_Str_Ptr->UseStatus = ECV_UNUSED;
 }
 
+#if 0
 
 void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 {
@@ -449,6 +447,83 @@ void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
 		ptr->ECV_SetSpeedFunc(speed);
 	}
 }
+
+#else
+
+void ECV_Ctrl_Func(Ecv_Ctrl_Struct_P ptr)
+{
+	u8 speed = 0;
+	
+	if(ECV_STOP == ptr->Dir)
+	{
+		ptr->ECV_SetSpeedFunc(0);
+		ptr->EcvEnableHallFlag 		= 0;
+		ptr->EcvHallCountRec 		= 0;
+		ptr->EcvHallCount			= 0;
+		ptr->EcvHallCountTimeRec 	= SystemRunningTime;
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+	}
+	else
+	{
+		ptr->ECV_PowerOnOffFunc(ECV_POWER_ON);
+		ptr->EcvEnableHallFlag = 1;
+
+		ptr->ECV_UpDownFunc(ptr->Dir);
+
+		speed = ptr->EcvSpeed;
+		
+		if(ECV_USE_HALL_COUNT_MODE_ENABLE == ptr->HallCountMode)
+		{
+			if(1 == ptr->EcvCheckTimeoutFlag)
+			{
+				if(CheckFECV_Limt(ptr))
+				{
+					ptr->Dir = ECV_STOP;
+					ptr->EcvHallCount = 0;
+					ptr->EcvHallCountRec = 0;
+					ptr->UseStatus = ECV_TIMEOUT_ERR;
+					speed = 0;
+					ptr->ECV_SetSpeedFunc(0);
+					//printf("ECV_STOP!\r\n");
+				}
+			}
+			else
+			{
+				ptr->EcvHallCountTimeRec = SystemRunningTime;
+			}
+			
+			if(ptr->EcvHallCount >= ptr->EcvHallCountCmp)
+			{
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				//printf("ECV_STOP!\r\n");
+			}
+			//printf("EcvHallCountCmp = %d\r\n", ptr->EcvHallCountCmp);
+		}
+		else if(ECV_USE_HALL_COUNT_MODE_DISABLE == ptr->HallCountMode)
+		{
+			if(CheckFECV_Limt(ptr))
+			{
+				ptr->Dir = ECV_STOP;
+				ptr->EcvHallCount = 0;
+				ptr->EcvHallCountRec = 0;
+				ptr->UseStatus = ECV_COMPLETE;
+				speed = 0;
+				ptr->ECV_SetSpeedFunc(0);
+				//printf("ECV_STOP!\r\n");
+			}
+		}
+
+		ptr->ECV_SetSpeedFunc(speed);
+	}
+}
+
+
+#endif
 
 #if 0
 
@@ -558,7 +633,25 @@ void ECV_Ctrl_Func_SW(Ecv_Ctrl_Struct_P ptr)
 		
 		if(ECV_USE_HALL_COUNT_MODE_ENABLE == ptr->HallCountMode)
 		{
-			if(CheckFECV_Limt(ptr) || (ptr->EcvHallCount >= ptr->EcvHallCountCmp))
+			if(1 == ptr->EcvCheckTimeoutFlag)
+			{
+				if(CheckFECV_Limt(ptr))
+				{
+					ptr->Dir = ECV_STOP;
+					ptr->EcvHallCount = 0;
+					ptr->EcvHallCountRec = 0;
+					ptr->UseStatus = ECV_TIMEOUT_ERR;
+					speed = 0;
+					ptr->ECV_SetSpeedFunc(0);
+					ptr->ECV_PowerOnOffFunc(ECV_POWER_OFF);
+				}
+			}
+			else
+			{
+				ptr->EcvHallCountTimeRec = SystemRunningTime;
+			}
+			
+			if(ptr->EcvHallCount >= ptr->EcvHallCountCmp)
 			{
 				ptr->Dir = ECV_STOP;
 				ptr->EcvHallCount = 0;
@@ -917,6 +1010,7 @@ void ECV_Struct_Init(void)
 	FECV_Str_Ptr->Power					= ECV_POWER_OFF;
 	FECV_Str_Ptr->UseStatus				= ECV_UNUSED;
 	FECV_Str_Ptr->Location				= ECV_UNKNOW;
+	FECV_Str_Ptr->EcvCheckTimeoutFlag 	= 1;
 
 	*BECV_Str_Ptr = *WECV_Str_Ptr = *FECV_Str_Ptr;
 

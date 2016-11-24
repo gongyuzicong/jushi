@@ -16,25 +16,80 @@ typedef enum
 	LCD_TaskPage,
 }LCD_View_Page;
 
-typedef struct PageClass
+typedef struct PageCommonClass
 {
 	void (*show)(void);
 	void (*battery_report)(void);
-}Page_Class_Struct, *Page_Class_Struct_P;
+}Page_Common_Class, *Page_Common_Class_P;
+
+typedef struct MainPageClass
+{
+	Page_Common_Class commonReport;
+	void (*mainstateReport)(void);
+}Main_Page_Class, *Main_Page_Class_P;
+
+typedef struct WeightPageClass
+{
+	Page_Common_Class commonReport;
+	
+}Weight_Page_Class, *Weight_Page_Class_P;
+
+
+typedef struct SystemPageClass
+{
+	Page_Common_Class commonReport;
+	
+}System_Page_Class, *System_Page_Class_P;
+
+typedef struct ManualPageClass
+{
+	Page_Common_Class commonReport;
+	
+}Manual_Page_Class, *Manual_Page_Class_P;
+
+typedef struct HelpPageClass
+{
+	Page_Common_Class commonReport;
+	
+}Help_Page_Class, *Help_Page_Class_P;
+
+typedef struct DataOutPageClass
+{
+	Page_Common_Class commonReport;
+	
+}Data_Out_Page_Class, *Data_Out_Page_Class_P;
+
+typedef struct AuthorityPageClass
+{
+	Page_Common_Class commonReport;
+	
+}Authority_Page_Class, *Authority_Page_Class_P;
+
+typedef struct RfidPageClass
+{
+	Page_Common_Class commonReport;
+	
+}Rfid_Page_Class, *Rfid_Page_Class_P;
+
+typedef struct TaskPageClass
+{
+	Page_Common_Class commonReport;
+	void (*taskstateReport)(u16 *);
+}Task_Page_Class, *Task_Page_Class_P;
 
 typedef struct LCD_Info_Struct
 {
 	u8 LCD_Ready;
 	LCD_View_Page ViewPage;
-	Page_Class_Struct mainPage;
-	Page_Class_Struct weightPage;
-	Page_Class_Struct systemPage;
-	Page_Class_Struct manualPage;
-	Page_Class_Struct helpPage;
-	Page_Class_Struct dataOutPage;
-	Page_Class_Struct authorityPage;
-	Page_Class_Struct rfidPage;
-	Page_Class_Struct taskPage;
+	Main_Page_Class mainPage;
+	Weight_Page_Class weightPage;
+	System_Page_Class systemPage;
+	Manual_Page_Class manualPage;
+	Help_Page_Class helpPage;
+	Data_Out_Page_Class dataOutPage;
+	Authority_Page_Class authorityPage;
+	Rfid_Page_Class rfidPage;
+	Task_Page_Class taskPage;
 }LCD_Info_Str, *LCD_Info_Str_P;
 
 

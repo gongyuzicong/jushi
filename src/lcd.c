@@ -7,7 +7,7 @@
 #include "ecv_control.h"
 #include "fiberglas.h"
 #include "battery.h"
-
+#include "zigbee.h"
 //添加到全局变量//
 u8 receive_buf[150];
 u8 lcd_receive_count=0;
@@ -174,6 +174,26 @@ void LCD_Report_TaskPage_Battery(void)
 	LCD_Report_Battery("task_battery.value=");
 	
 }
+
+void Set_Main_state(void)
+{	
+
+	Uart_Send_Str("main_free.text=\"");
+	if((Zigbee_Ptr->runningInfo.Req_Station > 0x00) && (Zigbee_Ptr->runningInfo.Req_Station <= 0x0A))
+	{
+		Uart_Send_Char(Zigbee_Ptr->runningInfo.Req_Station + 0x30);
+	}
+	else 
+	{
+		Uart_Send_Str("空闲");
+	}
+	Uart_Send_Char('\"');
+	Uart_Send_Char(0x0d);
+	
+}
+
+
+
 //更新主页任务状态//
 void Set_task_state(u16 *buf)
 {
@@ -281,13 +301,14 @@ void Lcd_Handle(void)
 				{
 					//printf("PA\r\n");
 					LCD_Info_Ptr->ViewPage = LCD_MainPage;
-					LCD_Info_Ptr->mainPage.battery_report();
+					LCD_Info_Ptr->mainPage.commonReport.battery_report();
+					LCD_Info_Ptr->mainPage.mainstateReport();
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					WarningLedCtrlPtr->twinkleNum = 2;
 				}
 				else if('B' == receive_buf[1])//称重页面
 				{
-					LCD_Info_Ptr->weightPage.battery_report();
+					LCD_Info_Ptr->weightPage.commonReport.battery_report();
 					//printf("PB\r\n");
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 					LCD_Info_Ptr->ViewPage = LCD_WeightPage;
@@ -297,7 +318,7 @@ void Lcd_Handle(void)
 				{
 					//printf("PC\r\n");
 					LCD_Info_Ptr->ViewPage = LCD_SystemPage;
-					LCD_Info_Ptr->systemPage.battery_report();
+					LCD_Info_Ptr->systemPage.commonReport.battery_report();
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 				}	
 				else if('D' == receive_buf[1])//手动控制页面
@@ -305,7 +326,7 @@ void Lcd_Handle(void)
 					////进入手动控制界面////
 					//printf("PD\r\n");
 					LCD_Info_Ptr->ViewPage = LCD_ManualPage;
-					LCD_Info_Ptr->manualPage.battery_report();
+					LCD_Info_Ptr->manualPage.commonReport.battery_report();
 					ctrlParasPtr->agvWalkingMode = ManualMode;
 					ctrlParasPtr->manualCtrl = Man_Stop;
 					#if USE_ECV
@@ -319,14 +340,14 @@ void Lcd_Handle(void)
 				{	
 					//printf("PE\r\n");					
 					LCD_Info_Ptr->ViewPage = LCD_HelpPage;
-					LCD_Info_Ptr->helpPage.battery_report();
+					LCD_Info_Ptr->helpPage.commonReport.battery_report();
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 				}
 				else if('F' == receive_buf[1])
 				{	
 					//printf("PF\r\n");					
 					LCD_Info_Ptr->ViewPage = LCD_AuthorityPage;
-					LCD_Info_Ptr->authorityPage.battery_report();
+					LCD_Info_Ptr->authorityPage.commonReport.battery_report();
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 				}
 				else if('G' == receive_buf[1])
@@ -342,14 +363,14 @@ void Lcd_Handle(void)
 					//printf("PH\r\n");
 					
 					LCD_Info_Ptr->ViewPage = LCD_RfidPage;
-					LCD_Info_Ptr->rfidPage.battery_report();
+					LCD_Info_Ptr->rfidPage.commonReport.battery_report();
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 				}
 				else if('K' == receive_buf[1])//任务统计页面
 				{		
 					//printf("PK\r\n");
 					LCD_Info_Ptr->ViewPage = LCD_TaskPage;
-					LCD_Info_Ptr->taskPage.battery_report();
+					LCD_Info_Ptr->taskPage.commonReport.battery_report();
 					//Set_task_state(task_state);	
 					ctrlParasPtr->agvWalkingMode = AutomaticMode;
 				}
@@ -434,13 +455,23 @@ void LCD_Page_Report(void)
 	{
 		if(LCD_MainPage == LCD_Info_Ptr->ViewPage)
 		{
+			static u8 StationRec = 0xFF;
+			
 			if(1 == BatteryInfoPtr->BatteryUpdate)
 			{
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("main_battery.value=");
-				LCD_Info_Ptr->mainPage.battery_report();
+				LCD_Info_Ptr->mainPage.commonReport.battery_report();
 			}
+			
+			if(StationRec != Zigbee_Ptr->runningInfo.Req_Station)
+			{
+				StationRec = Zigbee_Ptr->runningInfo.Req_Station;
+				
+				LCD_Info_Ptr->mainPage.mainstateReport();
+			}
+			
 		}
 		else if(LCD_WeightPage == LCD_Info_Ptr->ViewPage)
 		{
@@ -455,7 +486,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("scale_battery.value=");
-				LCD_Info_Ptr->weightPage.battery_report();
+				LCD_Info_Ptr->weightPage.commonReport.battery_report();
 			}
 			
 		}
@@ -466,7 +497,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("systemSetup_battery.value=");
-				LCD_Info_Ptr->systemPage.battery_report();
+				LCD_Info_Ptr->systemPage.commonReport.battery_report();
 			}
 		}
 		else if(LCD_ManualPage == LCD_Info_Ptr->ViewPage)
@@ -476,7 +507,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("manualControl_battery.value=");
-				LCD_Info_Ptr->manualPage.battery_report();
+				LCD_Info_Ptr->manualPage.commonReport.battery_report();
 			}
 		}
 		else if(LCD_HelpPage == LCD_Info_Ptr->ViewPage)
@@ -486,7 +517,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("help_battery.value=");
-				LCD_Info_Ptr->helpPage.battery_report();
+				LCD_Info_Ptr->helpPage.commonReport.battery_report();
 			}
 		}
 		else if(LCD_AuthorityPage == LCD_Info_Ptr->ViewPage)
@@ -496,7 +527,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("authority_battery.value=");
-				LCD_Info_Ptr->authorityPage.battery_report();
+				LCD_Info_Ptr->authorityPage.commonReport.battery_report();
 			}
 		}
 		else if(LCD_DataoutPage == LCD_Info_Ptr->ViewPage)
@@ -510,7 +541,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("rfidSetup_battery.value=");
-				LCD_Info_Ptr->rfidPage.battery_report();
+				LCD_Info_Ptr->rfidPage.commonReport.battery_report();
 			}
 		}
 		else if(LCD_TaskPage == LCD_Info_Ptr->ViewPage)
@@ -520,7 +551,7 @@ void LCD_Page_Report(void)
 				BatteryInfoPtr->BatteryUpdate = 0;
 
 				//LCD_Report_Battery("task_battery.value=");
-				LCD_Info_Ptr->taskPage.battery_report();
+				LCD_Info_Ptr->taskPage.commonReport.battery_report();
 			}
 		}
 		
@@ -740,24 +771,28 @@ void LCD_Struct_Init(void)
 {
 	LCD_Info_Ptr->ViewPage = LCD_MainPage;
 
-	LCD_Info_Ptr->mainPage.battery_report = LCD_Report_MainPage_Battery;
-	LCD_Info_Ptr->weightPage.battery_report = LCD_Report_WeightPage_Battery;
-	LCD_Info_Ptr->systemPage.battery_report = LCD_Report_SystemPage_Battery;
-	LCD_Info_Ptr->manualPage.battery_report = LCD_Report_ManualPage_Battery;
-	LCD_Info_Ptr->helpPage.battery_report = LCD_Report_HelpPage_Battery;
-	LCD_Info_Ptr->authorityPage.battery_report = LCD_Report_AuthorityPage_Battery;
-	LCD_Info_Ptr->rfidPage.battery_report = LCD_Report_RfidPage_Battery;
-	LCD_Info_Ptr->taskPage.battery_report = LCD_Report_TaskPage_Battery;
+	LCD_Info_Ptr->mainPage.commonReport.battery_report = LCD_Report_MainPage_Battery;
+	LCD_Info_Ptr->weightPage.commonReport.battery_report = LCD_Report_WeightPage_Battery;
+	LCD_Info_Ptr->systemPage.commonReport.battery_report = LCD_Report_SystemPage_Battery;
+	LCD_Info_Ptr->manualPage.commonReport.battery_report = LCD_Report_ManualPage_Battery;
+	LCD_Info_Ptr->helpPage.commonReport.battery_report = LCD_Report_HelpPage_Battery;
+	LCD_Info_Ptr->authorityPage.commonReport.battery_report = LCD_Report_AuthorityPage_Battery;
+	LCD_Info_Ptr->rfidPage.commonReport.battery_report = LCD_Report_RfidPage_Battery;
+	LCD_Info_Ptr->taskPage.commonReport.battery_report = LCD_Report_TaskPage_Battery;
 
-	LCD_Info_Ptr->mainPage.show = Main_Screen_Show;
-	LCD_Info_Ptr->weightPage.show = Weight_Screen_Show;
-	LCD_Info_Ptr->taskPage.show = Task_Screen_Show;
-	LCD_Info_Ptr->rfidPage.show = RFID_Screen_Show;
-	LCD_Info_Ptr->systemPage.show = System_Screen_Show;
-	LCD_Info_Ptr->helpPage.show = Help_Screen_Show;
-	LCD_Info_Ptr->dataOutPage.show = Dataout_Screen_Show;
-	LCD_Info_Ptr->manualPage.show = Manual_Screen_Show;
-	LCD_Info_Ptr->authorityPage.show = Authority_Screen_Show;
+	LCD_Info_Ptr->mainPage.commonReport.show = Main_Screen_Show;
+	LCD_Info_Ptr->weightPage.commonReport.show = Weight_Screen_Show;
+	LCD_Info_Ptr->taskPage.commonReport.show = Task_Screen_Show;
+	LCD_Info_Ptr->rfidPage.commonReport.show = RFID_Screen_Show;
+	LCD_Info_Ptr->systemPage.commonReport.show = System_Screen_Show;
+	LCD_Info_Ptr->helpPage.commonReport.show = Help_Screen_Show;
+	LCD_Info_Ptr->dataOutPage.commonReport.show = Dataout_Screen_Show;
+	LCD_Info_Ptr->manualPage.commonReport.show = Manual_Screen_Show;
+	LCD_Info_Ptr->authorityPage.commonReport.show = Authority_Screen_Show;
+	
+	LCD_Info_Ptr->mainPage.mainstateReport = Set_Main_state;
+	LCD_Info_Ptr->taskPage.taskstateReport= Set_task_state;
+	
 }
 
 

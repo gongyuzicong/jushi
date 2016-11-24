@@ -17,7 +17,7 @@
 /******************数据和函数定义*********************/
 #define baurd_uart1 (u32)19200
 
-typedef struct
+typedef struct ZigbeeInfo
 {
 	u8 ZigbeeDataUpdateFlag;
 	u8 recvValidDataFlag;
@@ -26,6 +26,10 @@ typedef struct
 
 	u8 ZigbeeSendCmdData[8];
 	ReqQueueStr runningInfo;
+
+	void (*SendLmAgvFree)(void);
+	void (*SendLmAgvBusy)(void);
+	
 }Zigbee_Info, *Zigbee_Info_P;
 
 typedef enum
@@ -79,6 +83,8 @@ void Send_GettedGoods(void);
 void Send_Zigbee_LM_ACK(void);
 void Send_FiberMachine(void);
 void ZB_Data_Receive_handle(void);
+void Send_LM_Agv_Busy(void);
+void Send_LM_Agv_Free(void);
 
 
 #endif

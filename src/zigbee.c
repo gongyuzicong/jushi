@@ -22,11 +22,11 @@ ZigbeeID_Info Id_Arr[12];
 
 #define WaitForGoods()			{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x01;}
 #define AgvArrive()				{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x02;}
-#define AgvAbnormal()			{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x03;}
 #define GetGoods()				{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x01;}
 #define MachineAutoRun()		{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x05;}
 #define Ack()					{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x8F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0xFF;}
-
+#define AgvFree()				{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x04;}
+#define AgvBusy()				{Zigbee_Ptr->ZigbeeSendCmdData[6] = 0x7F; Zigbee_Ptr->ZigbeeSendCmdData[7] = 0x03;}
 /*
 u8 nc_send1[8]=
 	{0xfe, 0x08, 0x73, 0xD7, 0x01, 0x02, 0x7F, 0x01};//小车已取物请龙门准备
@@ -158,6 +158,52 @@ void Send_Zigbee_LM_ACK(void)
 	}
 	
 }
+
+void Send_LM_Agv_Busy(void)
+{
+	u8 cir = 8;
+
+	AgvBusy();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[11].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[11].zigbee_ID2;
+	
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_LM_Somebody_Req\r\n");
+		}
+		
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
+		ZigbeeResendInfo_Ptr->resendFlag = 1;
+		ZigbeeResendInfo_Ptr->resendInfo = Zigbee_Ptr->ZigbeeSendCmdData;
+	}
+	
+}
+
+
+void Send_LM_Agv_Free(void)
+{
+	u8 cir = 8;
+
+	AgvFree();
+	Zigbee_Ptr->ZigbeeSendCmdData[2] = Id_Arr[11].zigbee_ID1;
+	Zigbee_Ptr->ZigbeeSendCmdData[3] = Id_Arr[11].zigbee_ID2;
+	
+	for(cir = 0; cir < 8; cir++)
+	{
+		if(0 == cir)
+		{
+			printf("Send_LM_Queue_Empty\r\n");
+		}
+		
+		SendChar_Zigbee(Zigbee_Ptr->ZigbeeSendCmdData[cir]);
+		ZigbeeResendInfo_Ptr->resendFlag = 1;
+		ZigbeeResendInfo_Ptr->resendInfo = Zigbee_Ptr->ZigbeeSendCmdData;
+	}
+	
+}
+
 
 
 void UART2_REC_IRQ(u8 UART2_DR)//串口接收中断函数
@@ -548,7 +594,6 @@ void Send_Arrive(void)
 	//ZigbeeResendInfo_Ptr->resendInfo = nc_send2;
 }
 
-
 void ZigbeeWaitForAck(void)
 {
 	static u32 recTime = 0;
@@ -744,6 +789,9 @@ void Zigbee_Init(void)
 	ZigbeeResendInfo_Ptr->intervalTime_ms = 500;
 	ZigbeeResendInfo_Ptr->resendNum = 30;
 	ZigbeeResendInfo_Ptr->resendCtrlFunc = ZigbeeWaitForAck;
+
+	Zigbee_Ptr->SendLmAgvBusy = Send_LM_Agv_Busy;
+	Zigbee_Ptr->SendLmAgvFree = Send_LM_Agv_Free;
 }
 
 
